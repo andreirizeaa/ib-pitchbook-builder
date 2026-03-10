@@ -56,12 +56,12 @@ export default function DashboardPage() {
   }[type] || type);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 p-4">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-500 mt-1">Generate and manage your pitch books</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Generate and manage your pitch books</p>
         </div>
         <Link href="/pitchbooks/new">
           <Button className="gap-2">
@@ -75,12 +75,12 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
-                <FileText className="w-6 h-6 text-[#003366]" />
+              <div className="w-12 h-12 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
+                <FileText className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Total Pitch Books</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Pitch Books</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{stats.total}</p>
               </div>
             </div>
           </CardContent>
@@ -88,12 +88,12 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 bg-green-600 dark:bg-green-500 rounded-lg flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">Completed</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.completed}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{stats.completed}</p>
               </div>
             </div>
           </CardContent>
@@ -101,12 +101,12 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-50 rounded-lg flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-purple-600 dark:bg-purple-500 rounded-lg flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
               <div>
-                <p className="text-sm text-gray-500">In Progress</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.generating}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">In Progress</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{stats.generating}</p>
               </div>
             </div>
           </CardContent>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Recent Pitch Books</CardTitle>
-            <Link href="/pitchbooks" className="text-sm text-[#003366] hover:underline">
+            <Link href="/pitchbooks" className="text-sm text-[var(--primary)] hover:underline">
               View all →
             </Link>
           </div>
@@ -144,13 +144,13 @@ export default function DashboardPage() {
                 <Link
                   key={pb.id}
                   href={`/pitchbooks/${pb.id}`}
-                  className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg border hover:bg-gray-50 dark:hover:bg-[var(--accent)] transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     {statusIcon(pb.status)}
                     <div>
-                      <p className="font-medium text-gray-900">{pb.title}</p>
-                      <p className="text-sm text-gray-500">{pb.company} · {formatPbType(pb.pb_type)}</p>
+                      <p className="font-medium" style={{ color: 'var(--foreground)' }}>{pb.title}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{pb.company} · {formatPbType(pb.pb_type)}</p>
                     </div>
                   </div>
                   <div className="text-sm text-gray-400">

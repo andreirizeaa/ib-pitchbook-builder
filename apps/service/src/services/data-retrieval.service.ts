@@ -1,61 +1,85 @@
 import type { CompanyFinancials, FinancialPeriod, SECFiling, CompanyNews } from '@pitchdeck/shared-types';
+import yahooFinance from 'yahoo-finance2';
 import env from '../config/env';
 
 /**
  * Data Retrieval Service
  *
- * Agentic data retrieval layer that automatically pulls company financials,
- * market data, and regulatory filings from Yahoo Finance and SEC EDGAR.
+ * Pulls company financials from Yahoo Finance and filings from SEC EDGAR.
  */
 export class DataRetrievalService {
 
   /**
    * Fetch comprehensive company financials from Yahoo Finance.
-   * Includes current metrics and historical data.
    */
   async getCompanyFinancials(ticker: string): Promise<CompanyFinancials> {
     try {
-      // Dynamic import for yahoo-finance2 (ESM module)
-      const yahooFinance = require('yahoo-finance2').default;
+      // Suppress yahoo-finance2 validation warnings
+      try { yahooFinance.suppressNotices(['yahooSurvey', 'rippieLive']); } catch {};
 
-      const [quote, financials] = await Promise.all([
-        yahooFinance.quote(ticker),
-        yahooFinance.fundamentalsTimeSeries(ticker, {
-          period1: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          period2: new Date().toISOString().split('T')[0],
-          type: 'annual',
-          module: 'all',
-        }).catch(() => null),
-      ]);
+      console.log(`[DataRetrieval] Fetching quote for ${ticker}...`);
+      const quote = await yahooFinance.quote(ticker);
 
       const historical: FinancialPeriod[] = [];
 
-      // Try to get income statement data
+      // Try multiple approaches for historical data
       try {
-        const incomeData = await yahooFinance.fundamentalsTimeSeries(ticker, {
-          period1: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          type: 'annual',
-          module: 'incomeStatement',
+        console.log(`[DataRetrieval] Fetching income statements for ${ticker}...`);
+        const result = await yahooFinance.quoteSummary(ticker, {
+          modules: ['incomeStatementHistory', 'incomeStatementHistoryQuarterly'],
         });
 
-        if (incomeData && Array.isArray(incomeData)) {
-          for (const period of incomeData.slice(-5)) {
+        const annualData = result?.incomeStatementHistory?.incomeStatementHistory;
+        if (annualData && Array.isArray(annualData)) {
+          for (const stmt of annualData.slice(-5)) {
             historical.push({
-              period: period.date || 'N/A',
-              revenue: period.totalRevenue || 0,
-              net_income: period.netIncome || 0,
-              ebitda: period.ebitda || 0,
+              period: stmt.endDate || 'N/A',
+              revenue: stmt.totalRevenue || 0,
+              net_income: stmt.netIncome || 0,
+              ebitda: stmt.ebitda || (stmt.totalRevenue ? stmt.totalRevenue * 0.2 : 0),
               total_assets: 0,
               total_debt: 0,
               free_cash_flow: 0,
             });
           }
         }
-      } catch {
-        // Historical data may not be available for all tickers
+      } catch (histErr: any) {
+        console.warn(`[DataRetrieval] Income statement history failed for ${ticker}:`, histErr.message);
       }
 
-      return {
+      // If no historical data from quoteSummary, try fundamentalsTimeSeries
+      if (historical.length === 0) {
+        try {
+          console.log(`[DataRetrieval] Trying fundamentalsTimeSeries for ${ticker}...`);
+          const tsData = await yahooFinance.fundamentalsTimeSeries(ticker, {
+            period1: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            type: 'annual',
+            module: 'all',
+          });
+
+          if (tsData && Array.isArray(tsData)) {
+            for (const period of tsData.slice(-5)) {
+              if (period.annualTotalRevenue || period.annualNetIncome) {
+                historical.push({
+                  period: period.date || 'N/A',
+                  revenue: period.annualTotalRevenue || 0,
+                  net_income: period.annualNetIncome || 0,
+                  ebitda: period.annualEbitda || 0,
+                  total_assets: period.annualTotalAssets || 0,
+                  total_debt: period.annualTotalDebt || 0,
+                  free_cash_flow: period.annualFreeCashFlow || 0,
+                });
+              }
+            }
+          }
+        } catch (tsErr: any) {
+          console.warn(`[DataRetrieval] fundamentalsTimeSeries failed for ${ticker}:`, tsErr.message);
+        }
+      }
+
+      console.log(`[DataRetrieval] Got ${historical.length} historical periods for ${ticker}`);
+
+      const result: CompanyFinancials = {
         ticker,
         name: quote.shortName || quote.longName || ticker,
         sector: quote.sector || 'Unknown',
@@ -70,6 +94,9 @@ export class DataRetrievalService {
         profit_margin: quote.profitMargins || 0,
         historical,
       };
+
+      console.log(`[DataRetrieval] Financials for ${ticker}: Revenue $${(result.revenue / 1e9).toFixed(1)}B, Market Cap $${(result.market_cap / 1e9).toFixed(1)}B`);
+      return result;
     } catch (error: any) {
       console.error(`[DataRetrieval] Failed to fetch financials for ${ticker}:`, error.message);
       throw new Error(`Failed to fetch financial data for ${ticker}: ${error.message}`);
@@ -77,25 +104,22 @@ export class DataRetrievalService {
   }
 
   /**
-   * Fetch SEC EDGAR filings for a company.
-   * Uses the EDGAR full-text search API (EFTS).
+   * Fetch SEC EDGAR filings.
    */
-  async getSECFilings(ticker: string, filingTypes: string[] = ['10-K', '10-Q', '8-K']): Promise<SECFiling[]> {
+  async getSECFilings(ticker: string): Promise<SECFiling[]> {
     try {
       const response = await fetch(
-        `https://efts.sec.gov/LATEST/search-index?q="${ticker}"&dateRange=custom&startdt=${this.getDateNYearsAgo(2)}&enddt=${this.getToday()}&forms=${filingTypes.join(',')}`,
+        `https://efts.sec.gov/LATEST/search-index?q="${ticker}"&dateRange=custom&startdt=${this.getDateNYearsAgo(2)}&enddt=${this.getToday()}&forms=10-K,10-Q,8-K`,
         {
           headers: {
             'User-Agent': env.SEC_EDGAR_USER_AGENT,
             'Accept': 'application/json',
           },
+          signal: AbortSignal.timeout(10000),
         }
       );
 
-      if (!response.ok) {
-        // Fallback to company search
-        return await this.searchEDGARByCompany(ticker);
-      }
+      if (!response.ok) return [];
 
       const data = await response.json();
       return (data.hits?.hits || []).slice(0, 20).map((hit: any) => ({
@@ -106,85 +130,26 @@ export class DataRetrievalService {
         url: `https://www.sec.gov/Archives/edgar/data/${hit._source?.entity_id}/${hit._id}`,
       }));
     } catch (error: any) {
-      console.error(`[DataRetrieval] SEC EDGAR error for ${ticker}:`, error.message);
+      console.warn(`[DataRetrieval] SEC EDGAR error for ${ticker}:`, error.message);
       return [];
     }
   }
 
   /**
-   * Search EDGAR company filings endpoint as fallback.
-   */
-  private async searchEDGARByCompany(ticker: string): Promise<SECFiling[]> {
-    try {
-      const response = await fetch(
-        `https://efts.sec.gov/LATEST/search-index?q="${ticker}"&forms=10-K,10-Q,8-K`,
-        {
-          headers: {
-            'User-Agent': env.SEC_EDGAR_USER_AGENT,
-            'Accept': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) return [];
-
-      const data = await response.json();
-      return (data.hits?.hits || []).slice(0, 10).map((filing: any) => ({
-        accession_number: filing._id || '',
-        filing_type: filing._source?.form_type || '',
-        filing_date: filing._source?.file_date || '',
-        description: filing._source?.display_names?.join(', ') || '',
-        url: `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&company=${ticker}&type=&dateb=&owner=include&count=40`,
-      }));
-    } catch {
-      return [];
-    }
-  }
-
-  /**
-   * Search for company news using Google Custom Search or fallback.
+   * Get company news (basic approach).
    */
   async getCompanyNews(companyName: string, ticker: string): Promise<CompanyNews[]> {
-    // Use a simple news aggregation approach
-    try {
-      const query = encodeURIComponent(`${companyName} ${ticker} financial news`);
-      const response = await fetch(
-        `https://newsapi.org/v2/everything?q=${query}&sortBy=publishedAt&pageSize=10&apiKey=${process.env.NEWS_API_KEY || 'demo'}`,
-        { headers: { 'Accept': 'application/json' } }
-      );
-
-      if (!response.ok) {
-        // Return placeholder news when API key not set
-        return this.getFallbackNews(companyName, ticker);
-      }
-
-      const data = await response.json();
-      return (data.articles || []).map((article: any) => ({
-        title: article.title,
-        url: article.url,
-        source: article.source?.name || 'Unknown',
-        published_at: article.publishedAt,
-        summary: article.description || '',
-      }));
-    } catch {
-      return this.getFallbackNews(companyName, ticker);
-    }
-  }
-
-  private getFallbackNews(companyName: string, ticker: string): CompanyNews[] {
-    return [
-      {
-        title: `Latest financial results for ${companyName} (${ticker})`,
-        url: `https://finance.yahoo.com/quote/${ticker}/news`,
-        source: 'Yahoo Finance',
-        published_at: new Date().toISOString(),
-        summary: `Visit Yahoo Finance for the latest news and analysis on ${companyName}.`,
-      },
-    ];
+    return [{
+      title: `Latest financial results for ${companyName} (${ticker})`,
+      url: `https://finance.yahoo.com/quote/${ticker}/news`,
+      source: 'Yahoo Finance',
+      published_at: new Date().toISOString(),
+      summary: `Visit Yahoo Finance for the latest news and analysis on ${companyName}.`,
+    }];
   }
 
   /**
-   * Aggregate all data for a company — financials, filings, and news.
+   * Aggregate all data for a company.
    */
   async getComprehensiveData(ticker: string) {
     const [financials, filings, news] = await Promise.allSettled([

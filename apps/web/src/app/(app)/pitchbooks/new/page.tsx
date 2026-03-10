@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, Upload, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -8,14 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { TickerSearch } from '@/components/app/ticker-search';
 import { useAuth } from '@/providers/auth-provider';
-import { apiClient } from '@/lib/api';
+import { apiClient, API_URL } from '@/lib/api';
 import { toast } from 'sonner';
 
 const pbTypes = [
   { value: 'company_overview', label: 'Company Overview', desc: 'Business overview, financials, and market position' },
+  { value: 'investor_pitch', label: 'Investor Pitch', desc: 'Investment thesis, opportunity, and returns potential' },
   { value: 'market_update', label: 'Market Update', desc: 'Sector trends, M&A activity, and market outlook' },
   { value: 'transaction_summary', label: 'Transaction Summary', desc: 'Deal structure, rationale, and financial analysis' },
+  { value: 'industry_overview', label: 'Industry Overview', desc: 'Sector landscape, key players, and market dynamics' },
+  { value: 'fundraising_deck', label: 'Fundraising Deck', desc: 'Capital raise story, use of proceeds, and projections' },
+  { value: 'due_diligence', label: 'Due Diligence', desc: 'Deep-dive analysis, risks, and financial audit' },
 ];
 
 const txTypes = [
@@ -34,41 +39,61 @@ export default function NewPitchBookPage() {
     title: '',
     company: '',
     ticker: '',
-    pb_type: 'company_overview',
-    transaction_type: 'ma',
+    pb_type: '',
+    transaction_type: '',
     additional_context: '',
   });
   const [templateFile, setTemplateFile] = useState<File | null>(null);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [templateMode, setTemplateMode] = useState<'existing' | 'upload'>('existing');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const updateForm = (field: string, value: string) => setForm(prev => ({ ...prev, [field]: value }));
+
+  useEffect(() => {
+    if (!session?.access_token) return;
+
+    setIsLoadingTemplates(true);
+    apiClient<any>('/api/templates', { token: session.access_token })
+      .then(res => setTemplates(res.data || []))
+      .catch(() => {})
+      .finally(() => setIsLoadingTemplates(false));
+  }, [session?.access_token]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.title || !form.company) {
+    if (!form.title || !form.company || !form.pb_type) {
       toast.error('Please fill in the required fields');
       return;
     }
 
     setIsSubmitting(true);
     try {
-      // Upload template first if provided
+      // Resolve templateId based on mode
       let templateId: string | undefined;
-      if (templateFile && session?.access_token) {
+
+      if (templateMode === 'existing') {
+        templateId = selectedTemplateId || undefined;
+      } else if (templateMode === 'upload' && templateFile && session?.access_token) {
         const formData = new FormData();
         formData.append('file', templateFile);
         formData.append('name', templateFile.name);
 
-        const uploadRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/templates/analyze`, {
+        const uploadRes = await fetch(`${API_URL}/api/templates/analyze`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${session.access_token}` },
           body: formData,
         });
 
-        if (uploadRes.ok) {
-          const uploadData = await uploadRes.json();
-          templateId = uploadData.data?.id;
+        if (!uploadRes.ok) {
+          throw new Error('Failed to upload template');
         }
+
+        const uploadData = await uploadRes.json();
+        templateId = uploadData.data?.id;
       }
 
       const res = await apiClient<any>('/api/pitchbooks', {
@@ -87,9 +112,9 @@ export default function NewPitchBookPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6 p-4">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">New Pitch Book</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>New Pitch Book</h1>
         <p className="text-gray-500 mt-1">Fill in the details and let AI generate your pitch book.</p>
       </div>
 
@@ -120,96 +145,164 @@ export default function NewPitchBookPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="ticker">Ticker Symbol</Label>
-                <Input
-                  id="ticker" placeholder="e.g. AAPL"
-                  value={form.ticker} onChange={(e) => updateForm('ticker', e.target.value.toUpperCase())}
-                  className="h-12"
+                <TickerSearch
+                  value={form.ticker}
+                  onChange={(ticker) => updateForm('ticker', ticker)}
+                  onCompanySelect={(name) => updateForm('company', name)}
                 />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Pitch Book Type */}
+        {/* Pitch Book Type & Transaction Type */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Pitch Book Type</CardTitle>
-            <CardDescription>Select the type of presentation to generate</CardDescription>
+            <CardTitle className="text-lg">Presentation Details</CardTitle>
+            <CardDescription>Select the type of presentation and transaction context</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid gap-3">
-              {pbTypes.map((type) => (
-                <label
-                  key={type.value}
-                  className={`flex items-start gap-3 p-4 rounded-lg border cursor-pointer transition-colors ${
-                    form.pb_type === type.value ? 'border-[#003366] bg-blue-50' : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <input
-                    type="radio" name="pb_type" value={type.value}
-                    checked={form.pb_type === type.value}
-                    onChange={(e) => updateForm('pb_type', e.target.value)}
-                    className="mt-1"
-                  />
-                  <div>
-                    <p className="font-medium text-gray-900">{type.label}</p>
-                    <p className="text-sm text-gray-500">{type.desc}</p>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Transaction Type */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Transaction Context</CardTitle>
-          </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label>Transaction Type</Label>
-              <div className="flex flex-wrap gap-2">
-                {txTypes.map((type) => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => updateForm('transaction_type', type.value)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      form.transaction_type === type.value
-                        ? 'bg-[#003366] text-white'
-                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  >
-                    {type.label}
-                  </button>
+              <Label htmlFor="pb_type">Pitch Book Type *</Label>
+              <select
+                id="pb_type"
+                value={form.pb_type}
+                onChange={(e) => updateForm('pb_type', e.target.value)}
+                className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                style={{ color: form.pb_type ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+              >
+                <option value="" disabled>Select pitch book type...</option>
+                {pbTypes.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
                 ))}
-              </div>
+              </select>
+              {form.pb_type && (
+                <p className="text-xs text-[var(--muted-foreground)]">
+                  {pbTypes.find(t => t.value === form.pb_type)?.desc}
+                </p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tx_type">Transaction Type</Label>
+              <select
+                id="tx_type"
+                value={form.transaction_type}
+                onChange={(e) => updateForm('transaction_type', e.target.value)}
+                className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                style={{ color: form.transaction_type ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+              >
+                <option value="" disabled>Select transaction type...</option>
+                {txTypes.map((type) => (
+                  <option key={type.value} value={type.value}>{type.label}</option>
+                ))}
+              </select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Template Upload */}
+        {/* Template selection / upload */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Reference Template</CardTitle>
-            <CardDescription>Upload your firm&apos;s .pptx template (optional — defaults will be used otherwise)</CardDescription>
+            <CardDescription>
+              Use one of your existing templates or upload a new .pptx (optional — defaults will be used otherwise).
+            </CardDescription>
           </CardHeader>
-          <CardContent>
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-              <div className="flex flex-col items-center gap-2">
-                <Upload className="w-8 h-8 text-gray-400" />
-                <p className="text-sm text-gray-500">
-                  {templateFile ? templateFile.name : 'Click to upload .pptx template'}
+          <CardContent className="space-y-4">
+            {/* Mode toggle */}
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => setTemplateMode('existing')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  templateMode === 'existing'
+                    ? 'border-[var(--primary)] bg-[var(--primary)] text-white dark:text-[var(--primary-foreground)]'
+                    : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
+                }`}
+                style={templateMode !== 'existing' ? { color: 'var(--foreground)' } : undefined}
+              >
+                Use existing template
+              </button>
+              <button
+                type="button"
+                onClick={() => setTemplateMode('upload')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  templateMode === 'upload'
+                    ? 'border-[var(--primary)] bg-[var(--primary)] text-white dark:text-[var(--primary-foreground)]'
+                    : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
+                }`}
+                style={templateMode !== 'upload' ? { color: 'var(--foreground)' } : undefined}
+              >
+                Upload new template
+              </button>
+            </div>
+
+            {templateMode === 'existing' ? (
+              <div className="space-y-3">
+                {isLoadingTemplates ? (
+                  <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    Loading templates...
+                  </div>
+                ) : templates.length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    You don&apos;t have any templates yet. You can switch to &quot;Upload new template&quot; or create one on the
+                    Templates page.
+                  </p>
+                ) : (
+                  <div className="grid gap-3">
+                    {templates.map((tmpl) => (
+                      <label
+                        key={tmpl.id}
+                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                          selectedTemplateId === tmpl.id
+                            ? 'border-[var(--primary)] bg-[var(--primary)]'
+                            : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input
+                            type="radio"
+                            name="template"
+                            value={tmpl.id}
+                            checked={selectedTemplateId === tmpl.id}
+                            onChange={() => setSelectedTemplateId(tmpl.id)}
+                            className="mt-0.5 accent-white"
+                          />
+                          <div>
+                            <p className="font-medium" style={{ color: selectedTemplateId === tmpl.id ? 'white' : 'var(--foreground)' }}>{tmpl.name}</p>
+                            <p className={`text-xs ${selectedTemplateId === tmpl.id ? 'text-white/80' : 'text-gray-500'}`}>
+                              {new Date(tmpl.created_at).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div>
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-8 h-8 text-gray-400" />
+                    <p className="text-sm text-gray-500">
+                      {templateFile ? templateFile.name : 'Click to upload .pptx template'}
+                    </p>
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pptx"
+                    className="hidden"
+                    onChange={(e) => setTemplateFile(e.target.files?.[0] || null)}
+                  />
+                </label>
+                <p className="mt-2 text-xs text-gray-400">
+                  The uploaded template will be stored and available under your Templates.
                 </p>
               </div>
-              <input
-                type="file"
-                accept=".pptx"
-                className="hidden"
-                onChange={(e) => setTemplateFile(e.target.files?.[0] || null)}
-              />
-            </label>
+            )}
           </CardContent>
         </Card>
 

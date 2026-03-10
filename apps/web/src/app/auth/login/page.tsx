@@ -41,10 +41,10 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">Welcome back</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>Welcome back</h2>
+        <p className="text-sm text-[var(--muted-foreground)]">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/register" className="text-[#003366] font-medium hover:underline">
+          <Link href="/auth/register" className="text-[#003366] dark:text-blue-400 font-medium hover:underline">
             Sign up
           </Link>
         </p>
@@ -67,7 +67,7 @@ export default function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link href="/auth/forgot-password" className="text-sm text-[#003366] hover:underline">
+            <Link href="/auth/forgot-password" className="text-sm text-[#003366] dark:text-blue-400 hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -103,10 +103,10 @@ export default function LoginPage() {
         </Button>
       </form>
 
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center text-sm text-[var(--muted-foreground)]">
         By signing in, you agree to our{' '}
-        <a href="#" className="underline hover:text-gray-700">Terms</a> and{' '}
-        <a href="#" className="underline hover:text-gray-700">Privacy Policy</a>.
+        <a href="#" className="underline hover:text-[var(--foreground)]">Terms</a> and{' '}
+        <a href="#" className="underline hover:text-[var(--foreground)]">Privacy Policy</a>.
       </div>
     </div>
   );

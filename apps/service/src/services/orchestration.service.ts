@@ -1,10 +1,12 @@
 import type { PitchBook, Generation, CreatePitchBookRequest } from '@pitchdeck/shared-types';
 import { v4 as uuid } from 'uuid';
+import yahooFinance from 'yahoo-finance2';
 import { supabaseAdmin } from '../lib/supabase';
 import { templateAnalyser } from './template-analyser.service';
 import { dataRetrieval } from './data-retrieval.service';
 import { contentPlanner } from './content-planner.service';
 import { slideBuilder } from './slide-builder.service';
+import { pptxPreview } from './pptx-preview.service';
 import env from '../config/env';
 
 /**
@@ -98,11 +100,36 @@ export class OrchestrationService {
       let filings: any[] = [];
       let news: any[] = [];
 
-      if (request.ticker) {
-        const data = await dataRetrieval.getComprehensiveData(request.ticker);
-        financials = data.financials;
-        filings = data.filings;
-        news = data.news;
+      let ticker: string | undefined = request.ticker;
+
+      // Try provided ticker first, then fall back to searching by company name
+      if (ticker) {
+        try {
+          const data = await dataRetrieval.getComprehensiveData(ticker);
+          financials = data.financials;
+          filings = data.filings;
+          news = data.news;
+        } catch (err: any) {
+          console.warn(`[Orchestration] Ticker "${ticker}" failed: ${err.message}. Trying company name search...`);
+          const resolved = await this.resolveTickerFromName(request.company);
+          if (resolved) {
+            ticker = resolved;
+            const data = await dataRetrieval.getComprehensiveData(ticker);
+            financials = data.financials;
+            filings = data.filings;
+            news = data.news;
+          }
+        }
+      } else if (request.company) {
+        // No ticker provided, try to find one from company name
+        const resolved = await this.resolveTickerFromName(request.company);
+        if (resolved) {
+          ticker = resolved;
+          const data = await dataRetrieval.getComprehensiveData(ticker);
+          financials = data.financials;
+          filings = data.filings;
+          news = data.news;
+        }
       }
 
       // Step 3: Plan content
@@ -110,7 +137,7 @@ export class OrchestrationService {
 
       const contentPlan = await contentPlanner.generateContentPlan({
         company: request.company,
-        ticker: request.ticker,
+        ticker: ticker || request.ticker,
         pbType: request.pb_type,
         transactionType: request.transaction_type,
         financials,
@@ -121,9 +148,15 @@ export class OrchestrationService {
       // Step 4: Build slides
       await this.updateGeneration(generationId, 'building_slides', 75, 'Building presentation...');
 
-      const { buffer, slidesData } = await slideBuilder.buildPresentation(contentPlan, templateAnalysis);
+      const { buffer, slidesData } = await slideBuilder.buildPresentation(contentPlan, templateAnalysis, {
+        pbType: request.pb_type,
+        company: request.company,
+        ticker: ticker || request.ticker,
+        colorTheme: request.color_theme,
+        designStyle: request.design_style,
+      });
 
-      // Step 5: Upload file to Supabase Storage
+      // Step 5: Upload PPTX file to Supabase Storage
       const fileName = `${pitchBookId}/${request.company.replace(/\s+/g, '_')}_pitch_book.pptx`;
       const { error: uploadError } = await supabaseAdmin.storage
         .from(env.STORAGE_BUCKET)
@@ -135,13 +168,35 @@ export class OrchestrationService {
         fileUrl = urlData.publicUrl;
       }
 
-      // Step 6: Update pitch book with results
+      // Step 6: Generate slide preview images
+      await this.updateGeneration(generationId, 'generating_previews', 85, 'Generating slide previews...');
+
+      let slidePreviews: string[] = [];
+      try {
+        const pngBuffers = await pptxPreview.convertToImages(buffer);
+        // Upload each PNG to storage
+        const uploadPromises = pngBuffers.map(async (png, i) => {
+          const imgName = `${pitchBookId}/previews/slide-${String(i + 1).padStart(3, '0')}.png`;
+          await supabaseAdmin.storage
+            .from(env.STORAGE_BUCKET)
+            .upload(imgName, png, { contentType: 'image/png' });
+          const { data: urlData } = supabaseAdmin.storage.from(env.STORAGE_BUCKET).getPublicUrl(imgName);
+          return urlData.publicUrl;
+        });
+        slidePreviews = await Promise.all(uploadPromises);
+        console.log(`[Orchestration] Uploaded ${slidePreviews.length} slide preview images`);
+      } catch (previewErr: any) {
+        console.warn(`[Orchestration] Preview generation failed (non-fatal): ${previewErr.message}`);
+      }
+
+      // Step 7: Update pitch book with results
       await supabaseAdmin
         .from('pitch_books')
         .update({
           status: 'completed',
           slides_data: slidesData,
           file_url: fileUrl,
+          slide_previews: slidePreviews,
           updated_at: new Date().toISOString(),
         })
         .eq('id', pitchBookId);
@@ -168,6 +223,22 @@ export class OrchestrationService {
           completed_at: new Date().toISOString(),
         })
         .eq('id', generationId);
+    }
+  }
+
+  private async resolveTickerFromName(companyName: string): Promise<string | null> {
+    try {
+      const result = await yahooFinance.search(companyName, { quotesCount: 5, newsCount: 0 });
+      const equity = result?.quotes?.find((q: any) => q.quoteType === 'EQUITY');
+      if (equity?.symbol) {
+        console.log(`[Orchestration] Resolved company "${companyName}" to ticker: ${equity.symbol}`);
+        return equity.symbol;
+      }
+      console.warn(`[Orchestration] Could not resolve ticker for "${companyName}"`);
+      return null;
+    } catch (err: any) {
+      console.warn(`[Orchestration] Ticker search failed for "${companyName}":`, err.message);
+      return null;
     }
   }
 

@@ -1,6 +1,13 @@
 // ── Pitch Book Types ──
 
-export type PitchBookType = 'company_overview' | 'market_update' | 'transaction_summary';
+export type PitchBookType =
+  | 'company_overview'
+  | 'market_update'
+  | 'transaction_summary'
+  | 'investor_pitch'
+  | 'industry_overview'
+  | 'fundraising_deck'
+  | 'due_diligence';
 export type TransactionType = 'ma' | 'capital_raising' | 'restructuring' | 'ipo' | 'debt_financing';
 export type PitchBookStatus = 'draft' | 'generating' | 'completed' | 'failed';
 export type GenerationStatus = 'queued' | 'analyzing_template' | 'fetching_data' | 'planning_content' | 'building_slides' | 'completed' | 'failed';
@@ -124,6 +131,8 @@ export interface CreatePitchBookRequest {
   template_id?: string;
   additional_context?: string;
   date_range?: { start: string; end: string };
+  color_theme?: string;
+  design_style?: string;
 }
 
 export interface CompanyFinancials {

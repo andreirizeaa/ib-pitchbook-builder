@@ -38,8 +38,8 @@ export default function ResetPasswordPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">Set new password</h2>
-        <p className="text-sm text-gray-500">Enter your new password below.</p>
+        <h2 className="text-3xl font-bold text-[var(--foreground)]">Set new password</h2>
+        <p className="text-sm text-[var(--muted-foreground)]">Enter your new password below.</p>
       </div>
 
       <form className="space-y-4" onSubmit={handleSubmit}>

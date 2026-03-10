@@ -3,23 +3,21 @@ import type {
   PitchBookType, TransactionType, CompanyFinancials,
   TemplateAnalysis,
 } from '@pitchdeck/shared-types';
+import OpenAI from 'openai';
 import env from '../config/env';
+import { SYSTEM_PROMPT, buildUserPrompt, getStructureGuidelines } from '../prompts/pitchbook-content.prompt';
+import { parseContentPlan } from '../prompts/pitchbook-content.schema';
+
+const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 /**
  * Content Planner Service
  *
- * LLM-powered content planning module that produces structured slide
- * specifications adapted to different pitch book types while keeping
- * the overall narrative coherent.
- *
- * Uses Google Gemini for content generation.
+ * Uses OpenAI GPT-4o with structured output (Zod schema) to generate
+ * company-specific slide content for investment banking pitch books.
  */
 export class ContentPlannerService {
 
-  /**
-   * Generate a complete content plan for a pitch book.
-   * The plan specifies every slide's content, data needs, and layout.
-   */
   async generateContentPlan(params: {
     company: string;
     ticker?: string;
@@ -31,63 +29,72 @@ export class ContentPlannerService {
   }): Promise<ContentPlan> {
     const { company, ticker, pbType, transactionType, financials, templateAnalysis, additionalContext } = params;
 
-    const prompt = this.buildPrompt(company, ticker, pbType, transactionType, financials, additionalContext);
+    const availableLayouts = templateAnalysis.slide_layouts.map(l => l.name);
+    const userPrompt = this.buildUserPrompt(company, ticker, pbType, transactionType, financials, additionalContext, availableLayouts);
 
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.3,
-              topP: 0.8,
-              maxOutputTokens: 8192,
-              responseMimeType: 'application/json',
-            },
-          }),
-        }
-      );
+      console.log(`[ContentPlanner] Generating content plan for ${company} (${ticker}) via OpenAI...`);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('[ContentPlanner] Gemini API error:', errorText);
-        // Fall back to template-based plan
-        return this.generateFallbackPlan(company, ticker, pbType, transactionType, financials);
-      }
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o',
+        temperature: 0.4,
+        max_tokens: 8192,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: userPrompt },
+        ],
+      });
 
-      const data = await response.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
+      const text = response.choices[0]?.message?.content;
       if (!text) {
+        console.error('[ContentPlanner] No response from OpenAI');
         return this.generateFallbackPlan(company, ticker, pbType, transactionType, financials);
       }
 
-      const parsed = JSON.parse(text);
-      return this.validateAndEnrichPlan(parsed, templateAnalysis);
+      let raw = JSON.parse(text);
+
+      // Handle case where OpenAI wraps the response in an extra object
+      // e.g. { "pitch_book": { "title": ..., "slides": [...] } }
+      if (!raw.slides && !raw.title) {
+        const keys = Object.keys(raw);
+        if (keys.length === 1 && typeof raw[keys[0]] === 'object' && raw[keys[0]]?.slides) {
+          console.log(`[ContentPlanner] Unwrapping nested response from key: "${keys[0]}"`);
+          raw = raw[keys[0]];
+        }
+      }
+
+      console.log(`[ContentPlanner] Raw response keys: ${Object.keys(raw).join(', ')}, slides count: ${raw.slides?.length || 0}`);
+
+      const parsed = parseContentPlan(raw);
+
+      console.log(`[ContentPlanner] Successfully generated ${parsed.slides.length} slides (schema validated)`);
+      return this.enrichPlan(parsed, templateAnalysis);
     } catch (error: any) {
-      console.error('[ContentPlanner] Error generating content plan:', error.message);
+      console.error('[ContentPlanner] OpenAI error:', error.message || JSON.stringify(error));
       return this.generateFallbackPlan(company, ticker, pbType, transactionType, financials);
     }
   }
 
-  /**
-   * Build the LLM prompt for content planning.
-   */
-  private buildPrompt(
+  // ── Prompt Building ──
+
+  private buildUserPrompt(
     company: string,
     ticker: string | undefined,
     pbType: PitchBookType,
     transactionType: TransactionType,
     financials: CompanyFinancials | null,
     additionalContext?: string,
+    availableLayouts?: string[],
   ): string {
     const pbTypeLabel = {
       company_overview: 'Company Overview',
       market_update: 'Market Update',
       transaction_summary: 'Transaction Summary',
+      investor_pitch: 'Investor Pitch',
+      industry_overview: 'Industry Overview',
+      fundraising_deck: 'Fundraising Deck',
+      due_diligence: 'Due Diligence',
     }[pbType];
 
     const txTypeLabel = {
@@ -98,131 +105,119 @@ export class ContentPlannerService {
       debt_financing: 'Debt Financing',
     }[transactionType];
 
-    let financialContext = '';
-    if (financials) {
-      financialContext = `
-## Company Financial Data
-- Name: ${financials.name}
-- Sector: ${financials.sector} | Industry: ${financials.industry}
-- Market Cap: $${(financials.market_cap / 1e9).toFixed(2)}B
-- Revenue: $${(financials.revenue / 1e9).toFixed(2)}B
-- Net Income: $${(financials.net_income / 1e6).toFixed(1)}M
-- EBITDA: $${(financials.ebitda / 1e6).toFixed(1)}M
-- P/E Ratio: ${financials.pe_ratio?.toFixed(1) || 'N/A'}
-- EV/EBITDA: ${financials.ev_ebitda?.toFixed(1) || 'N/A'}
-- Revenue Growth: ${((financials.revenue_growth || 0) * 100).toFixed(1)}%
-- Profit Margin: ${((financials.profit_margin || 0) * 100).toFixed(1)}%
+    const financialData = financials
+      ? this.formatFinancialData(financials)
+      : `\n=== NO FINANCIAL DATA AVAILABLE ===\nUse your knowledge of ${company} to provide approximate but realistic figures. Clearly mark any estimates.\n`;
+
+    const layoutList = (availableLayouts && availableLayouts.length > 0)
+      ? availableLayouts.join(' | ')
+      : 'Title Slide | Section Header | Content Slide | Two Column | Financial Table | Chart Slide | Key Metrics | Executive Summary | Comparison Table';
+
+    return buildUserPrompt({
+      company,
+      ticker,
+      pbTypeLabel,
+      txTypeLabel,
+      financialData,
+      additionalContext,
+      layoutList,
+      structureGuidelines: getStructureGuidelines(pbType, company),
+    });
+  }
+
+  private formatFinancialData(financials: CompanyFinancials): string {
+    let data = `
+=== COMPANY FINANCIAL DATA (USE THESE EXACT NUMBERS) ===
+Company: ${financials.name}
+Ticker: ${financials.ticker}
+Sector: ${financials.sector}
+Industry: ${financials.industry}
+
+Current Metrics:
+- Market Cap: $${this.fmtB(financials.market_cap)}
+- Revenue (TTM): $${this.fmtB(financials.revenue)}
+- Net Income (TTM): $${this.fmtM(financials.net_income)}
+- EBITDA (TTM): $${this.fmtM(financials.ebitda)}
+- P/E Ratio: ${financials.pe_ratio?.toFixed(1) || 'N/A'}x
+- EV/EBITDA: ${financials.ev_ebitda?.toFixed(1) || 'N/A'}x
+- Revenue Growth (YoY): ${this.fmtPct(financials.revenue_growth)}
+- Profit Margin: ${this.fmtPct(financials.profit_margin)}
 `;
+
+    if (financials.historical && financials.historical.length > 0) {
+      data += `\nHistorical Financials (USE FOR CHARTS AND TABLES):\n`;
+      for (const p of financials.historical) {
+        const year = p.period ? new Date(p.period).getFullYear() : 'N/A';
+        data += `  FY${year}: Revenue $${this.fmtB(p.revenue)} | EBITDA $${this.fmtM(p.ebitda)} | Net Income $${this.fmtM(p.net_income)}`;
+        if (p.free_cash_flow) data += ` | FCF $${this.fmtM(p.free_cash_flow)}`;
+        data += `\n`;
+      }
     }
 
-    return `You are an investment banking analyst creating a pitch book content plan.
-
-## Task
-Create a detailed content plan for a **${pbTypeLabel}** pitch book about **${company}** (${ticker || 'N/A'}).
-Transaction context: **${txTypeLabel}**
-
-${financialContext}
-
-${additionalContext ? `## Additional Context\n${additionalContext}\n` : ''}
-
-## Requirements
-Generate a JSON object with this exact structure:
-{
-  "title": "Main pitch book title",
-  "narrative_arc": "Brief description of the story this pitch book tells",
-  "slides": [
-    {
-      "index": 0,
-      "title": "Slide title",
-      "layout": "Title Slide|Section Header|Content Slide|Two Column|Financial Table|Chart Slide|Key Metrics",
-      "talking_points": ["Key point 1", "Key point 2"],
-      "data_requirements": ["What data this slide needs"],
-      "content_blocks": [
-        {
-          "type": "heading|paragraph|bullet_list|table|chart|metric",
-          "content": "The actual content or data structure"
-        }
-      ]
-    }
-  ]
-}
-
-## Pitch Book Structure Guidelines
-For a ${pbTypeLabel}:
-${this.getStructureGuidelines(pbType)}
-
-Generate 8-12 slides. Use professional investment banking language. Include specific financial data where available.
-Be precise with numbers — use the financial data provided.`;
+    return data;
   }
 
-  private getStructureGuidelines(pbType: PitchBookType): string {
-    const guidelines: Record<PitchBookType, string> = {
-      company_overview: `
-1. Title Slide — Company name, date, confidential notice
-2. Executive Summary — Key highlights and investment thesis
-3. Company Overview — Business description, history, key products/services
-4. Market Position — Industry overview, competitive landscape, market share
-5. Financial Summary — Key financial metrics, revenue breakdown
-6. Historical Financial Performance — Revenue, EBITDA, margins over time
-7. Valuation Overview — Trading multiples, peer comparison
-8. Key Strengths & Opportunities — Growth drivers, competitive advantages
-9. Risk Factors — Key risks and mitigants
-10. Appendix — Detailed financials, methodology notes`,
+  // ── Post-Processing ──
 
-      market_update: `
-1. Title Slide — Market Update title, date, bank branding
-2. Executive Summary — Key market themes and takeaways
-3. Macro Overview — GDP, interest rates, inflation trends
-4. Sector Performance — Industry-specific performance metrics
-5. M&A Activity — Recent transactions, deal volume trends
-6. Capital Markets — IPO activity, debt issuance trends
-7. Valuation Trends — Multiple expansion/contraction analysis
-8. Company Spotlight — Featured company analysis
-9. Outlook & Implications — Forward-looking market view
-10. Appendix — Data sources, methodology`,
-
-      transaction_summary: `
-1. Title Slide — Transaction name, date, parties involved
-2. Executive Summary — Transaction overview and rationale
-3. Transaction Overview — Structure, terms, timeline
-4. Buyer/Investor Profile — Background on acquiring party
-5. Target Company Overview — Business and financial summary
-6. Strategic Rationale — Why this transaction makes sense
-7. Financial Analysis — Valuation, synergies, accretion/dilution
-8. Transaction Comparables — Similar recent transactions
-9. Key Considerations — Risks, regulatory, integration
-10. Next Steps & Timeline — Process and milestones`,
-    };
-    return guidelines[pbType];
-  }
-
-  /**
-   * Validate the LLM output and ensure it matches template layouts.
-   */
-  private validateAndEnrichPlan(parsed: any, templateAnalysis: TemplateAnalysis): ContentPlan {
+  private enrichPlan(parsed: any, templateAnalysis: TemplateAnalysis): ContentPlan {
     const validLayouts = templateAnalysis.slide_layouts.map(l => l.name);
 
     return {
-      title: parsed.title || 'Untitled Pitch Book',
-      narrative_arc: parsed.narrative_arc || '',
-      slides: (parsed.slides || []).map((slide: any, i: number) => ({
+      title: parsed.title,
+      narrative_arc: parsed.narrative_arc,
+      slides: parsed.slides.map((slide: any, i: number) => ({
         index: i,
-        title: slide.title || `Slide ${i + 1}`,
-        layout: validLayouts.includes(slide.layout) ? slide.layout : 'Content Slide',
+        title: slide.title,
+        layout: this.matchLayout(slide.layout, validLayouts),
         talking_points: slide.talking_points || [],
         data_requirements: slide.data_requirements || [],
         content_blocks: (slide.content_blocks || []).map((block: any) => ({
-          type: block.type || 'paragraph',
-          content: block.content || '',
+          type: block.type,
+          content: block.content,
         })),
       })),
     };
   }
 
-  /**
-   * Fallback plan when LLM is unavailable.
-   * Generates a structured plan from templates.
-   */
+  private matchLayout(requested: string, available: string[]): string {
+    if (!requested) return available.includes('Content Slide') ? 'Content Slide' : available[0] || 'Content Slide';
+    if (available.includes(requested)) return requested;
+
+    const norm = (s: string) => s.toLowerCase().replace(/[\s_-]+/g, '');
+    const normRequested = norm(requested);
+    const exactNorm = available.find(l => norm(l) === normRequested);
+    if (exactNorm) return exactNorm;
+
+    const keywordMap: Record<string, string[]> = {
+      'Title Slide': ['title slide', 'cover', 'title'],
+      'Section Header': ['section', 'header', 'divider'],
+      'Content Slide': ['content', 'body', 'text', 'blank'],
+      'Two Column': ['two column', 'two col', 'split', 'comparison'],
+      'Financial Table': ['financial table', 'table', 'data'],
+      'Chart Slide': ['chart', 'graph', 'visualization'],
+      'Key Metrics': ['metrics', 'kpi', 'dashboard', 'numbers'],
+      'Executive Summary': ['executive', 'summary', 'overview'],
+      'Comparison Table': ['comparison', 'comp table', 'versus'],
+    };
+
+    const lower = requested.toLowerCase();
+    for (const [layoutName, keywords] of Object.entries(keywordMap)) {
+      if (available.includes(layoutName) && keywords.some(k => lower.includes(k))) {
+        return layoutName;
+      }
+    }
+
+    for (const layoutName of available) {
+      const layoutWords = layoutName.toLowerCase().split(/[\s_-]+/);
+      const requestedWords = lower.split(/[\s_-]+/);
+      if (layoutWords.some(w => requestedWords.includes(w))) return layoutName;
+    }
+
+    return available.includes('Content Slide') ? 'Content Slide' : available[0] || 'Content Slide';
+  }
+
+  // ── Fallback Plan ──
+
   private generateFallbackPlan(
     company: string,
     ticker: string | undefined,
@@ -230,152 +225,181 @@ Be precise with numbers — use the financial data provided.`;
     transactionType: TransactionType,
     financials: CompanyFinancials | null,
   ): ContentPlan {
-    const slides: ContentSlide[] = [
-      {
-        index: 0,
-        title: `${company} — ${this.formatPbType(pbType)}`,
-        layout: 'Title Slide',
-        talking_points: ['Confidential'],
-        data_requirements: [],
-        content_blocks: [
-          { type: 'heading', content: `${company} ${ticker ? `(${ticker})` : ''}` },
-          { type: 'paragraph', content: `${this.formatPbType(pbType)} | ${this.formatTxType(transactionType)}` },
-          { type: 'paragraph', content: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) },
-        ],
-      },
-      {
-        index: 1,
-        title: 'Executive Summary',
-        layout: 'Content Slide',
-        talking_points: ['Key investment highlights'],
-        data_requirements: ['Company overview', 'Financial highlights'],
-        content_blocks: [
-          { type: 'heading', content: 'Executive Summary' },
-          {
-            type: 'bullet_list',
-            content: [
-              `${company} is a ${financials?.industry || 'leading'} company in the ${financials?.sector || 'industry'}`,
-              financials ? `Market capitalisation of $${(financials.market_cap / 1e9).toFixed(1)}B` : 'Strong market position',
-              financials ? `Revenue of $${(financials.revenue / 1e9).toFixed(1)}B with ${((financials.revenue_growth || 0) * 100).toFixed(1)}% growth` : 'Consistent revenue growth',
-              financials ? `EBITDA margin of ${((financials.ebitda / (financials.revenue || 1)) * 100).toFixed(1)}%` : 'Healthy profitability',
-            ],
-          },
-        ],
-      },
-      {
-        index: 2,
-        title: 'Company Overview',
-        layout: 'Two Column',
-        talking_points: ['Business description', 'Key products/services'],
-        data_requirements: ['Company description', 'Product breakdown'],
-        content_blocks: [
-          { type: 'heading', content: 'Company Overview' },
-          { type: 'paragraph', content: `${company} operates in the ${financials?.industry || 'technology'} sector, providing products and services to a global customer base.` },
-        ],
-      },
-      {
-        index: 3,
+    const slides: ContentSlide[] = [];
+    let idx = 0;
+
+    slides.push({
+      index: idx++,
+      title: `${company} — ${this.formatPbType(pbType)}`,
+      layout: 'Title Slide',
+      talking_points: ['Confidential'],
+      data_requirements: [],
+      content_blocks: [
+        { type: 'heading', content: `${company} ${ticker ? `(${ticker})` : ''}` },
+        { type: 'paragraph', content: `${this.formatPbType(pbType)} | ${this.formatTxType(transactionType)}` },
+        { type: 'paragraph', content: new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) },
+      ],
+    });
+
+    slides.push({
+      index: idx++,
+      title: 'Executive Summary',
+      layout: 'Executive Summary',
+      talking_points: ['Key investment highlights'],
+      data_requirements: [],
+      content_blocks: [
+        { type: 'heading', content: 'Executive Summary' },
+        {
+          type: 'bullet_list',
+          content: financials ? [
+            `${financials.name} operates in the ${financials.industry} space within the ${financials.sector} sector`,
+            `Market capitalisation of $${this.fmtB(financials.market_cap)} with a P/E ratio of ${financials.pe_ratio?.toFixed(1) || 'N/A'}x`,
+            `TTM revenue of $${this.fmtB(financials.revenue)} with ${this.fmtPct(financials.revenue_growth)} year-over-year growth`,
+            `EBITDA of $${this.fmtM(financials.ebitda)} representing a ${this.fmtPct(financials.ebitda && financials.revenue ? financials.ebitda / financials.revenue : 0)} margin`,
+            `Profit margin of ${this.fmtPct(financials.profit_margin)}`,
+          ] : [
+            `${company} — financial data unavailable. Please provide a valid ticker symbol for detailed analysis.`,
+          ],
+        },
+      ],
+    });
+
+    if (financials) {
+      slides.push({
+        index: idx++,
         title: 'Key Financial Metrics',
         layout: 'Key Metrics',
         talking_points: ['Financial snapshot'],
-        data_requirements: ['Revenue', 'EBITDA', 'Market Cap', 'P/E'],
-        content_blocks: [
-          { type: 'metric', content: { label: 'Market Cap', value: financials ? `$${(financials.market_cap / 1e9).toFixed(1)}B` : 'N/A' } },
-          { type: 'metric', content: { label: 'Revenue', value: financials ? `$${(financials.revenue / 1e9).toFixed(1)}B` : 'N/A' } },
-          { type: 'metric', content: { label: 'EBITDA', value: financials ? `$${(financials.ebitda / 1e6).toFixed(0)}M` : 'N/A' } },
-        ],
-      },
-      {
-        index: 4,
-        title: 'Financial Performance',
-        layout: 'Financial Table',
-        talking_points: ['Historical financials'],
-        data_requirements: ['3-5 year financials'],
-        content_blocks: [
-          { type: 'heading', content: 'Historical Financial Performance' },
-          {
-            type: 'table',
-            content: {
-              headers: ['Metric', 'Current'],
-              rows: financials ? [
-                ['Revenue', `$${(financials.revenue / 1e9).toFixed(1)}B`],
-                ['EBITDA', `$${(financials.ebitda / 1e6).toFixed(0)}M`],
-                ['Net Income', `$${(financials.net_income / 1e6).toFixed(0)}M`],
-                ['P/E Ratio', `${financials.pe_ratio?.toFixed(1) || 'N/A'}x`],
-                ['EV/EBITDA', `${financials.ev_ebitda?.toFixed(1) || 'N/A'}x`],
-              ] : [['No data available', '']],
-            },
-          },
-        ],
-      },
-      {
-        index: 5,
-        title: 'Market Position',
-        layout: 'Content Slide',
-        talking_points: ['Industry dynamics', 'Competitive landscape'],
-        data_requirements: ['Market data', 'Peer analysis'],
-        content_blocks: [
-          { type: 'heading', content: 'Market Position & Competitive Landscape' },
-          {
-            type: 'bullet_list',
-            content: [
-              `Operating in the ${financials?.sector || 'industry'} sector`,
-              `${financials?.industry || 'Diversified'} subsector`,
-              'Strong competitive positioning with established market presence',
-              'Key competitive advantages include scale, technology, and brand recognition',
-            ],
-          },
-        ],
-      },
-      {
-        index: 6,
-        title: 'Key Strengths & Opportunities',
-        layout: 'Two Column',
-        talking_points: ['Growth drivers', 'Strategic opportunities'],
         data_requirements: [],
         content_blocks: [
-          { type: 'heading', content: 'Strengths & Opportunities' },
-          {
-            type: 'bullet_list',
-            content: [
-              'Established market leadership',
-              'Strong financial performance and cash generation',
-              'Significant growth opportunities in adjacent markets',
-              'Attractive valuation relative to peers',
-            ],
-          },
+          { type: 'metric', content: { label: 'Market Cap', value: `$${this.fmtB(financials.market_cap)}` } },
+          { type: 'metric', content: { label: 'Revenue (TTM)', value: `$${this.fmtB(financials.revenue)}` } },
+          { type: 'metric', content: { label: 'EBITDA', value: `$${this.fmtM(financials.ebitda)}` } },
+          { type: 'metric', content: { label: 'P/E Ratio', value: `${financials.pe_ratio?.toFixed(1) || 'N/A'}x` } },
         ],
-      },
-      {
-        index: 7,
-        title: 'Risk Factors',
-        layout: 'Content Slide',
-        talking_points: ['Key risks and mitigants'],
+      });
+    }
+
+    if (financials?.historical && financials.historical.length >= 2) {
+      const labels = financials.historical.map(p => `FY${new Date(p.period).getFullYear()}`);
+      const revenues = financials.historical.map(p => +(p.revenue / 1e9).toFixed(2));
+      const ebitdas = financials.historical.map(p => +(p.ebitda / 1e6).toFixed(0));
+
+      slides.push({
+        index: idx++,
+        title: 'Revenue & EBITDA Trend',
+        layout: 'Chart Slide',
+        talking_points: ['Historical financial performance'],
         data_requirements: [],
-        content_blocks: [
-          { type: 'heading', content: 'Key Risk Factors' },
-          {
-            type: 'bullet_list',
-            content: [
-              'Market and economic cycle sensitivity',
-              'Competitive pressure from existing and new entrants',
-              'Regulatory and compliance requirements',
-              'Operational execution risks',
+        content_blocks: [{
+          type: 'chart',
+          content: {
+            chartType: 'bar',
+            title: `${company} Revenue & EBITDA Trend`,
+            data: [
+              { name: 'Revenue ($B)', labels, values: revenues },
+              { name: 'EBITDA ($M)', labels, values: ebitdas },
             ],
           },
-        ],
-      },
-    ];
+        }],
+      });
+    }
+
+    slides.push({
+      index: idx++,
+      title: 'Financial Summary',
+      layout: 'Financial Table',
+      talking_points: ['Detailed financials'],
+      data_requirements: [],
+      content_blocks: [{
+        type: 'table',
+        content: financials ? this.buildFinancialTable(financials) : {
+          headers: ['Metric', 'Value'],
+          rows: [['No financial data available', '—']],
+        },
+      }],
+    });
+
+    slides.push({
+      index: idx++,
+      title: 'Company Overview',
+      layout: 'Two Column',
+      talking_points: ['Business description'],
+      data_requirements: [],
+      content_blocks: [
+        { type: 'heading', content: 'Company Overview' },
+        {
+          type: 'bullet_list',
+          content: financials ? [
+            `Sector: ${financials.sector}`,
+            `Industry: ${financials.industry}`,
+            `Full Name: ${financials.name}`,
+            `Ticker: ${financials.ticker}`,
+            `Revenue Growth: ${this.fmtPct(financials.revenue_growth)}`,
+            `Profit Margin: ${this.fmtPct(financials.profit_margin)}`,
+          ] : [`${company} — provide ticker for detailed company data`],
+        },
+      ],
+    });
 
     return {
       title: `${company} — ${this.formatPbType(pbType)}`,
-      narrative_arc: `This pitch book presents a comprehensive ${this.formatPbType(pbType).toLowerCase()} of ${company}, covering financial performance, market position, and strategic considerations.`,
+      narrative_arc: `Overview of ${company} covering financial performance, market position, and strategic considerations.`,
       slides,
     };
   }
 
+  private buildFinancialTable(fin: CompanyFinancials): { headers: string[]; rows: string[][] } {
+    if (fin.historical && fin.historical.length > 0) {
+      const periods = fin.historical.slice(-4);
+      const headers = ['Metric', ...periods.map(p => `FY${new Date(p.period).getFullYear()}`), 'Current'];
+      return {
+        headers,
+        rows: [
+          ['Revenue', ...periods.map(p => `$${this.fmtB(p.revenue)}`), `$${this.fmtB(fin.revenue)}`],
+          ['EBITDA', ...periods.map(p => `$${this.fmtM(p.ebitda)}`), `$${this.fmtM(fin.ebitda)}`],
+          ['Net Income', ...periods.map(p => `$${this.fmtM(p.net_income)}`), `$${this.fmtM(fin.net_income)}`],
+        ],
+      };
+    }
+
+    return {
+      headers: ['Metric', 'Value'],
+      rows: [
+        ['Market Cap', `$${this.fmtB(fin.market_cap)}`],
+        ['Revenue (TTM)', `$${this.fmtB(fin.revenue)}`],
+        ['EBITDA', `$${this.fmtM(fin.ebitda)}`],
+        ['Net Income', `$${this.fmtM(fin.net_income)}`],
+        ['P/E Ratio', `${fin.pe_ratio?.toFixed(1) || 'N/A'}x`],
+        ['EV/EBITDA', `${fin.ev_ebitda?.toFixed(1) || 'N/A'}x`],
+      ],
+    };
+  }
+
+  // ── Formatting Helpers ──
+
+  private fmtB(n: number): string {
+    if (!n || isNaN(n)) return 'N/A';
+    if (Math.abs(n) / 1e9 >= 1) return `${(n / 1e9).toFixed(1)}B`;
+    return `${(n / 1e6).toFixed(0)}M`;
+  }
+
+  private fmtM(n: number): string {
+    if (!n || isNaN(n)) return 'N/A';
+    if (Math.abs(n) / 1e6 >= 1000) return `${(n / 1e9).toFixed(1)}B`;
+    return `${(n / 1e6).toFixed(0)}M`;
+  }
+
+  private fmtPct(n: number): string {
+    if (n === null || n === undefined || isNaN(n)) return 'N/A';
+    return `${(n * 100).toFixed(1)}%`;
+  }
+
   private formatPbType(pbType: PitchBookType): string {
-    return { company_overview: 'Company Overview', market_update: 'Market Update', transaction_summary: 'Transaction Summary' }[pbType];
+    return {
+      company_overview: 'Company Overview', market_update: 'Market Update', transaction_summary: 'Transaction Summary',
+      investor_pitch: 'Investor Pitch', industry_overview: 'Industry Overview', fundraising_deck: 'Fundraising Deck', due_diligence: 'Due Diligence',
+    }[pbType];
   }
 
   private formatTxType(txType: TransactionType): string {

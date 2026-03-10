@@ -4,12 +4,13 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ChevronLeft, ChevronRight, Download, Loader2, MessageSquare,
-  Send, X, ArrowLeft, FileText, AlertCircle,
+  Send, X, ArrowLeft, FileText, AlertCircle, Trash2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
+import { AlertDialog } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/providers/auth-provider';
 import { apiClient } from '@/lib/api';
 import { toast } from 'sonner';
@@ -23,11 +24,12 @@ export default function PitchBookViewerPage() {
   const [generation, setGeneration] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{ role: string; content: string }>>([]);
   const [chatInput, setChatInput] = useState('');
   const [isSending, setIsSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch pitch book
   useEffect(() => {
@@ -108,11 +110,28 @@ export default function PitchBookViewerPage() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!session?.access_token) return;
+    setIsDeleting(true);
+    try {
+      await apiClient(`/api/pitchbooks/${id}`, { method: 'DELETE', token: session.access_token });
+      toast.success('Pitch book deleted');
+      router.push('/pitchbooks');
+    } catch {
+      toast.error('Failed to delete pitch book');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [chatMessages]);
 
   const slides = pitchBook?.slides_data || [];
+  const slidePreviews: string[] = pitchBook?.slide_previews || [];
+  const totalSlides = slidePreviews.length || slides.length;
   const currentSlideData = slides[currentSlide];
 
   if (isLoading) {
@@ -137,8 +156,8 @@ export default function PitchBookViewerPage() {
     return (
       <div className="max-w-lg mx-auto py-20 space-y-6">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-[#003366] mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900">Generating Your Pitch Book</h2>
+          <Loader2 className="w-12 h-12 animate-spin text-[var(--primary)] mx-auto mb-4" />
+          <h2 className="text-xl font-bold" style={{ color: 'var(--foreground)' }}>Generating Your Pitch Book</h2>
           <p className="text-gray-500 mt-2">{pitchBook.title}</p>
         </div>
         {generation && (
@@ -156,9 +175,9 @@ export default function PitchBookViewerPage() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-7rem)] gap-4">
+    <div className="flex h-full gap-4">
       {/* Main content - Slide viewer */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 p-4">
         {/* Toolbar */}
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -166,81 +185,50 @@ export default function PitchBookViewerPage() {
               <Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button>
             </Link>
             <div>
-              <h1 className="text-lg font-bold text-gray-900">{pitchBook.title}</h1>
-              <p className="text-sm text-gray-500">{pitchBook.company} · {slides.length} slides</p>
+              <h1 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{pitchBook.title}</h1>
+              <p className="text-sm text-gray-500">{pitchBook.company} · {totalSlides} slides</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2" onClick={() => setChatOpen(!chatOpen)}>
-              <MessageSquare className="w-4 h-4" />
-              AI Chat
-            </Button>
             <Button size="sm" className="gap-2" onClick={handleExport}>
               <Download className="w-4 h-4" />
               Export .pptx
+            </Button>
+            <Button size="sm" variant="outline" className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950" onClick={() => setShowDeleteDialog(true)}>
+              <Trash2 className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
         {/* Slide Display */}
-        {slides.length > 0 ? (
+        {totalSlides > 0 ? (
           <>
-            <Card className="flex-1 flex items-center justify-center bg-white overflow-hidden">
-              <CardContent className="w-full max-w-4xl p-8">
-                <div className="aspect-[16/9] bg-white border rounded-lg shadow-inner p-8 flex flex-col">
-                  {currentSlideData && (
-                    <>
-                      <h2 className="text-2xl font-bold text-[#003366] mb-4">
-                        {currentSlideData.title}
-                      </h2>
-                      <div className="flex-1 overflow-auto">
-                        {currentSlideData.content?.map((block: any, i: number) => (
-                          <div key={i} className="mb-3">
-                            {block.type === 'text' && (
-                              <p className="text-gray-700">{String(block.value)}</p>
-                            )}
-                            {block.type === 'list' && Array.isArray(block.value) && (
-                              <ul className="list-disc list-inside space-y-1">
-                                {block.value.map((item: string, j: number) => (
-                                  <li key={j} className="text-gray-700 text-sm">{item}</li>
-                                ))}
-                              </ul>
-                            )}
-                            {block.type === 'table' && block.value && (
-                              <div className="overflow-x-auto">
-                                <table className="w-full text-sm border-collapse">
-                                  {block.value.headers && (
-                                    <thead>
-                                      <tr className="bg-[#003366] text-white">
-                                        {block.value.headers.map((h: string, j: number) => (
-                                          <th key={j} className="px-3 py-2 text-left">{h}</th>
-                                        ))}
-                                      </tr>
-                                    </thead>
-                                  )}
-                                  <tbody>
-                                    {block.value.rows?.map((row: string[], j: number) => (
-                                      <tr key={j} className={j % 2 === 0 ? 'bg-gray-50' : ''}>
-                                        {row.map((cell: string, k: number) => (
-                                          <td key={k} className="px-3 py-2 border-b">{cell}</td>
-                                        ))}
-                                      </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      <div className="text-xs text-gray-400 mt-4">
-                        {currentSlideData.layout} · Slide {currentSlide + 1} of {slides.length}
-                      </div>
-                    </>
-                  )}
+            <div className="flex-1 flex items-center justify-center rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--background)' }}>
+              <div className="w-full max-w-5xl p-4">
+                <div className="aspect-[16/9] relative bg-white dark:bg-black rounded-lg overflow-hidden shadow-2xl">
+                  {slidePreviews[currentSlide] ? (
+                    <img
+                      src={slidePreviews[currentSlide]}
+                      alt={`Slide ${currentSlide + 1}${currentSlideData ? `: ${currentSlideData.title}` : ''}`}
+                      className="w-full h-full object-contain"
+                      draggable={false}
+                    />
+                  ) : currentSlideData ? (
+                    /* Fallback: simple text preview if no image available */
+                    <div className="w-full h-full bg-white p-8 flex flex-col">
+                      <h2 className="text-2xl font-bold text-[var(--primary)] mb-4">{currentSlideData.title}</h2>
+                      <p className="text-gray-500 text-sm">Preview image not available</p>
+                    </div>
+                  ) : null}
                 </div>
-              </CardContent>
-            </Card>
+                <div className="text-center mt-2">
+                  <span className="text-xs text-gray-400">
+                    Slide {currentSlide + 1} of {totalSlides}
+                    {currentSlideData?.title ? ` — ${currentSlideData.title}` : ''}
+                  </span>
+                </div>
+              </div>
+            </div>
 
             {/* Slide navigation */}
             <div className="flex items-center justify-center gap-4 mt-4">
@@ -251,38 +239,42 @@ export default function PitchBookViewerPage() {
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <div className="flex gap-1">
-                {slides.map((_: any, i: number) => (
-                  <button
-                    key={i}
-                    onClick={() => setCurrentSlide(i)}
-                    className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                      i === currentSlide ? 'bg-[#003366]' : 'bg-gray-300 hover:bg-gray-400'
-                    }`}
-                  />
-                ))}
-              </div>
+              <span className="text-sm text-gray-500 min-w-[80px] text-center">
+                {currentSlide + 1} / {totalSlides}
+              </span>
               <Button
                 variant="outline" size="icon"
-                disabled={currentSlide === slides.length - 1}
+                disabled={currentSlide >= totalSlides - 1}
                 onClick={() => setCurrentSlide(prev => prev + 1)}
               >
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
 
-            {/* Slide thumbnails */}
+            {/* Slide thumbnails — use preview images */}
             <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-              {slides.map((slide: any, i: number) => (
+              {Array.from({ length: totalSlides }).map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentSlide(i)}
-                  className={`flex-shrink-0 w-32 h-20 rounded border p-2 text-left transition-colors ${
-                    i === currentSlide ? 'border-[#003366] bg-blue-50' : 'hover:bg-gray-50'
+                  className={`flex-shrink-0 w-36 h-20 rounded overflow-hidden transition-all ${
+                    i === currentSlide
+                      ? 'ring-2 ring-[var(--primary)] ring-offset-1'
+                      : 'border border-gray-200 dark:border-gray-700 opacity-70 hover:opacity-100'
                   }`}
                 >
-                  <p className="text-[8px] font-bold text-gray-700 truncate">{slide.title}</p>
-                  <p className="text-[7px] text-gray-400">{slide.layout}</p>
+                  {slidePreviews[i] ? (
+                    <img
+                      src={slidePreviews[i]}
+                      alt={`Slide ${i + 1}`}
+                      className="w-full h-full object-cover"
+                      draggable={false}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                      <span className="text-[8px] text-gray-400">{slides[i]?.title || `Slide ${i + 1}`}</span>
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
@@ -297,55 +289,64 @@ export default function PitchBookViewerPage() {
         )}
       </div>
 
-      {/* AI Chat Panel */}
-      {chatOpen && (
-        <div className="w-96 flex flex-col bg-white border rounded-lg">
-          <div className="flex items-center justify-between p-4 border-b">
-            <h3 className="font-semibold text-gray-900">AI Chat</h3>
-            <button onClick={() => setChatOpen(false)}>
-              <X className="w-4 h-4 text-gray-400 hover:text-gray-600" />
-            </button>
-          </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {chatMessages.length === 0 && (
-              <div className="text-center text-sm text-gray-400 py-8">
-                <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                Ask me to edit slides, add content, or restructure your pitch book.
-              </div>
-            )}
-            {chatMessages.map((msg, i) => (
-              <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                  msg.role === 'user' ? 'bg-[#003366] text-white' : 'bg-gray-100 text-gray-700'
-                }`}>
+      {/* AI Chat Panel - persistent right sidebar */}
+      <div className="w-96 flex flex-col bg-white dark:bg-[var(--card)] border-l">
+        <div className="flex items-center justify-between p-4 border-b">
+          <h3 className="font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
+            <MessageSquare className="w-4 h-4 text-[var(--primary)]" />
+            AI Chat
+          </h3>
+        </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-3">
+          {chatMessages.length === 0 && (
+            <div className="text-center text-sm text-gray-400 py-8">
+              <MessageSquare className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+              Ask me to edit slides, add content, or restructure your pitch book.
+            </div>
+          )}
+          {chatMessages.map((msg, i) => (
+            msg.role === 'user' ? (
+              <div key={i} className="flex justify-end">
+                <div className="max-w-[80%] rounded-lg px-3 py-2 text-sm bg-[var(--primary)] text-white dark:text-[var(--primary-foreground)]">
                   {msg.content}
                 </div>
               </div>
-            ))}
-            {isSending && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg px-3 py-2">
-                  <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
-                </div>
+            ) : (
+              <div key={i} className="w-[80%] text-sm" style={{ color: 'var(--foreground)' }}>
+                {msg.content}
               </div>
-            )}
-            <div ref={chatEndRef} />
-          </div>
-          <div className="p-3 border-t flex gap-2">
-            <Input
-              placeholder="Ask AI to edit..."
-              value={chatInput}
-              onChange={(e) => setChatInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendChat()}
-              disabled={isSending}
-              className="h-10"
-            />
-            <Button size="icon" onClick={handleSendChat} disabled={isSending || !chatInput.trim()}>
-              <Send className="w-4 h-4" />
-            </Button>
-          </div>
+            )
+          ))}
+          {isSending && (
+            <div className="py-2">
+              <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--foreground)' }} />
+            </div>
+          )}
+          <div ref={chatEndRef} />
         </div>
-      )}
+        <div className="p-3 border-t flex gap-2">
+          <Input
+            placeholder="Ask AI to edit..."
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendChat()}
+            disabled={isSending}
+            className="h-10"
+          />
+          <Button size="icon" onClick={handleSendChat} disabled={isSending || !chatInput.trim()}>
+            <Send className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      <AlertDialog
+        open={showDeleteDialog}
+        onClose={() => setShowDeleteDialog(false)}
+        onConfirm={handleDelete}
+        title="Delete Pitch Book"
+        description={`Are you sure you want to delete "${pitchBook?.title}"? This action cannot be undone.`}
+        isLoading={isDeleting}
+      />
     </div>
   );
 }

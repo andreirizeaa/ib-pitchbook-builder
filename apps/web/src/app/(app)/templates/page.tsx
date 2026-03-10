@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Upload, Loader2, LayoutTemplate, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/auth-provider';
-import { apiClient } from '@/lib/api';
+import { apiClient, API_URL } from '@/lib/api';
 import { toast } from 'sonner';
 
 export default function TemplatesPage() {
@@ -13,6 +13,7 @@ export default function TemplatesPage() {
   const [templates, setTemplates] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!session?.access_token) return;
@@ -32,7 +33,7 @@ export default function TemplatesPage() {
       formData.append('file', file);
       formData.append('name', file.name);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/templates/analyze`, {
+      const res = await fetch(`${API_URL}/api/templates/analyze`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${session.access_token}` },
         body: formData,
@@ -50,19 +51,30 @@ export default function TemplatesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Templates</h1>
-          <p className="text-gray-500 mt-1">Upload and manage your pitch book templates</p>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Templates</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Upload and manage your pitch book templates</p>
         </div>
-        <label>
-          <Button className="gap-2 cursor-pointer" disabled={isUploading}>
+        <div>
+          <Button
+            className="gap-2"
+            disabled={isUploading}
+            type="button"
+            onClick={() => !isUploading && fileInputRef.current?.click()}
+          >
             {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             Upload Template
           </Button>
-          <input type="file" accept=".pptx" className="hidden" onChange={handleUpload} />
-        </label>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pptx"
+            className="hidden"
+            onChange={handleUpload}
+          />
+        </div>
       </div>
 
       {isLoading ? (
@@ -84,12 +96,12 @@ export default function TemplatesPage() {
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                      <LayoutTemplate className="w-5 h-5 text-[#003366]" />
+                    <div className="w-10 h-10 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center">
+                      <LayoutTemplate className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900">{tmpl.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium" style={{ color: 'var(--foreground)' }}>{tmpl.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         {new Date(tmpl.created_at).toLocaleDateString()}
                       </p>
                     </div>
