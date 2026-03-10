@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-Web app runs on `http://localhost:3000`, service on `http://localhost:3002`.
+Web app runs on `http://localhost:8000`, service on `http://localhost:8002`.
 
 ## Environment Variables
 

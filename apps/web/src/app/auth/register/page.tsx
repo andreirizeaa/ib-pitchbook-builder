@@ -77,8 +77,8 @@ export default function RegisterPage() {
     return (
       <div className="space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-3xl font-bold text-gray-900">Verify your email</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-3xl font-bold text-[var(--foreground)]">Verify your email</h2>
+          <p className="text-sm text-[var(--muted-foreground)]">
             We sent a verification code to <strong>{email}</strong>
           </p>
         </div>
@@ -104,7 +104,7 @@ export default function RegisterPage() {
         </form>
 
         <div className="text-center">
-          <button onClick={handleResendOtp} className="text-sm text-[#003366] hover:underline">
+          <button onClick={handleResendOtp} className="text-sm text-[#003366] dark:text-blue-400 hover:underline">
             Didn&apos;t receive a code? Resend
           </button>
         </div>
@@ -115,10 +115,10 @@ export default function RegisterPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-gray-900">Create your account</h2>
-        <p className="text-sm text-gray-500">
+        <h2 className="text-3xl font-bold text-[var(--foreground)]">Create your account</h2>
+        <p className="text-sm text-[var(--muted-foreground)]">
           Already have an account?{' '}
-          <Link href="/auth/login" className="text-[#003366] font-medium hover:underline">
+          <Link href="/auth/login" className="text-[#003366] dark:text-blue-400 font-medium hover:underline">
             Log in
           </Link>
         </p>
@@ -186,10 +186,10 @@ export default function RegisterPage() {
         </Button>
       </form>
 
-      <div className="text-center text-sm text-gray-500">
+      <div className="text-center text-sm text-[var(--muted-foreground)]">
         By signing up, you agree to our{' '}
-        <a href="#" className="underline hover:text-gray-700">Terms</a> and{' '}
-        <a href="#" className="underline hover:text-gray-700">Privacy Policy</a>.
+        <a href="#" className="underline hover:text-[var(--foreground)]">Terms</a> and{' '}
+        <a href="#" className="underline hover:text-[var(--foreground)]">Privacy Policy</a>.
       </div>
     </div>
   );

@@ -35,8 +35,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+    <div className="max-w-2xl space-y-6 p-4">
+      <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Settings</h1>
 
       <Card>
         <CardHeader>
@@ -45,12 +45,12 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-[#003366] rounded-full flex items-center justify-center">
+            <div className="w-12 h-12 bg-[var(--primary)] rounded-full flex items-center justify-center">
               <User className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-medium text-gray-900">{user?.email}</p>
-              <p className="text-sm text-gray-500">Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
+              <p className="font-medium" style={{ color: 'var(--foreground)' }}>{user?.email}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
             </div>
           </div>
         </CardContent>

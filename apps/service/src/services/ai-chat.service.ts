@@ -1,16 +1,15 @@
+import OpenAI from 'openai';
 import env from '../config/env';
+
+const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 /**
  * AI Chat Service
  *
  * Handles post-generation AI chat for editing slides.
- * Uses Gemini VLM for understanding slide content and making edits.
  */
 export class AIChatService {
 
-  /**
-   * Send a chat message about a pitch book and get AI suggestions.
-   */
   async chat(params: {
     pitchBookId: string;
     message: string;
@@ -30,40 +29,27 @@ If they ask to modify specific slide content, provide the updated text.
 
 Be concise and professional. Use investment banking terminology where appropriate.`;
 
-    const contents = [
-      { role: 'user', parts: [{ text: systemPrompt }] },
-      ...history.map(msg => ({
-        role: msg.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: msg.content }],
-      })),
-      { role: 'user', parts: [{ text: message }] },
-    ];
-
     try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${env.GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents,
-            generationConfig: {
-              temperature: 0.4,
-              maxOutputTokens: 4096,
-            },
-          }),
-        }
-      );
+      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
+        { role: 'system', content: systemPrompt },
+        ...history.map(msg => ({
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+        })),
+        { role: 'user', content: message },
+      ];
 
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.statusText}`);
-      }
+      const response = await openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        temperature: 0.4,
+        max_tokens: 4096,
+        messages,
+      });
 
-      const data = await response.json();
-      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'I could not generate a response. Please try again.';
+      return response.choices[0]?.message?.content || 'I could not generate a response. Please try again.';
     } catch (error: any) {
-      console.error('[AIChat] Error:', error.message);
-      return `I encountered an error: ${error.message}. Please check your Gemini API key configuration.`;
+      console.error('[AIChat] OpenAI error:', error?.message || error);
+      return 'I ran into an issue talking to the AI service. Please try again in a moment.';
     }
   }
 }

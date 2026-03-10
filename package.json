@@ -8,6 +8,7 @@
     "packages/*"
   ],
   "scripts": {
+    "predev": "for port in 8000 8001 8002 8003; do lsof -ti:$port | xargs kill -9 2>/dev/null; done; echo 'Ports cleared'",
     "dev": "turbo run dev --parallel",
     "build": "turbo run build",
     "start": "turbo run start",
