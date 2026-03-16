@@ -10,10 +10,12 @@ interface AlertDialogProps {
   title: string;
   description: string;
   confirmLabel?: string;
+  cancelLabel?: string;
+  variant?: 'destructive' | 'default';
   isLoading?: boolean;
 }
 
-export function AlertDialog({ open, onClose, onConfirm, title, description, confirmLabel = 'Delete', isLoading }: AlertDialogProps) {
+export function AlertDialog({ open, onClose, onConfirm, title, description, confirmLabel = 'Delete', cancelLabel = 'Cancel', variant = 'destructive', isLoading }: AlertDialogProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -37,9 +39,9 @@ export function AlertDialog({ open, onClose, onConfirm, title, description, conf
         <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--foreground)' }}>{title}</h3>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{description}</p>
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onClose} disabled={isLoading}>Cancel</Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
-            {isLoading ? 'Deleting...' : confirmLabel}
+          <Button variant="outline" onClick={onClose} disabled={isLoading}>{cancelLabel}</Button>
+          <Button variant={variant} onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? 'Loading...' : confirmLabel}
           </Button>
         </div>
       </div>

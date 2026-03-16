@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import type { Session } from '@supabase/supabase-js';
-import { Menu, Plus, LogOut } from 'lucide-react';
+import { Menu, Plus, Layers, LogOut } from 'lucide-react';
 import { Login } from './components/Login';
 import { PitchbookList } from './components/PitchbookList';
 import { CreatePitchbook } from './components/CreatePitchbook';
 import { GeneratingView } from './components/GeneratingView';
 import { AiChat } from './components/AiChat';
+import { DeckLayouts } from './components/DeckLayouts';
+import { DeckLayoutDetail } from './components/DeckLayoutDetail';
 
-type View = 'list' | 'create' | 'generating' | 'chat';
+type View = 'list' | 'create' | 'generating' | 'chat' | 'layouts' | 'layout-detail';
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -16,6 +18,7 @@ export default function App() {
   const [view, setView] = useState<View>('list');
   const [pitchBookId, setPitchBookId] = useState<string | null>(null);
   const [pitchBook, setPitchBook] = useState<any>(null);
+  const [selectedDeckType, setSelectedDeckType] = useState<any>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -98,6 +101,13 @@ export default function App() {
         <h1 className="text-xs font-bold text-gray-900">AI Pitch Deck</h1>
         <div className="flex items-center gap-1">
           <button
+            onClick={() => setView('layouts')}
+            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
+            title="Deck Layouts"
+          >
+            <Layers className="w-3.5 h-3.5" />
+          </button>
+          <button
             onClick={handleBack}
             className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
             title="My Pitch Books"
@@ -138,6 +148,19 @@ export default function App() {
             token={session.access_token}
             pitchBookId={pitchBookId}
             pitchBook={pitchBook}
+          />
+        )}
+        {view === 'layouts' && (
+          <DeckLayouts
+            token={session.access_token}
+            onOpenDeck={(dt) => { setSelectedDeckType(dt); setView('layout-detail'); }}
+          />
+        )}
+        {view === 'layout-detail' && selectedDeckType && (
+          <DeckLayoutDetail
+            token={session.access_token}
+            deckType={selectedDeckType}
+            onBack={() => { setSelectedDeckType(null); setView('layouts'); }}
           />
         )}
       </div>
