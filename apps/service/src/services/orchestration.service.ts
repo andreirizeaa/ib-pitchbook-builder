@@ -135,6 +135,28 @@ export class OrchestrationService {
       // Step 3: Plan content
       await this.updateGeneration(generationId, 'planning_content', 50, 'Planning slide content...');
 
+      // Check for user-customised deck layout
+      let customSlideStructure: string | undefined;
+      try {
+        const { data: customDeckTypes } = await supabaseAdmin
+          .from('custom_deck_types')
+          .select('*, deck_type_slides(*)')
+          .eq('user_id', userId)
+          .eq('name', request.pb_type);
+
+        if (customDeckTypes && customDeckTypes.length > 0) {
+          const dt = customDeckTypes[0];
+          const slides = (dt.deck_type_slides || []).sort((a: any, b: any) => a.slide_index - b.slide_index);
+          if (slides.length > 0) {
+            customSlideStructure = slides
+              .map((s: any, i: number) => `${i + 1}. ${s.title} — ${s.description || ''} (${s.layout_type})`)
+              .join('\n');
+          }
+        }
+      } catch (err: any) {
+        console.warn(`[Orchestration] Failed to fetch custom deck layout: ${err.message}`);
+      }
+
       const contentPlan = await contentPlanner.generateContentPlan({
         company: request.company,
         ticker: ticker || request.ticker,
@@ -143,6 +165,7 @@ export class OrchestrationService {
         financials,
         templateAnalysis,
         additionalContext: request.additional_context,
+        customSlideStructure,
       });
 
       // Step 4: Build slides

@@ -26,11 +26,12 @@ export class ContentPlannerService {
     financials: CompanyFinancials | null;
     templateAnalysis: TemplateAnalysis;
     additionalContext?: string;
+    customSlideStructure?: string;
   }): Promise<ContentPlan> {
-    const { company, ticker, pbType, transactionType, financials, templateAnalysis, additionalContext } = params;
+    const { company, ticker, pbType, transactionType, financials, templateAnalysis, additionalContext, customSlideStructure } = params;
 
     const availableLayouts = templateAnalysis.slide_layouts.map(l => l.name);
-    const userPrompt = this.buildUserPrompt(company, ticker, pbType, transactionType, financials, additionalContext, availableLayouts);
+    const userPrompt = this.buildUserPrompt(company, ticker, pbType, transactionType, financials, additionalContext, availableLayouts, customSlideStructure);
 
     try {
       console.log(`[ContentPlanner] Generating content plan for ${company} (${ticker}) via OpenAI...`);
@@ -86,6 +87,7 @@ export class ContentPlannerService {
     financials: CompanyFinancials | null,
     additionalContext?: string,
     availableLayouts?: string[],
+    customSlideStructure?: string,
   ): string {
     const pbTypeLabel = {
       company_overview: 'Company Overview',
@@ -113,6 +115,8 @@ export class ContentPlannerService {
       ? availableLayouts.join(' | ')
       : 'Title Slide | Section Header | Content Slide | Two Column | Financial Table | Chart Slide | Key Metrics | Executive Summary | Comparison Table';
 
+    const structureGuidelines = customSlideStructure || getStructureGuidelines(pbType, company);
+
     return buildUserPrompt({
       company,
       ticker,
@@ -121,7 +125,7 @@ export class ContentPlannerService {
       financialData,
       additionalContext,
       layoutList,
-      structureGuidelines: getStructureGuidelines(pbType, company),
+      structureGuidelines,
     });
   }
 

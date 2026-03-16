@@ -4,13 +4,14 @@ import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ChevronLeft, ChevronRight, Download, Loader2, MessageSquare,
-  Send, X, ArrowLeft, FileText, AlertCircle, Trash2,
+  Send, X, FileText, AlertCircle, Trash2,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { AlertDialog } from '@/components/ui/alert-dialog';
+import { Breadcrumb } from '@/components/app/breadcrumb';
 import { useAuth } from '@/providers/auth-provider';
 import { apiClient } from '@/lib/api';
 import { toast } from 'sonner';
@@ -179,25 +180,28 @@ export default function PitchBookViewerPage() {
       {/* Main content - Slide viewer */}
       <div className="flex-1 flex flex-col min-w-0 p-4">
         {/* Toolbar */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <Link href="/pitchbooks">
-              <Button variant="ghost" size="icon"><ArrowLeft className="w-4 h-4" /></Button>
-            </Link>
-            <div>
-              <h1 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{pitchBook.title}</h1>
-              <p className="text-sm text-gray-500">{pitchBook.company} · {totalSlides} slides</p>
-            </div>
-          </div>
+        {/* Breadcrumb row — buttons aligned here */}
+        <div className="flex items-center justify-between mb-1">
+          <Breadcrumb
+            items={[
+              { label: 'Pitch Books', href: '/pitchbooks' },
+              { label: pitchBook.title },
+            ]}
+          />
           <div className="flex items-center gap-2">
             <Button size="sm" className="gap-2" onClick={handleExport}>
               <Download className="w-4 h-4" />
               Export .pptx
             </Button>
-            <Button size="sm" variant="outline" className="gap-2 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950" onClick={() => setShowDeleteDialog(true)}>
-              <Trash2 className="w-4 h-4" />
+            <Button size="sm" variant="outline" className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-950" onClick={() => setShowDeleteDialog(true)}>
+              <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
+        </div>
+        {/* Title */}
+        <div className="mb-4">
+          <h1 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{pitchBook.title}</h1>
+          <p className="text-sm text-gray-500">{pitchBook.company} &middot; {totalSlides} slides</p>
         </div>
 
         {/* Slide Display */}

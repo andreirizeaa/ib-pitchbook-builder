@@ -12,6 +12,7 @@ import { errorHandler } from './middlewares/error-handler';
 import pitchbooksRoutes from './routes/pitchbooks.routes';
 import templatesRoutes from './routes/templates.routes';
 import companiesRoutes from './routes/companies.routes';
+import deckTypesRoutes from './routes/deck-types.routes';
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.get('/health', (_req, res) => {
 app.use('/api/pitchbooks', pitchbooksRoutes);
 app.use('/api/templates', templatesRoutes);
 app.use('/api/companies', companiesRoutes);
+app.use('/api/deck-types', deckTypesRoutes);
 
 // Error handler
 app.use(errorHandler);

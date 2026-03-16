@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { Loader2, Search, Sparkles } from 'lucide-react';
-import { apiClient } from '../lib/api';
+import { useState, useRef, useEffect } from 'react';
+import { Loader2, Search, Sparkles, Upload, FileText } from 'lucide-react';
+import { apiClient, API_URL } from '../lib/api';
 import { Dropdown } from './Dropdown';
 
 const PB_TYPES = [
@@ -70,10 +70,50 @@ export function CreatePitchbook({ token, onCreated }: Props) {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
 
+  // Template state
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [uploadedTemplateName, setUploadedTemplateName] = useState('');
+  const [pendingTemplateFile, setPendingTemplateFile] = useState<File | null>(null);
+  const [isUploadingTemplate, setIsUploadingTemplate] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [tickerResults, setTickerResults] = useState<any[]>([]);
   const [showTickerDropdown, setShowTickerDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Fetch existing templates on mount
+  useEffect(() => {
+    setIsLoadingTemplates(true);
+    apiClient<any>('/api/templates', { token })
+      .then(res => setTemplates(res.data || []))
+      .catch(() => {})
+      .finally(() => setIsLoadingTemplates(false));
+  }, [token]);
+
+  const handleTemplateSelect = (value: string) => {
+    if (value === '__upload__') {
+      fileInputRef.current?.click();
+      return;
+    }
+    setSelectedTemplateId(value);
+    // Clear any pending upload if they pick an existing template
+    setPendingTemplateFile(null);
+    setUploadedTemplateName('');
+  };
+
+  const handleFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPendingTemplateFile(file);
+    setUploadedTemplateName(file.name);
+    // Use a special value so the dropdown shows the file name
+    setSelectedTemplateId('__pending_upload__');
+    // Reset input so re-selecting the same file works
+    e.target.value = '';
+  };
 
   const handleTickerSearch = (q: string) => {
     setTicker(q.toUpperCase());
@@ -104,6 +144,30 @@ export function CreatePitchbook({ token, onCreated }: Props) {
     setIsCreating(true);
 
     try {
+      // Resolve template ID
+      let templateId: string | undefined;
+
+      if (selectedTemplateId === '__pending_upload__' && pendingTemplateFile) {
+        // Upload the file first
+        setIsUploadingTemplate(true);
+        const formData = new FormData();
+        formData.append('file', pendingTemplateFile);
+        formData.append('name', pendingTemplateFile.name);
+
+        const uploadRes = await fetch(`${API_URL}/api/templates/analyze`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
+
+        if (!uploadRes.ok) throw new Error('Failed to upload template');
+        const uploadData = await uploadRes.json();
+        templateId = uploadData.data?.id;
+        setIsUploadingTemplate(false);
+      } else if (selectedTemplateId && selectedTemplateId !== '__pending_upload__') {
+        templateId = selectedTemplateId;
+      }
+
       const title = `${company} — ${PB_TYPES.find(t => t.value === pbType)?.label || pbType}`;
       const res = await apiClient<any>('/api/pitchbooks', {
         method: 'POST',
@@ -117,10 +181,12 @@ export function CreatePitchbook({ token, onCreated }: Props) {
           color_theme: colorTheme,
           design_style: designStyle,
           additional_context: context || undefined,
+          template_id: templateId,
         }),
       });
       onCreated(res.data.id);
     } catch (err: any) {
+      setIsUploadingTemplate(false);
       setError(err.message || 'Failed to create');
     } finally {
       setIsCreating(false);
@@ -235,6 +301,54 @@ export function CreatePitchbook({ token, onCreated }: Props) {
           value={designStyle}
           onChange={setDesignStyle}
           placeholder="Select design style..."
+        />
+
+        {/* Reference Template */}
+        <Dropdown
+          label="Reference Template"
+          options={[
+            {
+              value: '__upload__',
+              label: 'Upload new template...',
+              render: (
+                <div className="flex items-center gap-2 text-blue-600">
+                  <Upload className="w-3.5 h-3.5" />
+                  <span className="font-medium">Upload .pptx template...</span>
+                </div>
+              ),
+            },
+            ...(selectedTemplateId === '__pending_upload__' ? [{
+              value: '__pending_upload__',
+              label: uploadedTemplateName,
+              render: (
+                <div className="flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5 text-green-600" />
+                  <span>{uploadedTemplateName}</span>
+                  <span className="text-[10px] text-green-600 ml-auto">ready</span>
+                </div>
+              ),
+            }] : []),
+            ...templates.map(t => ({
+              value: t.id,
+              label: t.name,
+              render: (
+                <div className="flex items-center gap-2">
+                  <FileText className="w-3.5 h-3.5 text-gray-400" />
+                  <span>{t.name}</span>
+                </div>
+              ),
+            })),
+          ]}
+          value={selectedTemplateId}
+          onChange={handleTemplateSelect}
+          placeholder={isLoadingTemplates ? 'Loading templates...' : 'None (use defaults)'}
+        />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".pptx"
+          className="hidden"
+          onChange={handleFileSelected}
         />
 
         {/* Additional context */}

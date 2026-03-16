@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { FileText, Home, Plus, FolderOpen, LayoutTemplate, Sun, Moon, Monitor, ChevronDown, User, LogOut } from 'lucide-react';
+import { FileText, Home, Plus, FolderOpen, LayoutTemplate, Layers, Sun, Moon, Monitor, ChevronDown, User, LogOut } from 'lucide-react';
 import { useAuth } from '@/providers/auth-provider';
 import { useTheme } from '@/providers/theme-provider';
 
@@ -13,6 +13,7 @@ const navItems = [
   { href: '/pitchbooks', icon: FolderOpen, label: 'Pitch Books' },
   { href: '/pitchbooks/new', icon: Plus, label: 'New Pitch Book' },
   { href: '/templates', icon: LayoutTemplate, label: 'Templates' },
+  { href: '/layouts', icon: Layers, label: 'Deck Layouts' },
 ];
 
 const themeOptions = [
