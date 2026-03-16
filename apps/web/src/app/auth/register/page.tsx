@@ -77,19 +77,20 @@ export default function RegisterPage() {
     return (
       <div className="space-y-6">
         <div className="text-center space-y-2">
-          <h2 className="text-3xl font-bold text-[var(--foreground)]">Verify your email</h2>
+          <h2 className="text-3xl font-bold text-[var(--foreground)]" data-testid="verify-heading">Verify your email</h2>
           <p className="text-sm text-[var(--muted-foreground)]">
             We sent a verification code to <strong>{email}</strong>
           </p>
         </div>
 
-        <form className="space-y-4" onSubmit={handleVerifyOtp}>
+        <form className="space-y-4" onSubmit={handleVerifyOtp} data-testid="verify-form">
           <div className="space-y-2">
             <Label htmlFor="otp">Verification Code</Label>
             <Input
               id="otp"
               type="text"
               placeholder="Enter 6-digit code"
+              data-testid="verify-otp"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
               disabled={isLoading}
@@ -98,13 +99,13 @@ export default function RegisterPage() {
             />
           </div>
 
-          <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+          <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading} data-testid="verify-submit">
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verify Email'}
           </Button>
         </form>
 
         <div className="text-center">
-          <button onClick={handleResendOtp} className="text-sm text-[#003366] dark:text-blue-400 hover:underline">
+          <button onClick={handleResendOtp} className="text-sm text-[#003366] dark:text-blue-400 hover:underline" data-testid="verify-resend">
             Didn&apos;t receive a code? Resend
           </button>
         </div>
@@ -115,22 +116,23 @@ export default function RegisterPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-[var(--foreground)]">Create your account</h2>
+        <h2 className="text-3xl font-bold text-[var(--foreground)]" data-testid="register-heading">Create your account</h2>
         <p className="text-sm text-[var(--muted-foreground)]">
           Already have an account?{' '}
-          <Link href="/auth/login" className="text-[#003366] dark:text-blue-400 font-medium hover:underline">
+          <Link href="/auth/login" className="text-[#003366] dark:text-blue-400 font-medium hover:underline" data-testid="register-login-link">
             Log in
           </Link>
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} data-testid="register-form">
         <div className="space-y-2">
           <Label htmlFor="name">Full Name</Label>
           <Input
             id="name"
             type="text"
             placeholder="John Smith"
+            data-testid="register-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isLoading}
@@ -144,6 +146,7 @@ export default function RegisterPage() {
             id="email"
             type="email"
             placeholder="you@example.com"
+            data-testid="register-email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
@@ -158,6 +161,7 @@ export default function RegisterPage() {
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Min. 8 characters"
+              data-testid="register-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
@@ -174,7 +178,7 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+        <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading} data-testid="register-submit">
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />

@@ -64,6 +64,7 @@ export function AppSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              data-testid={`sidebar-${item.href.replace(/\//g, '-').replace(/^-/, '')}`}
               className={cn(
                 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
                 isActive
@@ -119,6 +120,7 @@ export function AppSidebar() {
       <div className="border-t px-3 py-3">
         <Link
           href="/settings"
+          data-testid="sidebar-settings"
           className="flex items-center gap-3 px-3 py-2.5 border rounded-lg sidebar-item transition-colors cursor-pointer"
         >
           <div className="w-8 h-8 bg-[var(--primary)] rounded-full flex items-center justify-center flex-shrink-0">
@@ -130,6 +132,7 @@ export function AppSidebar() {
         </Link>
         <button
           onClick={signOut}
+          data-testid="sidebar-signout"
           className="flex items-center gap-3 w-full px-3 py-2.5 mt-2 rounded-lg text-sm font-medium sidebar-item transition-colors"
           style={{ color: 'var(--foreground)' }}
         >

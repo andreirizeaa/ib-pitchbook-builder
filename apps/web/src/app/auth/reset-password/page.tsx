@@ -38,21 +38,22 @@ export default function ResetPasswordPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-[var(--foreground)]">Set new password</h2>
+        <h2 data-testid="reset-heading" className="text-3xl font-bold text-[var(--foreground)]">Set new password</h2>
         <p className="text-sm text-[var(--muted-foreground)]">Enter your new password below.</p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form data-testid="reset-form" className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="password">New Password</Label>
           <div className="relative">
             <Input
               id="password" type={showPassword ? 'text' : 'password'}
+              data-testid="reset-password"
               placeholder="Min. 8 characters" value={password}
               onChange={(e) => setPassword(e.target.value)} disabled={isLoading}
               className="h-12 rounded-xl pr-10" minLength={8}
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)}
+            <button type="button" data-testid="reset-toggle-password" onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
@@ -62,11 +63,12 @@ export default function ResetPasswordPage() {
           <Label htmlFor="confirm-password">Confirm Password</Label>
           <Input
             id="confirm-password" type="password" placeholder="Confirm your password"
+            data-testid="reset-confirm-password"
             value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)}
             disabled={isLoading} className="h-12 rounded-xl"
           />
         </div>
-        <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+        <Button type="submit" data-testid="reset-submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Update Password'}
         </Button>
       </form>

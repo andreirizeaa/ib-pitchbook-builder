@@ -41,22 +41,23 @@ export default function LoginPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }}>Welcome back</h2>
+        <h2 className="text-3xl font-bold" style={{ color: 'var(--foreground)' }} data-testid="login-heading">Welcome back</h2>
         <p className="text-sm text-[var(--muted-foreground)]">
           Don&apos;t have an account?{' '}
-          <Link href="/auth/register" className="text-[#003366] dark:text-blue-400 font-medium hover:underline">
+          <Link href="/auth/register" className="text-[#003366] dark:text-blue-400 font-medium hover:underline" data-testid="login-signup-link">
             Sign up
           </Link>
         </p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form className="space-y-4" onSubmit={handleSubmit} data-testid="login-form">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email"
             type="email"
             placeholder="you@example.com"
+            data-testid="login-email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
@@ -67,7 +68,7 @@ export default function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link href="/auth/forgot-password" className="text-sm text-[#003366] dark:text-blue-400 hover:underline">
+            <Link href="/auth/forgot-password" className="text-sm text-[#003366] dark:text-blue-400 hover:underline" data-testid="login-forgot-password">
               Forgot password?
             </Link>
           </div>
@@ -76,6 +77,7 @@ export default function LoginPage() {
               id="password"
               type={showPassword ? 'text' : 'password'}
               placeholder="Enter your password"
+              data-testid="login-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
@@ -85,13 +87,14 @@ export default function LoginPage() {
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              data-testid="login-toggle-password"
             >
               {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
         </div>
 
-        <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+        <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading} data-testid="login-submit">
           {isLoading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin mr-2" />

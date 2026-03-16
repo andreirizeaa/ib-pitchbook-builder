@@ -60,10 +60,10 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Dashboard</h1>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }} data-testid="dashboard-heading">Dashboard</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Generate and manage your pitch books</p>
         </div>
-        <Link href="/pitchbooks/new">
+        <Link href="/pitchbooks/new" data-testid="dashboard-new-btn">
           <Button className="gap-2">
             <Plus className="w-4 h-4" /> New Pitch Book
           </Button>
@@ -71,7 +71,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-testid="dashboard-stats">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
@@ -118,7 +118,7 @@ export default function DashboardPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Recent Pitch Books</CardTitle>
-            <Link href="/pitchbooks" className="text-sm text-[var(--primary)] hover:underline">
+            <Link href="/pitchbooks" className="text-sm text-[var(--primary)] hover:underline" data-testid="dashboard-view-all">
               View all →
             </Link>
           </div>
@@ -132,7 +132,7 @@ export default function DashboardPage() {
             <div className="text-center py-12">
               <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">No pitch books yet</p>
-              <Link href="/pitchbooks/new">
+              <Link href="/pitchbooks/new" data-testid="dashboard-empty-cta">
                 <Button variant="outline" className="gap-2">
                   <Plus className="w-4 h-4" /> Create your first pitch book
                 </Button>

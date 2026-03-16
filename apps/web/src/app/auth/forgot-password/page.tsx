@@ -37,9 +37,9 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <div className="space-y-6 text-center">
-        <h2 className="text-3xl font-bold text-[var(--foreground)]">Check your email</h2>
+        <h2 data-testid="forgot-sent-heading" className="text-3xl font-bold text-[var(--foreground)]">Check your email</h2>
         <p className="text-[var(--muted-foreground)]">We sent a password reset link to <strong>{email}</strong></p>
-        <Link href="/auth/login" className="inline-flex items-center gap-2 text-[#003366] dark:text-blue-400 hover:underline">
+        <Link href="/auth/login" data-testid="forgot-sent-back-link" className="inline-flex items-center gap-2 text-[#003366] dark:text-blue-400 hover:underline">
           <ArrowLeft className="w-4 h-4" /> Back to login
         </Link>
       </div>
@@ -49,26 +49,27 @@ export default function ForgotPasswordPage() {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-bold text-[var(--foreground)]">Forgot password?</h2>
+        <h2 data-testid="forgot-heading" className="text-3xl font-bold text-[var(--foreground)]">Forgot password?</h2>
         <p className="text-sm text-[var(--muted-foreground)]">Enter your email and we&apos;ll send a reset link.</p>
       </div>
 
-      <form className="space-y-4" onSubmit={handleSubmit}>
+      <form data-testid="forgot-form" className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input
             id="email" type="email" placeholder="you@example.com"
+            data-testid="forgot-email"
             value={email} onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading} className="h-12 rounded-xl"
           />
         </div>
-        <Button type="submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
+        <Button type="submit" data-testid="forgot-submit" className="w-full h-12 rounded-xl" disabled={isLoading}>
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Reset Link'}
         </Button>
       </form>
 
       <div className="text-center">
-        <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-[#003366] dark:text-blue-400 hover:underline">
+        <Link href="/auth/login" data-testid="forgot-back-link" className="inline-flex items-center gap-2 text-sm text-[#003366] dark:text-blue-400 hover:underline">
           <ArrowLeft className="w-4 h-4" /> Back to login
         </Link>
       </div>
