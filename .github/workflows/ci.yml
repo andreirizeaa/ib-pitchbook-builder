@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
@@ -25,28 +29,15 @@ jobs:
       - name: Run Vitest (all apps)
         run: npx turbo run test
 
-      - name: Upload service test report
+      - name: Upload vitest reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: vitest-report-service
-          path: apps/service/test-report/
-          retention-days: 14
-
-      - name: Upload web test report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vitest-report-web
-          path: apps/web/test-report/
-          retention-days: 14
-
-      - name: Upload add-in test report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: vitest-report-addin
-          path: apps/powerpoint-addin/test-report/
+          name: vitest-reports
+          path: |
+            apps/service/test-report/
+            apps/web/test-report/
+            apps/powerpoint-addin/test-report/
           retention-days: 14
 
   e2e-tests:
@@ -104,3 +95,74 @@ jobs:
           name: cypress-screenshots
           path: cypress/screenshots/
           retention-days: 7
+
+  publish-reports:
+    name: Publish Test Reports
+    runs-on: ubuntu-latest
+    needs: [unit-tests, e2e-tests]
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download vitest reports
+        uses: actions/download-artifact@v4
+        with:
+          name: vitest-reports
+          path: reports/vitest
+
+      - name: Download cypress report
+        uses: actions/download-artifact@v4
+        with:
+          name: cypress-report
+          path: reports/cypress
+        continue-on-error: true
+
+      - name: Build index page
+        run: |
+          cat > reports/index.html << 'HTMLEOF'
+          <!DOCTYPE html>
+          <html>
+          <head><title>Test Reports — PR #${{ github.event.pull_request.number }}</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; max-width: 600px; margin: 60px auto; color: #1a1a1a; }
+            h1 { font-size: 1.4rem; }
+            a { display: block; padding: 12px 16px; margin: 8px 0; border-radius: 8px; background: #f5f5f5; color: #0969da; text-decoration: none; }
+            a:hover { background: #e8e8e8; }
+            .meta { font-size: 0.85rem; color: #666; }
+          </style>
+          </head>
+          <body>
+            <h1>Test Reports — PR #${{ github.event.pull_request.number }}</h1>
+            <p class="meta">Run #${{ github.run_number }} · ${{ github.event.pull_request.title }}</p>
+            <a href="vitest/apps/service/test-report/index.html">Service — Vitest Report</a>
+            <a href="vitest/apps/web/test-report/index.html">Web — Vitest Report</a>
+            <a href="vitest/apps/powerpoint-addin/test-report/index.html">Add-in — Vitest Report</a>
+            <a href="cypress/report.html">Cypress E2E Report</a>
+          </body>
+          </html>
+          HTMLEOF
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./reports
+          destination_dir: pr/${{ github.event.pull_request.number }}
+          keep_files: false
+
+      - name: Comment PR with report link
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: test-reports
+          message: |
+            ## Test Reports
+
+            | Report | Link |
+            |--------|------|
+            | Service (Vitest) | [View](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr/${{ github.event.pull_request.number }}/vitest/apps/service/test-report/index.html) |
+            | Web (Vitest) | [View](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr/${{ github.event.pull_request.number }}/vitest/apps/web/test-report/index.html) |
+            | Add-in (Vitest) | [View](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr/${{ github.event.pull_request.number }}/vitest/apps/powerpoint-addin/test-report/index.html) |
+            | Cypress E2E | [View](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/pr/${{ github.event.pull_request.number }}/cypress/report.html) |
+
+            *Updated for run [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})*
