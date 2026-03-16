@@ -3,8 +3,6 @@ name: CI
 on:
   pull_request:
     branches: [main]
-  push:
-    branches-ignore: [main]
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -21,9 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - run: npm ci
+      - run: npm install
 
       - name: Run Vitest (all apps)
         run: npx turbo run test
@@ -68,9 +65,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
-      - run: npm ci
+      - run: npm install
 
       - name: Build web app
         run: npm run build --workspace=apps/web
