@@ -114,11 +114,11 @@ export default function NewPitchBookPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-6 p-4">
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>New Pitch Book</h1>
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }} data-testid="new-pb-heading">New Pitch Book</h1>
         <p className="text-gray-500 mt-1">Fill in the details and let AI generate your pitch book.</p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6" data-testid="new-pb-form">
         {/* Basic Info */}
         <Card>
           <CardHeader>
@@ -130,6 +130,7 @@ export default function NewPitchBookPage() {
               <Label htmlFor="title">Pitch Book Title *</Label>
               <Input
                 id="title" placeholder="e.g. Apple Inc. — Company Overview Q1 2026"
+                data-testid="new-pb-title"
                 value={form.title} onChange={(e) => updateForm('title', e.target.value)}
                 className="h-12"
               />
@@ -139,6 +140,7 @@ export default function NewPitchBookPage() {
                 <Label htmlFor="company">Company Name *</Label>
                 <Input
                   id="company" placeholder="e.g. Apple Inc."
+                  data-testid="new-pb-company"
                   value={form.company} onChange={(e) => updateForm('company', e.target.value)}
                   className="h-12"
                 />
@@ -166,6 +168,7 @@ export default function NewPitchBookPage() {
               <Label htmlFor="pb_type">Pitch Book Type *</Label>
               <select
                 id="pb_type"
+                data-testid="new-pb-type"
                 value={form.pb_type}
                 onChange={(e) => updateForm('pb_type', e.target.value)}
                 className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
@@ -186,6 +189,7 @@ export default function NewPitchBookPage() {
               <Label htmlFor="tx_type">Transaction Type</Label>
               <select
                 id="tx_type"
+                data-testid="new-pb-tx-type"
                 value={form.transaction_type}
                 onChange={(e) => updateForm('transaction_type', e.target.value)}
                 className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
@@ -315,6 +319,7 @@ export default function NewPitchBookPage() {
           <CardContent>
             <Textarea
               placeholder="e.g. Focus on the company's cloud computing division. Include comparison with AWS and Azure. Emphasise recent M&A activity..."
+              data-testid="new-pb-context"
               value={form.additional_context}
               onChange={(e) => updateForm('additional_context', e.target.value)}
               rows={4}
@@ -324,10 +329,10 @@ export default function NewPitchBookPage() {
 
         {/* Submit */}
         <div className="flex items-center justify-end gap-3">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
+          <Button type="button" variant="outline" onClick={() => router.back()} data-testid="new-pb-cancel">
             Cancel
           </Button>
-          <Button type="submit" disabled={isSubmitting} className="gap-2">
+          <Button type="submit" disabled={isSubmitting} className="gap-2" data-testid="new-pb-submit">
             {isSubmitting ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Generating...</>
             ) : (

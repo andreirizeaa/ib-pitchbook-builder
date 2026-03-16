@@ -36,7 +36,7 @@ export default function SettingsPage() {
 
   return (
     <div className="max-w-2xl space-y-6 p-4">
-      <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Settings</h1>
+      <h1 data-testid="settings-heading" className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Settings</h1>
 
       <Card>
         <CardHeader>
@@ -49,7 +49,7 @@ export default function SettingsPage() {
               <User className="w-6 h-6 text-white" />
             </div>
             <div>
-              <p className="font-medium" style={{ color: 'var(--foreground)' }}>{user?.email}</p>
+              <p data-testid="settings-email" className="font-medium" style={{ color: 'var(--foreground)' }}>{user?.email}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400">Member since {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}</p>
             </div>
           </div>
@@ -64,12 +64,13 @@ export default function SettingsPage() {
           <div className="space-y-2">
             <Label>New Password</Label>
             <Input
+              data-testid="settings-password"
               type="password" placeholder="Min. 8 characters"
               value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
               className="max-w-sm"
             />
           </div>
-          <Button onClick={handlePasswordChange} disabled={isLoading} className="gap-2">
+          <Button data-testid="settings-update-password" onClick={handlePasswordChange} disabled={isLoading} className="gap-2">
             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Update Password
           </Button>
@@ -81,7 +82,7 @@ export default function SettingsPage() {
           <CardTitle className="text-lg text-red-600">Danger Zone</CardTitle>
         </CardHeader>
         <CardContent>
-          <Button variant="destructive" onClick={signOut}>Sign Out</Button>
+          <Button data-testid="settings-signout" variant="destructive" onClick={signOut}>Sign Out</Button>
         </CardContent>
       </Card>
     </div>

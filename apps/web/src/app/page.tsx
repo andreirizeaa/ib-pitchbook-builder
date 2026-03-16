@@ -7,7 +7,7 @@ export default function HomePage() {
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-sm border-b">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center gap-2" data-testid="logo-link">
             <div className="w-8 h-8 bg-[#003366] rounded-lg flex items-center justify-center">
               <FileText className="w-5 h-5 text-white" />
             </div>
@@ -19,12 +19,13 @@ export default function HomePage() {
             <a href="#pricing" className="text-sm text-gray-600 hover:text-gray-900">Pricing</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Link href="/auth/login" className="text-sm font-medium text-gray-700 hover:text-gray-900">
+            <Link href="/auth/login" className="text-sm font-medium text-gray-700 hover:text-gray-900" data-testid="nav-login">
               Log in
             </Link>
             <Link
               href="/auth/register"
               className="inline-flex items-center gap-2 bg-[#003366] text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-[#003366]/90 transition-colors"
+              data-testid="nav-get-started"
             >
               Get Started <ArrowRight className="w-4 h-4" />
             </Link>
@@ -39,7 +40,7 @@ export default function HomePage() {
             <Sparkles className="w-4 h-4" />
             AI-Powered Document Generation
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6">
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight mb-6" data-testid="hero-heading">
             Generate Investment Banking{' '}
             <span className="text-[#003366]">Pitch Books</span>{' '}
             in Minutes
@@ -52,6 +53,7 @@ export default function HomePage() {
             <Link
               href="/auth/register"
               className="inline-flex items-center gap-2 bg-[#003366] text-white font-medium px-6 py-3 rounded-lg hover:bg-[#003366]/90 transition-colors text-lg"
+              data-testid="hero-cta"
             >
               Start Building <ArrowRight className="w-5 h-5" />
             </Link>
@@ -96,7 +98,7 @@ export default function HomePage() {
               From template analysis to final export, our AI handles the entire pitch book pipeline.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-8" data-testid="features-grid">
             {[
               { icon: FileText, title: 'Template Analysis', desc: 'Upload your firm\'s .pptx template. We extract layouts, colours, fonts, and placeholder positions automatically.' },
               { icon: BarChart3, title: 'Live Financial Data', desc: 'Pulls real-time data from Yahoo Finance and SEC EDGAR. Company financials, filings, and news — all automated.' },
@@ -105,7 +107,7 @@ export default function HomePage() {
               { icon: Shield, title: 'Compliance Aware', desc: 'Human-in-the-loop design. AI generates drafts, you review and refine. Full audit trail of data sources.' },
               { icon: Clock, title: 'AI Chat Editor', desc: 'After generation, chat with AI to refine slides. Make changes, add details, or restructure — all through natural language.' },
             ].map((feature, i) => (
-              <div key={i} className="p-6 rounded-xl border bg-white hover:shadow-md transition-shadow">
+              <div key={i} className="p-6 rounded-xl border bg-white hover:shadow-md transition-shadow" data-testid={`feature-card-${i}`}>
                 <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4">
                   <feature.icon className="w-6 h-6 text-[#003366]" />
                 </div>
@@ -131,7 +133,7 @@ export default function HomePage() {
               { step: '03', title: 'AI Generates', desc: 'Our agentic pipeline fetches live data, plans content with Gemini, and assembles slides matching your template exactly.' },
               { step: '04', title: 'Review & Export', desc: 'Review the generated slides, chat with AI to make edits, then export as a .pptx file ready for presentation.' },
             ].map((item, i) => (
-              <div key={i} className="flex gap-6 items-start bg-white p-6 rounded-xl border">
+              <div key={i} className="flex gap-6 items-start bg-white p-6 rounded-xl border" data-testid={`step-${i}`}>
                 <div className="flex-shrink-0 w-12 h-12 bg-[#003366] rounded-full flex items-center justify-center text-white font-bold text-sm">
                   {item.step}
                 </div>

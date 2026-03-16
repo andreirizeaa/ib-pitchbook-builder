@@ -164,6 +164,7 @@ export default function LayoutDetailPage() {
         />
         <div className="flex items-center gap-2">
           <Button
+            data-testid="layout-detail-delete-btn"
             variant="outline"
             size="sm"
             className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-950"
@@ -172,11 +173,11 @@ export default function LayoutDetailPage() {
             <Trash2 className="w-3.5 h-3.5" />
             Delete Layout
           </Button>
-          <Button variant="outline" size="sm" onClick={addSlide} className="gap-1.5">
+          <Button data-testid="layout-detail-add-btn" variant="outline" size="sm" onClick={addSlide} className="gap-1.5">
             <Plus className="w-3.5 h-3.5" />
             Add Slide
           </Button>
-          <Button size="sm" onClick={save} disabled={isSaving || !isDirty} className="gap-1.5">
+          <Button data-testid="layout-detail-save-btn" size="sm" onClick={save} disabled={isSaving || !isDirty} className="gap-1.5">
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             Save Changes
           </Button>
@@ -185,7 +186,7 @@ export default function LayoutDetailPage() {
 
       {/* Title */}
       <div className="-mt-3">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{deckType?.label}</h1>
+        <h1 data-testid="layout-detail-heading" className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>{deckType?.label}</h1>
         <p className="text-gray-500 dark:text-gray-400 mt-0.5">{deckType?.description} &middot; {slides.length} slides</p>
       </div>
 
@@ -200,6 +201,7 @@ export default function LayoutDetailPage() {
                     <div
                       ref={provided.innerRef}
                       {...provided.draggableProps}
+                      data-testid={`layout-slide-${idx}`}
                       className={`rounded-lg border p-4 transition-shadow ${
                         snapshot.isDragging
                           ? 'shadow-lg border-[var(--primary)]'
@@ -212,7 +214,7 @@ export default function LayoutDetailPage() {
                     >
                       <div className="flex items-start gap-3">
                         <div className="flex items-center gap-2 pt-7 flex-shrink-0">
-                          <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
+                          <div {...provided.dragHandleProps} data-testid={`layout-slide-handle-${idx}`} className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
                             <GripVertical className="w-5 h-5" />
                           </div>
                           <span className="text-sm font-mono text-gray-400 w-5 text-right">{idx + 1}</span>
@@ -223,6 +225,7 @@ export default function LayoutDetailPage() {
                             <div>
                               <Label className="text-xs mb-1.5">Slide Title</Label>
                               <Input
+                                data-testid={`layout-slide-title-${idx}`}
                                 value={slide.title}
                                 onChange={(e) => updateSlide(idx, 'title', e.target.value)}
                                 placeholder="e.g. Executive Summary"
@@ -231,6 +234,7 @@ export default function LayoutDetailPage() {
                             <div>
                               <Label className="text-xs mb-1.5">Layout Type</Label>
                               <select
+                                data-testid={`layout-slide-type-${idx}`}
                                 value={slide.layout_type}
                                 onChange={(e) => updateSlide(idx, 'layout_type', e.target.value)}
                                 className="w-full h-10 px-3 text-sm border rounded-md bg-[var(--background)] focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
@@ -245,6 +249,7 @@ export default function LayoutDetailPage() {
                           <div>
                             <Label className="text-xs mb-1.5">Description</Label>
                             <Textarea
+                              data-testid={`layout-slide-desc-${idx}`}
                               value={slide.description}
                               onChange={(e) => updateSlide(idx, 'description', e.target.value)}
                               placeholder="What should this slide contain? e.g. Key investment highlights with specific data points..."
@@ -254,6 +259,7 @@ export default function LayoutDetailPage() {
                         </div>
 
                         <button
+                          data-testid={`layout-slide-delete-${idx}`}
                           onClick={() => removeSlide(idx)}
                           className="pt-7 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0"
                         >
@@ -272,7 +278,7 @@ export default function LayoutDetailPage() {
 
       {slides.length === 0 && (
         <div className="text-center py-12 text-gray-400">
-          <p>No slides yet. Click &ldquo;Add Slide&rdquo; to get started.</p>
+          <p data-testid="layout-detail-empty">No slides yet. Click &ldquo;Add Slide&rdquo; to get started.</p>
         </div>
       )}
 

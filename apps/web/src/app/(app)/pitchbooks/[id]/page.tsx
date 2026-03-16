@@ -189,18 +189,18 @@ export default function PitchBookViewerPage() {
             ]}
           />
           <div className="flex items-center gap-2">
-            <Button size="sm" className="gap-2" onClick={handleExport}>
+            <Button data-testid="viewer-export-btn" size="sm" className="gap-2" onClick={handleExport}>
               <Download className="w-4 h-4" />
               Export .pptx
             </Button>
-            <Button size="sm" variant="outline" className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-950" onClick={() => setShowDeleteDialog(true)}>
+            <Button data-testid="viewer-delete-btn" size="sm" variant="outline" className="gap-1.5 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 dark:hover:bg-red-950" onClick={() => setShowDeleteDialog(true)}>
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
         {/* Title */}
         <div className="mb-4">
-          <h1 className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{pitchBook.title}</h1>
+          <h1 data-testid="viewer-title" className="text-lg font-bold" style={{ color: 'var(--foreground)' }}>{pitchBook.title}</h1>
           <p className="text-sm text-gray-500">{pitchBook.company} &middot; {totalSlides} slides</p>
         </div>
 
@@ -212,6 +212,7 @@ export default function PitchBookViewerPage() {
                 <div className="aspect-[16/9] relative bg-white dark:bg-black rounded-lg overflow-hidden shadow-2xl">
                   {slidePreviews[currentSlide] ? (
                     <img
+                      data-testid="viewer-slide-image"
                       src={slidePreviews[currentSlide]}
                       alt={`Slide ${currentSlide + 1}${currentSlideData ? `: ${currentSlideData.title}` : ''}`}
                       className="w-full h-full object-contain"
@@ -237,16 +238,18 @@ export default function PitchBookViewerPage() {
             {/* Slide navigation */}
             <div className="flex items-center justify-center gap-4 mt-4">
               <Button
+                data-testid="viewer-prev-btn"
                 variant="outline" size="icon"
                 disabled={currentSlide === 0}
                 onClick={() => setCurrentSlide(prev => prev - 1)}
               >
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <span className="text-sm text-gray-500 min-w-[80px] text-center">
+              <span data-testid="viewer-slide-counter" className="text-sm text-gray-500 min-w-[80px] text-center">
                 {currentSlide + 1} / {totalSlides}
               </span>
               <Button
+                data-testid="viewer-next-btn"
                 variant="outline" size="icon"
                 disabled={currentSlide >= totalSlides - 1}
                 onClick={() => setCurrentSlide(prev => prev + 1)}
@@ -260,6 +263,7 @@ export default function PitchBookViewerPage() {
               {Array.from({ length: totalSlides }).map((_, i) => (
                 <button
                   key={i}
+                  data-testid={`viewer-thumbnail-${i}`}
                   onClick={() => setCurrentSlide(i)}
                   className={`flex-shrink-0 w-36 h-20 rounded overflow-hidden transition-all ${
                     i === currentSlide
@@ -296,7 +300,7 @@ export default function PitchBookViewerPage() {
       {/* AI Chat Panel - persistent right sidebar */}
       <div className="w-96 flex flex-col bg-white dark:bg-[var(--card)] border-l">
         <div className="flex items-center justify-between p-4 border-b">
-          <h3 className="font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
+          <h3 data-testid="viewer-chat-heading" className="font-semibold flex items-center gap-2" style={{ color: 'var(--foreground)' }}>
             <MessageSquare className="w-4 h-4 text-[var(--primary)]" />
             AI Chat
           </h3>
@@ -330,6 +334,7 @@ export default function PitchBookViewerPage() {
         </div>
         <div className="p-3 border-t flex gap-2">
           <Input
+            data-testid="viewer-chat-input"
             placeholder="Ask AI to edit..."
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
@@ -337,7 +342,7 @@ export default function PitchBookViewerPage() {
             disabled={isSending}
             className="h-10"
           />
-          <Button size="icon" onClick={handleSendChat} disabled={isSending || !chatInput.trim()}>
+          <Button data-testid="viewer-chat-send" size="icon" onClick={handleSendChat} disabled={isSending || !chatInput.trim()}>
             <Send className="w-4 h-4" />
           </Button>
         </div>

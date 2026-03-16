@@ -80,21 +80,22 @@ export default function LayoutsPage() {
     <div className="space-y-6 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Deck Layouts</h1>
+          <h1 data-testid="layouts-heading" className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Deck Layouts</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Customise slide structures for each pitch book type</p>
         </div>
-        <Button onClick={() => setShowNewForm(!showNewForm)} variant={showNewForm ? 'outline' : 'default'} className="gap-2">
+        <Button data-testid="layouts-new-btn" onClick={() => setShowNewForm(!showNewForm)} variant={showNewForm ? 'outline' : 'default'} className="gap-2">
           {showNewForm ? <><X className="w-4 h-4" /> Cancel</> : <><Plus className="w-4 h-4" /> New Deck Type</>}
         </Button>
       </div>
 
       {showNewForm && (
-        <Card>
+        <Card data-testid="layouts-new-form">
           <CardContent className="p-4 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>Name</label>
                 <Input
+                  data-testid="layouts-new-name"
                   placeholder="e.g. Equity Research"
                   value={newDeck.label}
                   onChange={(e) => setNewDeck(prev => ({ ...prev, label: e.target.value }))}
@@ -103,13 +104,14 @@ export default function LayoutsPage() {
               <div>
                 <label className="block text-sm font-medium mb-1" style={{ color: 'var(--foreground)' }}>Description</label>
                 <Input
+                  data-testid="layouts-new-desc"
                   placeholder="Short description of this deck type"
                   value={newDeck.description}
                   onChange={(e) => setNewDeck(prev => ({ ...prev, description: e.target.value }))}
                 />
               </div>
             </div>
-            <Button onClick={createDeckType} disabled={creatingNew || !newDeck.label} className="gap-2">
+            <Button data-testid="layouts-new-create" onClick={createDeckType} disabled={creatingNew || !newDeck.label} className="gap-2">
               {creatingNew ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               Create
             </Button>
@@ -126,10 +128,11 @@ export default function LayoutsPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div data-testid="layouts-grid" className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {deckTypes.map((dt) => (
             <Card
               key={dt.id}
+              data-testid={`layout-card-${dt.id}`}
               className="cursor-pointer hover:border-[var(--primary)] hover:shadow-md transition-all group"
               onClick={() => router.push(`/layouts/${dt.id}`)}
             >

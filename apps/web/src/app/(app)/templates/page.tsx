@@ -54,11 +54,12 @@ export default function TemplatesPage() {
     <div className="space-y-6 p-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Templates</h1>
+          <h1 data-testid="templates-heading" className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Templates</h1>
           <p className="text-gray-500 dark:text-gray-400 mt-1">Upload and manage your pitch book templates</p>
         </div>
         <div>
           <Button
+            data-testid="templates-upload-btn"
             className="gap-2"
             disabled={isUploading}
             type="button"
@@ -90,9 +91,9 @@ export default function TemplatesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div data-testid="templates-grid" className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {templates.map((tmpl) => (
-            <Card key={tmpl.id}>
+            <Card key={tmpl.id} data-testid={`template-card-${tmpl.id}`}>
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">

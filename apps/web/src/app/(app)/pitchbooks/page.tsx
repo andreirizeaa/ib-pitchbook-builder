@@ -67,8 +67,8 @@ export default function PitchBooksListPage() {
   return (
     <div className="space-y-6 p-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }}>Pitch Books</h1>
-        <Link href="/pitchbooks/new">
+        <h1 className="text-2xl font-bold" style={{ color: 'var(--foreground)' }} data-testid="pitchbooks-heading">Pitch Books</h1>
+        <Link href="/pitchbooks/new" data-testid="pitchbooks-new-btn">
           <Button className="gap-2"><Plus className="w-4 h-4" /> New Pitch Book</Button>
         </Link>
       </div>
@@ -80,6 +80,7 @@ export default function PitchBooksListPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
+          data-testid="pitchbooks-search"
         />
       </div>
 
@@ -104,7 +105,7 @@ export default function PitchBooksListPage() {
       ) : (
         <div className="grid gap-4">
           {filtered.map((pb) => (
-            <Card key={pb.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card key={pb.id} className="hover:shadow-md transition-shadow cursor-pointer" data-testid={`pitchbook-card-${pb.id}`}>
               <CardContent className="p-4 flex items-center justify-between">
                 <Link href={`/pitchbooks/${pb.id}`} className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="w-10 h-10 bg-blue-600 dark:bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -122,6 +123,7 @@ export default function PitchBooksListPage() {
                   <button
                     onClick={(e) => { e.preventDefault(); setDeleteTarget(pb); }}
                     className="p-1.5 rounded-md text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                    data-testid={`pitchbook-delete-${pb.id}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
