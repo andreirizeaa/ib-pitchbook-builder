@@ -1,0 +1,476 @@
+\section*{Appendix A: KSB Mapping}
+\addcontentsline{toc}{section}{Appendix A: KSB Mapping}
+
+This appendix maps each core and Software Engineering pathway KSB to specific evidence in the project.
+
+\vspace{1em}
+\noindent\textbf{\large Core Knowledge, Skills and Behaviours}
+\vspace{0.5em}
+
+\subsection*{K1: How business exploits technology solutions for competitive advantage}
+
+Investment banking analysts spend 90 to 120 minutes creating each pitch book manually, as discussed in Section~\ref{sec:introduction}. The system automates this process by combining template analysis, financial data retrieval, and AI-driven content planning into a single generation pipeline. Section~\ref{sec:evaluation} records a 47-second generation time for a 10-slide deck. This speed advantage lets analysts redirect time from formatting to higher-value activities like client preparation and deal analysis.
+
+\subsection*{K2: The value of technology investments and how to formulate a business case for a new technology solution}
+
+Section~\ref{sec:introduction} defines four business requirements (BR1 to BR4) that ground the project in measurable outcomes. Each generation costs approximately \$0.03 in GPT-4o API fees, compared to the salary cost of an analyst spending 90 minutes on the same task. The usability evaluation in Section~\ref{sec:evaluation} found that four analysts estimated time savings of 60 to 90 minutes per deck. The business case rests on these concrete productivity gains rather than speculative benefits.
+
+\subsection*{K3: Contemporary techniques for design, developing, testing, correcting, deploying and documenting software systems}
+
+Section~\ref{sec:methodology} selects iterative prototyping as the development methodology, with two-week cycles producing working software at each stage. The CI/CD pipeline runs ESLint, TypeScript type checking, Vitest unit tests, and Cypress E2E tests on every push via GitHub Actions. Section~\ref{sec:implementation} traces the full development process from functional requirements through to deployment on Vercel and Render.
+
+\subsection*{K4: How teams work effectively to produce technology solutions}
+
+Section~\ref{sec:methodology} compares Waterfall, Scrum, and iterative prototyping against five criteria. Although this is a solo project, the workflow follows team-oriented practices: Git feature branches isolate work in progress, the CI pipeline enforces code quality before merge, and ESLint catches style inconsistencies automatically. These practices would scale to a multi-developer environment without structural changes.
+
+\subsection*{K5: The role of data management systems in managing organisational data and information}
+
+The system stores pitch books, templates, chat messages, and user data in Supabase (PostgreSQL). Row-level security policies restrict each user to their own records. The data retrieval service pulls financial data from Yahoo Finance and SEC EDGAR, caches responses for 24 hours, and stores results alongside generated outputs. Section~\ref{sec:implementation} covers the database schema and data flow across services.
+
+\subsection*{K6: Common vulnerabilities in computer networks including unsecure coding and unprotected networks}
+
+Section~\ref{sec:research-design} addresses security in the system design. The implementation validates uploaded files as genuine .pptx archives to prevent path traversal and zip bomb attacks. API credentials use environment variables and never appear in logs or source code. Zod schemas validate all incoming request bodies to prevent injection attacks. The Office.js add-in runs inside an iframe with cross-origin restrictions, requiring SameSite=None and Secure cookie attributes for authentication to work.
+
+\subsection*{K7: The various roles, functions and activities related to technology solutions within an organisation}
+
+Section~\ref{sec:introduction} describes the investment banking analyst role and how pitch book preparation fits within the broader deal workflow. The system maps to existing organisational activities: template management (maintaining brand standards), data retrieval (pulling financials), content creation (drafting slides), and review (human-in-the-loop approval). The add-in integrates into the analyst's existing PowerPoint workflow rather than introducing a separate tool.
+
+\subsection*{K8: How strategic decisions are made concerning acquiring technology solutions resources and capabilities}
+
+Section~\ref{sec:methodology} contains comparison tables evaluating programming languages (TypeScript vs Python vs Java), LLM providers (GPT-4o vs Claude vs Gemini), data sources (Yahoo Finance vs Bloomberg), and deployment platforms (Vercel/Render vs AWS vs self-hosted). Each decision is justified against criteria including cost, capability, and risk. The decision to build rather than buy was driven by the absence of template-aware generation in existing tools reviewed in Section~\ref{sec:research-design}.
+
+\subsection*{K9: How to deliver a technology solutions project accurately consistent with business needs}
+
+Section~\ref{sec:methodology} defines business requirements (BR1 to BR4) and maps them to functional requirements. Section~\ref{sec:implementation} traces each functional requirement to its implementation status. Section~\ref{sec:evaluation} assesses all five objectives against measured evidence. The MoSCoW framework guided trade-offs, with RAG search dropped to deliver the higher-impact PowerPoint add-in, keeping the project aligned with business needs.
+
+\subsection*{K10: The issues of quality, cost and time for projects}
+
+Section~\ref{sec:methodology} presents the project plan with a Gantt chart and milestones. The plan-versus-reality table shows how scope changes (adding the add-in, dropping RAG) were managed within the 13-week timeline. The risk assessment identifies time and quality risks with mitigation strategies. Section~\ref{sec:evaluation} discusses the cost of GPT-4o API calls (approximately \$0.03 per generation) as a resource constraint affecting scalability.
+
+\subsection*{S1: Critically analyse a business domain to identify the role of information systems}
+
+Section~\ref{sec:introduction} analyses the investment banking pitch book workflow and identifies manual document preparation as the bottleneck. Section~\ref{sec:research-design} reviews existing tools (Gamma, Beautiful.ai, Tome) and identifies their limitations: none offer template awareness or financial data integration. Section~\ref{sec:evaluation} compares the system against these tools on concrete metrics (time, fidelity, data accuracy). The comparison identifies where the system improves on existing information systems and where gaps remain.
+
+\vspace{1.5em}
+\noindent\textbf{\large Software Engineering Pathway}
+\vspace{0.5em}
+
+\subsection*{SE1: Create effective and secure software solutions}
+
+The system is a full-stack TypeScript application with input validation on all user-facing endpoints and credential management through environment variables. No secrets appear in source code. NFR6 and NFR7 address security directly, requiring that all API credentials stay out of the codebase and all user inputs are sanitised before processing. The Express backend validates every request body against Zod schemas before passing data to internal services. Supabase row-level security policies restrict database access to authenticated users viewing their own data. Sections~\ref{sec:research-design} and~\ref{sec:implementation} cover the design and implementation of these measures.
+
+\subsection*{SE2: Undertake analysis and design to create artefacts}
+
+Section~\ref{sec:methodology} contains requirements tables covering 15 functional requirements (FR1 to FR15) and 8 non-functional requirements (NFR1 to NFR8), each with MoSCoW priority levels and acceptance criteria. Section~\ref{sec:research-design} presents architecture diagrams, data flow diagrams, and component designs with defined interfaces between services. The template schema, content plan schema, and API contracts were all designed before implementation began and documented as Architecture Decision Records in Appendix B.
+
+\subsection*{SE3: Produce high quality code with sound syntax}
+
+TypeScript runs in strict mode across all three applications. The shared-types package defines every data interface once and shares it across the backend, web frontend, and PowerPoint add-in. When a field changes in the template schema, the compiler flags every file that needs updating. ESLint enforces consistent code style and catches common errors (unused variables, missing imports, type inconsistencies) at the lint stage. Section~\ref{sec:implementation} covers the implementation details.
+
+\subsection*{SE4: Perform code reviews, debugging and refactoring}
+
+The template analyser went through three iterations, each driven by a specific failure in the previous version. The first attempt used PptxGenJS for reading templates and produced incorrect output. The second used raw XML parsing but missed custom placeholders. The third added position-based heuristics and achieved 93\% classification accuracy. A colour resolution bug (theme references passing through as default black) was found through debugging and fixed with a resolver that maps theme references to hex values. The CI pipeline caught 14 breaking changes before merge during the project. Section~\ref{sec:implementation} documents these iterations and the challenges table.
+
+\subsection*{SE5: Test code to ensure requirements met}
+
+The project has 75 unit and integration tests across 14 test suites running on Vitest, plus 28 Cypress E2E tests across 7 spec files. All tests pass at 100\% rate. Code coverage sits at 76\% for the backend service, 64\% for the web app, and 58\% for the add-in. Unit tests mock external dependencies (OpenAI, Supabase, Office.js) so they run without API keys or a database connection. E2E tests run against a real Supabase backend with a test user account. Sections~\ref{sec:implementation} and~\ref{sec:evaluation} cover the test strategy and results.
+
+\subsection*{SE6: Deliver software using industry standard build processes}
+
+GitHub Actions runs the full CI/CD pipeline on every push with six stages: dependency install, ESLint linting, TypeScript type checking, Vitest unit tests, Turborepo build, and Cypress E2E tests. Turborepo handles monorepo build orchestration, compiling the shared-types package first and then building the three applications in parallel. Mochawesome generates HTML test reports from Cypress results. The web app deploys through Vercel and the backend through Render. Section~\ref{sec:implementation} documents the pipeline stages.
+
+\subsection*{SE7: Operate at all stages of the software development lifecycle}
+
+The project covers every SDLC stage: requirements analysis and methodology selection (Section~\ref{sec:methodology}), system design with architecture diagrams and API specifications (Section~\ref{sec:research-design}), implementation across three applications (Section~\ref{sec:implementation}), testing at unit, integration, and E2E levels (Section~\ref{sec:implementation}), and evaluation against defined success criteria (Section~\ref{sec:evaluation}). The iterative prototyping methodology produced a working prototype at the end of each two-week cycle, with retrospective reviews feeding lessons back into the next iteration.
+
+\subsection*{SE8: How teams work effectively using agile and other approaches}
+
+Section~\ref{sec:methodology} compares Waterfall, Scrum, and iterative prototyping against five criteria relevant to the project. Iterative prototyping was chosen because Scrum adds ceremony overhead for a solo developer and Waterfall cannot accommodate the exploratory nature of LLM integration. Two-week iterations with retrospective reviews at each cycle's end caught the web-only workflow problem early enough to add the PowerPoint add-in. GitHub Issues with a Kanban board tracked progress, and Git feature branches kept in-progress work isolated from the main branch.
+
+\subsection*{SE9: How to apply software analysis and design approaches}
+
+MoSCoW prioritisation categorised all 15 functional requirements as Must, Should, or Could. This framework directly informed the decision to drop RAG search (a Could requirement) to make room for the PowerPoint add-in (which addressed a Must-level usability gap). Business, functional, and non-functional requirements are separated following \textcite{robertson2012}. Architecture decisions are documented with trade-off analysis in Tables 5 to 9 and formalised as ADRs in Appendix B. Sections~\ref{sec:methodology} and~\ref{sec:research-design} cover requirements and design.
+
+\subsection*{SE10: Interpret and implement a design compliant with requirements}
+
+The requirements traceability table in Section~\ref{sec:implementation} maps each functional requirement to its implementation status with specific evidence. 13 of 15 functional requirements are fully met, FR12 is partially met (chart placeholders populated but not created from scratch), and FR15 was intentionally deferred. All five success criteria defined in Section~\ref{sec:introduction} are met with measured evidence. Section~\ref{sec:evaluation} assesses each objective against quantitative results from evaluation runs.
+
+\subsection*{SE11: How to perform functional and unit testing}
+
+Vitest handles unit and integration tests with mocked dependencies using \texttt{vi.mock()} and \texttt{vi.stubGlobal()}. Service tests mock the OpenAI and Supabase clients so they run without external connections. Add-in tests mock the Office.js runtime. Cypress handles functional E2E tests covering full user flows (login, pitch book creation, template upload, settings). A comparison table in Section~\ref{sec:implementation} justifies choosing Cypress over Playwright based on setup time, debugging tools, and reporting integration.
+
+\subsection*{SE12: How to use and apply software tools used in software engineering}
+
+The project uses Git and GitHub for version control, GitHub Actions for CI/CD, Turborepo for monorepo management, Vitest and Cypress for testing, Mochawesome for test reporting, ESLint and Prettier for code style, the TypeScript compiler for static type checking, PptxGenJS and JSZip for PowerPoint manipulation, LibreOffice headless for slide preview rendering, and Vercel and Render for deployment. Technology selection is justified in Section~\ref{sec:methodology} with comparison tables covering programming languages, LLM providers, data sources, and deployment platforms.
+
+\newpage
+
+\section*{Appendix B: Architecture Decision Records}
+\addcontentsline{toc}{section}{Appendix B: Architecture Decision Records}
+
+\subsection*{ADR-001: TypeScript Over Python}
+
+\textbf{Context.} The project needs a backend API, a web frontend, and potentially a PowerPoint add-in. Python has the stronger AI/ML ecosystem and python-pptx for PowerPoint manipulation.
+
+\textbf{Decision.} Use TypeScript across all applications.
+
+\textbf{Rationale.} Full-stack coherence outweighs Python's library advantage. One language means one build system, one type system, and shared data models. When a third application (the add-in) was added later, this decision saved weeks of duplicate type definitions.
+
+\textbf{Consequences.} PptxGenJS replaces python-pptx. The AI/ML integration uses OpenAI's REST API, which works equally well from any language.
+
+\subsection*{ADR-002: GPT-4o for Content Planning}
+
+\textbf{Context.} The content planner needs an LLM that reliably produces structured JSON matching a Zod schema.
+
+\textbf{Decision.} Use GPT-4o for content planning and GPT-4o-mini for the lighter AI chat feature.
+
+\textbf{Rationale.} GPT-4o's native JSON mode produces valid structured output more reliably than alternatives tested. The content planner validates every response against a Zod schema, so structural reliability matters more than raw reasoning ability. GPT-4o-mini handles AI chat at lower cost since that feature needs conversational ability, not structured output.
+
+\textbf{Consequences.} Vendor dependency on OpenAI. Mitigated by abstracting the API call behind a service interface, so swapping models requires changing one file.
+
+\subsection*{ADR-003: Monorepo with Turborepo}
+
+\textbf{Context.} Three applications share data types and configuration. They could live in separate repositories or a single monorepo.
+
+\textbf{Decision.} Use a Turborepo monorepo with a shared-types package.
+
+\textbf{Rationale.} The shared-types package defines interfaces once and shares them across all three apps. When a template schema changes, the TypeScript compiler flags every file that needs updating. Separate repositories would need manual synchronisation of type definitions.
+
+\textbf{Consequences.} Slightly more complex CI configuration (Turborepo handles build ordering). Single repository means all apps share the same Git history.
+
+\subsection*{ADR-004: Dual Slide Builder Approach}
+
+\textbf{Context.} The slide builder needs to handle two modes: generating slides from scratch (default mode) and cloning slides from an uploaded template (template mode).
+
+\textbf{Decision.} Use PptxGenJS for default mode and a custom XML-based template-slide-builder for template mode.
+
+\textbf{Rationale.} PptxGenJS cannot clone existing slides from a template file. Template mode requires copying the original slide XML and replacing placeholder content, which means working at the XML level with JSZip. Keeping both builders allows each to do what it does best.
+
+\textbf{Consequences.} Two code paths to maintain. Template mode is more fragile because it depends on PowerPoint's XML structure. The template-slide-builder handles fewer edge cases than PptxGenJS.
+
+\newpage
+
+\section*{Appendix C: Evaluation Run Data}
+\addcontentsline{toc}{section}{Appendix C: Evaluation Run Data}
+
+Twelve generation runs were conducted between 17 and 21 March 2026 using the system's built-in deck layouts and colour themes (default mode, no uploaded template). All runs used Git commit \texttt{a9e8bb0}, GPT-4o with temperature zero, and Node.js 22.14. Table~\ref{tab:eval-inputs} shows the inputs and Table~\ref{tab:eval-results-full} shows the measured results for each run.
+
+\begin{longtable}{|l|l|l|l|l|}
+\hline
+\textbf{Run} & \textbf{Company (Ticker)} & \textbf{Deck Layout} & \textbf{Colour Theme} & \textbf{Date} \\
+\hline
+1 & Apple Inc. (AAPL) & Company Overview & Navy \& Gold & 17 Mar \\
+\hline
+2 & AstraZeneca (AZN) & Company Overview & Midnight Blue & 17 Mar \\
+\hline
+3 & Shell plc (SHEL) & Market Update & Teal \& Coral & 18 Mar \\
+\hline
+4 & HSBC Holdings (HSBA) & Transaction Summary & Slate \& Emerald & 18 Mar \\
+\hline
+5 & Unilever (ULVR) & Investor Pitch & Purple \& Gold & 19 Mar \\
+\hline
+6 & Microsoft Corp. (MSFT) & Industry Overview & Charcoal \& Red & 19 Mar \\
+\hline
+7 & BP plc (BP) & Transaction Summary & Navy \& Gold & 20 Mar \\
+\hline
+8 & GSK plc (GSK) & Fundraising Deck & Forest \& Cream & 20 Mar \\
+\hline
+9 & Barclays (BARC) & Market Update & Monochrome & 20 Mar \\
+\hline
+10 & Rio Tinto (RIO) & Due Diligence & Charcoal \& Red & 21 Mar \\
+\hline
+11 & Apple Inc. (AAPL) & Company Overview & Navy \& Gold & 21 Mar \\
+\hline
+12 & AstraZeneca (AZN) & Company Overview & Midnight Blue & 21 Mar \\
+\hline
+\caption{Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}
+\label{tab:eval-inputs}
+\end{longtable}
+
+\begin{longtable}{|l|l|l|l|l|l|}
+\hline
+\textbf{Run} & \textbf{Time (s)} & \textbf{Slides} & \textbf{Colour} & \textbf{Font} & \textbf{JSON OK} \\
+\hline
+1 & 43 & 11 & Exact & Exact & 1st attempt \\
+\hline
+2 & 51 & 11 & Exact & Exact & 1st attempt \\
+\hline
+3 & 38 & 10 & Exact & Exact & 1st attempt \\
+\hline
+4 & 62 & 10 & Exact & Exact & 2nd attempt \\
+\hline
+5 & 47 & 11 & Exact & Exact & 1st attempt \\
+\hline
+6 & 39 & 11 & Exact & Exact & 1st attempt \\
+\hline
+7 & 78 & 10 & Exact & Exact & 3rd attempt \\
+\hline
+8 & 44 & 11 & Exact & Exact & 1st attempt \\
+\hline
+9 & 52 & 10 & Exact & Exact & 1st attempt \\
+\hline
+10 & 32 & 12 & Exact & Exact & 1st attempt \\
+\hline
+11 & 41 & 11 & Exact & Exact & 1st attempt \\
+\hline
+12 & 48 & 11 & Exact & Exact & 2nd attempt \\
+\hline
+\caption{Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. JSON OK = which attempt produced valid structured output.}
+\label{tab:eval-results-full}
+\end{longtable}
+
+Run 7 (BP, Transaction Summary, Navy \& Gold) was the slowest at 78 seconds. The content planner failed validation twice before producing valid JSON on the third attempt; both failures were missing \texttt{tables} arrays in slides that specified tabular layouts. Run 4 (HSBC, Transaction Summary, Slate \& Emerald) also needed a retry because the planner returned a string where a number was expected for \texttt{layoutId}. All other runs produced valid JSON on the first attempt.
+
+Runs 11 and 12 repeated the same inputs as runs 1 and 2 to test consistency. Generation times varied by 2 to 3 seconds (expected given network latency to the OpenAI API). Slide content differed slightly in wording but followed the same structure and section ordering. Colour and font results were identical across repeated runs.
+
+Financial data accuracy was verified per run by comparing three values (market cap, trailing revenue, and share price) in the generated slides against the Yahoo Finance API response logged at generation time. All 36 comparisons (3 values $\times$ 12 runs) matched exactly.
+
+\vspace{1em}
+\noindent\textbf{Sample data verification (Run 1, Apple Inc.):}
+
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Metric} & \textbf{Yahoo Finance API} & \textbf{Generated Slide} \\
+\hline
+Market Cap & \$3.65T & \$3.65T \\
+\hline
+Trailing Revenue (TTM) & \$435.6B & \$435.6B \\
+\hline
+Share Price (close) & \$248.00 & \$248.00 \\
+\hline
+\end{tabular}
+
+\vspace{1em}
+\noindent\textbf{Sample data verification (Run 5, Unilever):}
+
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Metric} & \textbf{Yahoo Finance API} & \textbf{Generated Slide} \\
+\hline
+Market Cap & \$100.4B & \$100.4B \\
+\hline
+Trailing Revenue (TTM) & \$50.5B & \$50.5B \\
+\hline
+Share Price (close) & \$4,595 & \$4,595 \\
+\hline
+\end{tabular}
+
+\newpage
+
+\section*{Appendix D: Usability Evaluation Questionnaire and Responses}
+\addcontentsline{toc}{section}{Appendix D: Usability Evaluation Questionnaire and Responses}
+
+Four junior analysts at a London-based financial services firm participated in an informal usability evaluation during March 2026. Each participant was given the same task: generate a company overview pitch book for AstraZeneca using a provided corporate template, review the output, and complete the questionnaire below.
+
+\textbf{Participants:}
+\begin{itemize}
+    \item P1: First-year analyst, equity capital markets, 8 months' experience
+    \item P2: Second-year analyst, M\&A advisory, 18 months' experience
+    \item P3: First-year analyst, leveraged finance, 10 months' experience
+    \item P4: Second-year analyst, equity capital markets, 20 months' experience
+\end{itemize}
+
+\subsection*{Part A: Quantitative (Likert 1 to 5, where 1 = Strongly Disagree, 5 = Strongly Agree)}
+
+\begin{longtable}{|p{6cm}|l|l|l|l|}
+\hline
+\textbf{Statement} & \textbf{P1} & \textbf{P2} & \textbf{P3} & \textbf{P4} \\
+\hline
+Q1. The generated output matched the template's visual style (colours, fonts, layout) & 5 & 4 & 4 & 5 \\
+\hline
+Q2. The financial data included was accurate and well-positioned on the slides & 4 & 4 & 5 & 4 \\
+\hline
+Q3. The output required less editing than starting a deck from scratch & 5 & 5 & 4 & 5 \\
+\hline
+Q4. The add-in workflow (generating slides inside PowerPoint) was intuitive & 4 & 3 & 3 & 5 \\
+\hline
+Q5. The slide ordering and narrative structure followed IB conventions & 4 & 4 & 4 & 4 \\
+\hline
+Q6. The system would save meaningful time in a real work scenario & 5 & 4 & 4 & 5 \\
+\hline
+\end{longtable}
+
+\subsection*{Part B: Open-Ended Responses}
+
+\textbf{Q7. What was the most useful aspect of the system?}
+
+\begin{itemize}
+    \item P1: `The template matching. The colours and fonts are exactly right. Normally that takes the longest to get consistent across slides, especially when you are pulling layouts from old decks.'
+    \item P2: `Having the financials already in there. I usually spend 20 minutes just pulling numbers from Bloomberg and formatting them. This had everything from Yahoo Finance already placed.'
+    \item P3: `Speed. Getting a first draft in under a minute means I can start editing immediately rather than staring at a blank deck for half an hour trying to figure out the structure.'
+    \item P4: `The fact that it works inside PowerPoint. Every other AI tool I have tried makes you export and import files. This just puts the slides straight in.'
+\end{itemize}
+
+\textbf{Q8. What would you change or improve?}
+
+\begin{itemize}
+    \item P1: `I want to regenerate a single slide without redoing the whole deck. Sometimes one slide is off but the rest are fine.'
+    \item P2: `The taskpane felt a bit cramped on my laptop screen. Would be better if I could resize it or pop it out into a separate window.'
+    \item P3: `It would be good to choose which sections to include. For some clients we skip the market overview entirely.'
+    \item P4: `The status indicator during generation was not obvious. I was not sure if it was working or stuck. A progress bar would help.'
+\end{itemize}
+
+\textbf{Q9. Estimated time to create a similar deck manually vs using the system?}
+
+\begin{itemize}
+    \item P1: `Manual: about two hours. With the system: maybe 20 minutes total including editing.'
+    \item P2: `Manual: 90 minutes if I have a good reference deck. System: 15 minutes of editing after generation.'
+    \item P3: `Manual: two hours minimum. System: generation was instant, then about 25 minutes of cleanup.'
+    \item P4: `Manual: depends on the deck, but at least 90 minutes. System: under 20 minutes including review.'
+\end{itemize}
+
+\textbf{Q10. Would you use this system in your daily work? Why or why not?}
+
+\begin{itemize}
+    \item P1: `Yes. Even if I need to edit every slide, starting with a formatted draft is much better than starting from nothing.'
+    \item P2: `Yes, for first drafts and for decks where the structure is standard. For bespoke pitches I would probably still start manually.'
+    \item P3: `Yes. The time saving is real. Even getting the formatting right automatically would be worth it on its own.'
+    \item P4: `Definitely. The biggest win is not having to hunt through old decks for the right template and then reformat everything. This does both in seconds.'
+\end{itemize}
+
+\newpage
+
+\section*{Appendix E: Web Application Screenshots}
+\addcontentsline{toc}{section}{Appendix E: Web Application Screenshots}
+
+Screenshots of every page in the PitchDeck AI web application, captured from a local deployment with a test account.
+
+\subsection*{Authentication Pages}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/01-login-page.png}
+\caption{Login page with email and password form alongside application branding.}
+\label{fig:app-login}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/02-register-page.png}
+\caption{Registration page with name, email, and password fields.}
+\label{fig:app-register}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/03-forgot-password-page.png}
+\caption{Forgot password page. Sends a reset link via Supabase Auth.}
+\label{fig:app-forgot-password}
+\end{figure}
+
+\newpage
+
+\subsection*{Dashboard}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/04-dashboard.png}
+\caption{Dashboard with summary cards, recent pitch books, and generation status indicators.}
+\label{fig:app-dashboard}
+\end{figure}
+
+\newpage
+
+\subsection*{Pitch Books}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/05-pitchbook-gallery-with-thumbnails.png}
+\caption{Pitch books list with company name, type, date, and generation status. Includes search filtering.}
+\label{fig:app-pitchbooks-list}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/05a-pitchbook-deck-layout.png}
+\caption{Pitch book viewer with full-size slide, thumbnail strip, and AI chat panel for requesting edits.}
+\label{fig:app-pitchbook-viewer}
+\end{figure}
+
+\newpage
+
+\subsection*{Pitch Book Creation}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/06-new-pitchbook.png}
+\caption{New pitch book form with company details, pitch book type, transaction context, and design options.}
+\label{fig:app-new-pitchbook}
+\end{figure}
+
+\newpage
+
+\subsection*{Templates}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/07-templates.png}
+\caption{Templates page (empty state) with upload prompt for .pptx reference templates.}
+\label{fig:app-templates}
+\end{figure}
+
+\newpage
+
+\subsection*{Deck Layouts}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/08-layouts.png}
+\caption{Deck layouts overview with seven pre-configured deck types, each showing a description and slide count.}
+\label{fig:app-layouts}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/08a-layout-edit.png}
+\caption{Deck layout editor for Company Overview. Each slide has a title, layout type, and content description. Slides can be reordered, added, or deleted.}
+\label{fig:app-layout-edit}
+\end{figure}
+
+\newpage
+
+\subsection*{Settings}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/web-app/09-settings.png}
+\caption{Settings page with profile details, password change, and sign-out.}
+\label{fig:app-settings}
+\end{figure}
+
+\newpage
+
+\section*{Appendix F: PowerPoint Add-in Screenshots}
+\addcontentsline{toc}{section}{Appendix F: PowerPoint Add-in Screenshots}
+
+Screenshots of the PowerPoint taskpane add-in running inside Microsoft PowerPoint on macOS. The add-in connects to the same backend as the web application.
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/add-in/1-addin-full.png}
+\caption{Add-in after generation. 11 slides have been inserted into the presentation. The taskpane shows a completion message and an AI chat input for requesting edits.}
+\label{fig:addin-full}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/add-in/2-addin-new.png}
+\caption{New pitch book form in the add-in. The user enters company name, ticker, pitch book type, transaction type, colour theme, design style, and optional context before generating.}
+\label{fig:addin-new}
+\end{figure}
+
+\newpage
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/add-in/3-addin-new-loading.png}
+\caption{Generation in progress. The taskpane shows a step-by-step progress indicator: analysing template, fetching company data, planning content with AI, building slides, and generating previews.}
+\label{fig:addin-loading}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/add-in/4-adding-new-output.png}
+\caption{Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests.}
+\label{fig:addin-output}
+\end{figure}

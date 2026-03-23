@@ -1,0 +1,14 @@
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.log
+*.out
+*.toc
+*.lof
+*.lot
+*.run.xml
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+# main.pdf is tracked - it's the dissertation output
