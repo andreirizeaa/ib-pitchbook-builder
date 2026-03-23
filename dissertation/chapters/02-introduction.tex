@@ -3,9 +3,9 @@
 
 Knowledge workers spend a fifth of their time just searching for information \parencite{mckinsey2012}. Investment banking (IB) is more affected than most. Document preparation consumes half to three-quarters of a junior banker's week, and pitch books (PBs) account for a large portion of that time \parencite{cfi2025,wso2024}. When Goldman Sachs surveyed its first-year analysts in 2021, the average was 98 hours a week, with document preparation a major driver of burnout \parencite{bbc2021}. Yet most PBs look nearly identical. Change the company name and update the numbers, and you could reuse last month's deck. That repetition makes them good targets for automation (K1, K7).
 
-IB firms advise companies on mergers, acquisitions, capital raising, and other financial transactions. PBs are the primary vehicle for communicating analysis to clients and internal stakeholders. They summarise a company's financial position, compare it to peers, and make the case for a particular transaction. Getting these documents right matters, but getting them done quickly matters too.
+IB firms advise companies on mergers, acquisitions, capital raising, and other financial transactions. PBs are the primary vehicle for communicating analysis to clients and internal stakeholders. Getting these documents right matters, but getting them done quickly matters too.
 
-Firms have tried internal document libraries, dedicated formatting specialists, and automation tools. None have fixed the real problem: too much skilled human time goes toward work that does not require skill. \textcite{chaves2022} found that knowledge sharing in banking suffers from structural barriers and inadequate digital tools, with company knowledge often locked in individual documents rather than shared systems. The pitch book problem is a specific instance of this broader pattern.
+Firms have tried internal document libraries, formatting specialists, and automation tools. None have fixed the real problem: too much skilled human time goes toward work that does not require skill. \textcite{chaves2022} found that knowledge sharing in banking suffers from structural barriers and inadequate digital tools, with company knowledge locked in individual documents rather than shared systems.
 
 \subsection{Analyst Time Allocation}
 
@@ -19,9 +19,7 @@ The process follows a predictable pattern: dig through document archives for sim
 
 Banks pay junior analysts well, so time on low-skill tasks is a poor return on that investment. \textcite{radhakrishna2024} found that well-designed knowledge management systems boosted productivity by 20 to 25 percent, with document production identified as a prime candidate for automation.
 
-The numbers back this up. \textcite{mckinsey2012} found that the average knowledge worker spends 28\% of their workweek managing email and nearly 20\% searching for internal information. APQC research found that a quarter of knowledge workers' time is lost to productivity drains including duplicated work and information retrieval \parencite{apqc2023}.
-
-Figure~\ref{fig:time-allocation} illustrates these productivity drains. IB analysts likely fare worse than these averages given the document-intensive nature of the work.
+\textcite{mckinsey2012} found that knowledge workers spend 28\% of their workweek managing email and nearly 20\% searching for internal information. APQC research puts the figure higher: a quarter of all working time is lost to duplicated work and information retrieval \parencite{apqc2023}. Figure~\ref{fig:time-allocation} illustrates these drains. IB analysts likely fare worse given the document-intensive nature of the work.
 
 \begin{figure}[H]
 \centering
@@ -81,7 +79,30 @@ Agentic AI architectures offer a better fit \parencite{ibm2024}. Instead of one 
 
 This project fills that gap (S1). The pipeline extracts layouts, colour palettes, and placeholder positions from a template using JSZip and xml2js for XML-level parsing, uses an LLM to plan content, then assembles slides matching the original style. The system uses an agentic orchestration pattern with specialised service components rather than a monolithic approach.
 
-The approach differs from prior work in three ways. First, it inverts the typical generation order: the system starts with visual constraints extracted from the template and works backward to content, rather than generating content and hoping the formatting works. No existing presentation generation tool takes this constraint-first approach. Second, it connects slide generation directly to financial data APIs, closing the gap between data retrieval and document creation that every surveyed tool leaves open. Third, it uses a service-oriented architecture where specialised components handle distinct parts of the task, making the system easier to test and modify independently.
+Table~\ref{tab:gap-objectives} maps each identified gap to the objective and success criterion that addresses it, so that no objective exists without a corresponding gap in existing work.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|p{4.2cm}|l|p{4.5cm}|}
+\hline
+\textbf{Gap in Existing Work} & \textbf{Objective} & \textbf{Success Criterion} \\
+\hline
+No tool preserves exact template formatting & O1 & 90\%+ placeholder detection; exact colour extraction \\
+\hline
+Data retrieval and slide generation are separate manual steps & O2 & 100\% data accuracy against source APIs \\
+\hline
+No IB-specific content structuring & O3 & 3 PB types with consistent section ordering \\
+\hline
+Generic output that ignores corporate visual standards & O4 & Exact colour and font match against template \\
+\hline
+No measured evaluation of template-constrained generation & O5 & Full deck in under 5 minutes; template match above 85\% \\
+\hline
+\end{tabular}
+\caption{Traceability from Research Gaps to Objectives and Success Criteria}
+\label{tab:gap-objectives}
+\end{table}
+
+The approach differs from prior work in three ways. First, it inverts the typical generation order: the system starts with visual constraints extracted from the template and works backward to content, rather than generating content and hoping the formatting works. Second, it connects slide generation directly to financial data APIs, closing the gap between data retrieval and document creation. Third, it uses a service-oriented architecture where specialised components handle distinct parts of the task, making the system easier to test and modify independently.
 
 \subsection{Business Case}
 
@@ -99,7 +120,7 @@ The aim is to design, build, and test a proof-of-concept (POC) showing how AI-po
 
 On the business side, the goal is a workflow where an analyst provides minimal input and receives a solid first draft, reducing formatting time while keeping humans in control of the analysis. Target users are junior analysts.
 
-On the learning side, the project explores how to connect LLM orchestration with programmatic document generation: agentic architectures, template pattern extraction, and end-to-end AI pipeline design. Human-in-the-loop (HITL) design is central, since AI tools in regulated industries need to support professional judgement rather than replace it.
+On the learning side, the project explores how to connect LLM orchestration with programmatic document generation: agentic architectures, template pattern extraction, and end-to-end AI pipeline design. Human-in-the-loop (HITL) design is central, since AI tools in regulated industries need to support professional judgement rather than replace it. The constraint-first approach (extracting visual and structural rules before generating content) is the main technical contribution. The same idea would work wherever generated output must match precise formatting: legal briefs, consulting reports, or regulatory filings.
 
 Five objectives structure the work:
 

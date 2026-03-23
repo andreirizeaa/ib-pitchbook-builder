@@ -1,15 +1,13 @@
 \section{Project Implementation and Outcomes}
 \label{sec:implementation}
 
-This section covers how the design was turned into working software, the technical challenges encountered, and how decisions evolved as the project progressed. Where the design section describes what was planned, this section describes what was actually built and why it sometimes diverged from the plan.
+This section covers what was actually built and why it sometimes diverged from the plan.
 
 \subsection{Architecture Evolution}
 
-The original design called for a Python backend with FastAPI and a Next.js frontend. Two weeks into implementation, this changed. The frontend needed TypeScript for React components, the backend needed Python for python-pptx, and every data structure that crossed the API boundary had to be defined twice. When a field name changed in the template schema, the Python definition would update but the TypeScript interface would not, causing silent runtime failures.
+The original design called for a Python backend with FastAPI and a Next.js frontend. Two weeks into implementation, this changed. Every data structure that crossed the API boundary had to be defined twice, and when a field name changed in the template schema, the Python definition would update but the TypeScript interface would not, causing silent runtime failures.
 
-Switching everything to TypeScript solved this (SE3). PptxGenJS replaced python-pptx for slide generation, and JSZip with xml2js replaced python-pptx's template reading capabilities. Express.js replaced FastAPI. The migration took roughly four days but removed a whole category of bugs. The \texttt{shared-types} package now defines every interface once, and the TypeScript compiler catches mismatches at build time across all applications.
-
-This paid off during later development. When the template schema gained a new \texttt{chartData} field, the compiler flagged every service that needed updating. In a multi-language setup, those errors would have shown up as runtime crashes during testing or, worse, in the evaluation runs.
+Switching everything to TypeScript solved this (SE3). PptxGenJS replaced python-pptx, JSZip with xml2js replaced python-pptx's template reading, and Express.js replaced FastAPI. The migration took four days but removed a whole category of bugs. The \texttt{shared-types} package now defines every interface once, and the TypeScript compiler catches mismatches at build time across all applications.
 
 \subsection{Monorepo Structure}
 
@@ -38,7 +36,7 @@ The codebase uses Turborepo to manage three applications and one shared package 
 \label{tab:monorepo}
 \end{table}
 
-Turborepo handles build orchestration and caching. Running \texttt{turbo build} compiles \texttt{shared-types} first (since the other packages depend on it), then builds the three applications in parallel. Incremental builds skip unchanged packages, cutting build times from around 45 seconds to under 10 seconds during active development. Figure~\ref{fig:dashboard} shows the web app dashboard after login.
+Turborepo handles build orchestration and caching, compiling \texttt{shared-types} first then building the three applications in parallel. Incremental builds skip unchanged packages. Figure~\ref{fig:dashboard} shows the web app dashboard after login.
 
 \begin{figure}[H]
 \centering
@@ -143,7 +141,7 @@ const ContentPlanSchema = z.object({
 
 The slide builder takes the content plan and template schema and produces a .pptx file using PptxGenJS (SE10). For each slide in the content plan, it selects the matching layout, creates a new slide, and fills each placeholder with the specified content using the exact formatting from the template schema: font family, size, weight, and colour.
 
-The first version generated slides with correct structure but wrong colours. Some colours were still stored as theme references (\texttt{accent1}, \texttt{dk1}) rather than hex values. PptxGenJS has no concept of PowerPoint's theme colour system, so passing theme references through produced default black text on every slide. The fix was a resolver that maps every theme reference to its hex value using the colour palette from the template analyser. A second problem then appeared: some templates use tinted or shaded variants (e.g., \texttt{accent1} at 60\% luminance). The builder now handles these modifiers by applying the percentage to the base hex value. This cascading pattern, where edge cases only surface when the next component consumes the output, is typical of pipeline architectures. The iterative methodology made it manageable because each two-week cycle exposed the next layer of problems.
+The first version generated slides with correct structure but wrong colours. Some colours were stored as theme references (\texttt{accent1}, \texttt{dk1}) rather than hex values. PptxGenJS has no concept of PowerPoint's theme colour system, so passing theme references through produced default black text on every slide. The fix was a resolver that maps every theme reference to its hex value using the colour palette from the template analyser. A second problem then appeared: some templates use tinted or shaded variants (e.g., \texttt{accent1} at 60\% luminance). The builder now handles these modifiers by applying the percentage to the base hex value.
 
 A separate service, \texttt{template-slide-builder}, handles a different workflow: cloning existing slides from the uploaded template and replacing placeholder text while keeping all visual styling intact. This uses JSZip and the xml2js \texttt{Builder} to modify and regenerate the XML directly, rather than creating slides from scratch via PptxGenJS. Both builders exist because they serve different needs. PptxGenJS creates new slides when the content plan calls for layouts not present in the template. The clone-based builder preserves exact formatting for layouts that already exist.
 
@@ -491,7 +489,7 @@ detection & lack type attributes & (93\% accuracy on test set) \\
 \label{tab:challenges}
 \end{table}
 
-Each challenge left a lesson. The Python/TypeScript split made it clear that shared data models across boundaries are the first thing to get right. The structured output problem showed that validation with feedback loops beats prompt engineering alone. The theme colour and placeholder issues only appeared when the next pipeline component tried to consume the output — the only way to find these is to connect things and run real data through. The Office.js cookie problem could have been avoided by investigating iframe restrictions before building the feature. And the placeholder heuristics worked because their accuracy was measured against real templates; without that, a heuristic is just a guess.
+Each challenge left a lesson. The Python/TypeScript split showed that shared data models across boundaries are the first thing to get right. The structured output problem showed that validation with feedback loops beats prompt engineering alone. The theme colour and placeholder issues only appeared when the next pipeline component consumed the output, reinforcing that integration testing against real data is the only reliable way to surface pipeline bugs.
 
 \subsection{Requirements Tracking}
 
@@ -540,11 +538,11 @@ FR15 & RAG search & Not met & Stretch goal, deferred \\
 
 13 of 15 functional requirements are fully met (SE10). FR12 (chart generation) is partially met: the system populates existing chart placeholders with data but cannot create new chart types from scratch. FR15 (RAG search) was a `Could have' stretch goal that was dropped to make time for the PowerPoint add-in, which helped users more directly.
 
+\subsection{Scalability Considerations}
+
+The current architecture handles single-user evaluation loads, but two properties make it easier to scale later. The orchestration service runs each pipeline asynchronously: the API returns a job ID immediately and the client polls a \texttt{generations} table for progress updates, so the HTTP connection is not held open during the 30 to 80 second generation. Generated files and preview images are stored in Supabase Storage (backed by S3-compatible object storage) rather than the local filesystem, so the backend is stateless. The main bottleneck at scale would be the sequential GPT-4o API call. A production deployment would need a request queue (Redis or SQS) in front of the orchestrator, allowing multiple generation requests to run in parallel across worker processes.
+
 \subsection{Additions Beyond Original Design}
 
-Two unplanned components account for roughly a third of total development effort. The PowerPoint add-in (Section~\ref{sec:addin}) added three weeks of work but changed the system from a standalone generator into an assistant inside the banker's existing workflow. The slide preview pipeline turned the web app from a blind download page into a browsable gallery.
-
-Both came from testing the planned workflow and finding that it created friction offsetting the productivity gains (SE7). The iterative approach made this possible: each two-week cycle produced a working build, and usability issues surfaced early enough to act on. Using one language meant the add-in could share code with the web app rather than starting from scratch. The shared-types package, Supabase auth layer, and Express API all carried over directly.
-
-The trade-off was dropping RAG search (FR15). The MoSCoW framework made this explicit: the add-in addressed a `Must have' usability gap, while RAG was a `Could have' stretch goal (SE9).
+Two unplanned components, the PowerPoint add-in and the slide preview pipeline, account for roughly a third of total development effort. Both came from testing the planned workflow and finding friction that offset the productivity gains (SE7). The trade-off was dropping RAG search (FR15). The MoSCoW framework made this explicit: the add-in addressed a `Must have' usability gap, while RAG was a `Could have' stretch goal (SE9).
 
