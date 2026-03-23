@@ -3,6 +3,8 @@
 
 \subsection{Literature Review}
 
+Sources were identified through Google Scholar, ACM Digital Library, and IEEE Xplore using search terms including `LLM document generation', `automated presentation', `agentic AI architecture', and `human-in-the-loop AI'. Inclusion criteria: peer-reviewed papers or established industry reports published after 2018 (with foundational works from earlier where relevant), available in English, and addressing at least one of the four review domains. Commercial tool documentation (Gamma, Beautiful.ai, Tome) was included for the gap analysis but not treated as academic evidence. Snowball searching from reference lists of key papers (particularly \textcite{zheng2025} and \textcite{wang2024}) identified additional sources.
+
 This review covers four domains: LLM productivity effects, automated presentation generation, agentic architectures, and human-in-the-loop design. Each domain is evaluated against IB document generation requirements, with gaps identified that motivated this project.
 
 The implementation focuses on the core generation pipeline: template analysis, content planning, and slide assembly. Agentic data retrieval from financial APIs and RAG over precedent materials are stretch goals. The literature review still covers these areas because they inform the architecture and would be the natural next steps if the project continued beyond its current scope.
@@ -169,6 +171,50 @@ SlideSpec & layout\_id, placeholders, & Content specification for \\
 \textbf{Template Schema} captures extracted template properties including layouts, colour palettes, fonts, and placeholder specifications. Each slide layout maps placeholder indices to content types (title, body, picture, chart, table).
 
 \textbf{Content Plan} specifies the content for each slide: which layout to use, what text goes in each placeholder, and what data to display. The LLM generates this structure; the Slide Builder consumes it.
+
+Figure~\ref{fig:er-diagram} shows the database schema. Row-level security (RLS) policies on every table restrict access so that authenticated users can only read and write their own records. The service role bypasses RLS for backend operations.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    entity/.style={draw, rounded corners, minimum width=3.2cm, minimum height=0.8cm, align=center, font=\small\bfseries},
+    attr/.style={font=\footnotesize, align=left},
+    rel/.style={->, thick, >=stealth},
+    node distance=2.5cm and 4cm
+]
+% Entities
+\node[entity] (users) {auth.users};
+\node[entity, below left=2.5cm and 0.5cm of users] (pb) {pitch\_books};
+\node[entity, below right=2.5cm and 0.5cm of users] (tmpl) {templates};
+\node[entity, below=2.5cm of pb] (chat) {chat\_messages};
+\node[entity, right=3.5cm of chat] (gen) {generations};
+
+% Attributes
+\node[attr, below=0.15cm of pb] {\texttt{id, user\_id, title, company,}\\
+\texttt{ticker, pb\_type, status,}\\
+\texttt{slides\_data, file\_url,}\\
+\texttt{slide\_previews[], template\_id}};
+
+\node[attr, below=0.15cm of tmpl] {\texttt{id, user\_id, name,}\\
+\texttt{file\_url, analysis\_data}};
+
+\node[attr, below=0.15cm of chat] {\texttt{id, pitch\_book\_id,}\\
+\texttt{role, content}};
+
+\node[attr, below=0.15cm of gen] {\texttt{id, pitch\_book\_id,}\\
+\texttt{status, progress,}\\
+\texttt{current\_step, error}};
+
+% Relationships
+\draw[rel] (users.south) -- node[left, font=\footnotesize] {1:N} (pb.north);
+\draw[rel] (users.south) -- node[right, font=\footnotesize] {1:N} (tmpl.north);
+\draw[rel] (pb.south) -- node[left, font=\footnotesize] {1:N} (chat.north);
+\draw[rel] (pb.south east) -- node[right, font=\footnotesize, near start] {1:N} (gen.north west);
+\draw[rel, dashed] (tmpl.south west) -- node[below, font=\footnotesize, sloped] {0..1:N} (pb.east);
+\end{tikzpicture}
+\caption{Database entity-relationship diagram. All tables use UUID primary keys. RLS policies enforce per-user access. The dashed line indicates an optional foreign key (pitch books may or may not reference a template).}
+\label{fig:er-diagram}
+\end{figure}
 
 \subsubsection{Component Specifications}
 

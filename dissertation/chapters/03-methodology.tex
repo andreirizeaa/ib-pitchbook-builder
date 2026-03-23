@@ -270,7 +270,7 @@ IB conventions? & of narrative structure & across 3 PB types \\
 \label{tab:gqm}
 \end{table}
 
-Following guidelines for experimentation in software engineering \parencite{wohlin2012}, outputs are compared against generic tools (Gamma, Beautiful.ai) and estimated manual creation time. Fixed test cases cover different company types, sectors, and PB types to support replication. An informal usability evaluation with junior analysts provides qualitative feedback on the system's practical value.
+These targets were fixed before evaluation began and not adjusted after seeing results, following the pre-registration principle recommended by \textcite{wohlin2012} to avoid post-hoc rationalisation. Outputs are compared against generic tools (Gamma, Beautiful.ai) and estimated manual creation time. Fixed test cases cover different company types, sectors, and PB types to support replication. An informal usability evaluation with junior analysts provides qualitative feedback on the system's practical value. Participants were told their responses would appear anonymously in this report and are identified only as P1 to P4 in the results.
 
 \subsection{Project Plan}
 
@@ -393,36 +393,40 @@ Table~\ref{tab:risks} identifies key risks following \textcite{boehm1991}'s fram
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|l|l|l|}
+\begin{tabular}{|l|l|l|l|l|l|}
 \hline
-\textbf{ID} & \textbf{Risk Description} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Backup Plan} \\
+\textbf{ID} & \textbf{Risk} & \textbf{L} & \textbf{I} & \textbf{Backup Plan} & \textbf{Outcome} \\
 \hline
-R1 & API rate limits restrict & Medium & Medium & Caching, mock data, \\
- & data retrieval & & & staggered API calls \\
+R1 & API rate limits & M & M & Caching, staggered calls & Did not materialise; \\
+ & & & & & 24h cache sufficient \\
 \hline
-R2 & LLM outputs inconsistent & High & High & Structured schemas, \\
- & or hallucinated & & & validation, HITL review \\
+R2 & LLM output & H & H & Schemas, validation, & Materialised: 22\% invalid \\
+ & inconsistency & & & HITL review & on first attempt; Zod \\
+ & & & & & retries raised to 96\% \\
 \hline
-R3 & Template analysis fails on & Medium & High & Scope to common layouts, \\
- & complex layouts & & & graceful fallback \\
+R3 & Template analysis & M & H & Scope to common layouts, & Materialised: custom \\
+ & fails on complex layouts & & & graceful fallback & placeholders (30\%); \\
+ & & & & & heuristics raised to 93\% \\
 \hline
-R4 & External API deprecation & Low & High & Abstract API layer, \\
- & & & & fallback sources \\
+R4 & External API & L & H & Abstract API layer, & Did not materialise \\
+ & deprecation & & & fallback sources & \\
 \hline
-R5 & Scope creep & Medium & Medium & MoSCoW prioritisation, \\
- & & & & regular scope reviews \\
+R5 & Scope creep & M & M & MoSCoW prioritisation, & Materialised: add-in added; \\
+ & & & & regular scope reviews & RAG dropped via MoSCoW \\
 \hline
-R6 & Technical complexity & Medium & High & Iterative delivery, \\
- & exceeds available time & & & defer stretch goals \\
+R6 & Technical complexity & M & H & Iterative delivery, & Partially: Python-to-TS \\
+ & exceeds time & & & defer stretch goals & migration cost 4 days; \\
+ & & & & & recovered via faster builds \\
 \hline
-R7 & Data accuracy issues & Medium & High & Manual verification, \\
- & & & & source attribution \\
+R7 & Data accuracy & M & H & Manual verification, & Did not materialise; API \\
+ & issues & & & source attribution & passthrough approach \\
+ & & & & & eliminated LLM fabrication \\
 \hline
-R8 & Compliance violations & Low & High & Mandatory human review, \\
- & in outputs & & & no PII processing \\
+R8 & Compliance & L & H & Mandatory human review, & Did not materialise \\
+ & violations & & & no PII processing & \\
 \hline
 \end{tabular}
-\caption{Risk Assessment and Backup Plans}
+\caption{Risk Assessment with Outcomes. L = Likelihood, I = Impact, M = Medium, H = High.}
 \label{tab:risks}
 \end{table}
 
@@ -432,7 +436,34 @@ AI in financial services raises ethical concerns around transparency, accountabi
 
 The system addresses this through HITL design: generated content is marked as AI-assisted, and professional review is mandatory before distribution. The system flags uncertainty rather than making up believable content.
 
-Data governance follows a minimal-retention approach. The system processes only the data needed for each generation request: user parameters, the uploaded template file, and financial data retrieved from public APIs. User-uploaded templates are stored in Supabase Storage to support re-generation, but the system does not extract or store any data from the template beyond the structural schema needed for slide assembly. Financial data from Yahoo Finance and SEC EDGAR is cached for 24 hours to reduce API load, then discarded. No personally identifiable information is collected beyond the user's email address for authentication. Chat messages are stored to preserve conversation history but are scoped to individual users through Supabase row-level security policies. These practices follow GDPR's principle of collecting only what is needed \parencite{bis2024}, though a production deployment would need a formal Data Protection Impact Assessment.
+Data governance follows a minimal-retention approach. Table~\ref{tab:data-governance} summarises what data the system stores, where, and for how long. No personally identifiable information is collected beyond the user's email address for authentication. These practices follow GDPR's data minimisation principle \parencite{bis2024}, though a production deployment would need a formal Data Protection Impact Assessment.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Data Type} & \textbf{Storage} & \textbf{Retention} & \textbf{Deletion Trigger} \\
+\hline
+User email and password hash & Supabase Auth & Indefinite & Account deletion \\
+\hline
+Uploaded .pptx templates & Supabase Storage & Indefinite & User deletes template \\
+\hline
+Template structural schema & Supabase DB (JSON) & Indefinite & Parent template deleted \\
+\hline
+Financial data (Yahoo/EDGAR) & In-memory cache & 24 hours & Cache expiry \\
+\hline
+Generated .pptx files & Supabase Storage & Indefinite & User deletes pitch book \\
+\hline
+Slide preview PNGs & Supabase Storage & Indefinite & Parent pitch book deleted \\
+\hline
+Chat messages & Supabase DB & Indefinite & User deletes pitch book \\
+\hline
+LLM prompts and responses & Server logs & Per evaluation run & Tied to Git commit \\
+\hline
+\end{tabular}
+\caption{Data Governance: Storage, Retention, and Deletion Policies}
+\label{tab:data-governance}
+\end{table}
 
 The project relies on three external services with licensing constraints worth noting (K10). OpenAI's API usage policy permits commercial and academic use of generated outputs but prohibits using them to train competing models. Yahoo Finance data is accessed through the unofficial \texttt{yahoo-finance2} npm package, which scrapes public endpoints rather than using a licensed API; this works for a POC but would need replacement with a licensed data provider (Bloomberg, Refinitiv) for production use. SEC EDGAR is a public government resource with no licensing restrictions beyond a rate limit of ten requests per second.
 
