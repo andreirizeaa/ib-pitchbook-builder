@@ -10,4 +10,7 @@ export default defineConfig({
     defaultCommandTimeout: 10000,
     video: false,
   },
+  env: {
+    CI: process.env.CI === 'true',
+  },
 });
