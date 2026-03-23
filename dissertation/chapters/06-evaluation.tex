@@ -1,0 +1,262 @@
+\section{Evaluation and Conclusions}
+\label{sec:evaluation}
+
+This section evaluates the system against its original objectives and success criteria, compares it to existing tools, and reflects on what worked and what did not.
+
+\subsection{Results Against Success Criteria}
+
+Table~\ref{tab:success-criteria} measures the system against the five success criteria defined in Section~\ref{sec:introduction} (SE10).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Criterion} & \textbf{Target} & \textbf{Result} & \textbf{Verdict} \\
+\hline
+Generation time & Under 5 minutes & Average 47s for 10 to 12 slides & Met \\
+ & for 10 slides & (range: 32 to 78s across 12 runs) & \\
+\hline
+Placeholder detection & 90\% accuracy & 93\% on test templates & Met \\
+\hline
+Data accuracy & 100\% match against & 100\% for market cap, revenue, & Met \\
+ & source APIs & share price (verified per run) & \\
+\hline
+Template matching & Colours exact, fonts & Colours exact (hex match), & Met \\
+ & exact & fonts exact & \\
+\hline
+PB type support & At least 3 types & Company overview, market update, & Met \\
+ & & transaction summary supported & \\
+\hline
+\end{tabular}
+\caption{Success Criteria Results}
+\label{tab:success-criteria}
+\end{table}
+
+All five criteria are met. Appendix~C contains the full input and result data for all 12 evaluation runs. Generation time came in well under the five-minute target because the pipeline runs each stage sequentially without waiting for user input. The bottleneck is the GPT-4o API call (typically 8 to 15 seconds); template extraction and slide assembly together take under 5 seconds.
+
+Template matching was checked automatically (SE5). A test script extracts colours and font specifications from both the reference template and the generated output, then compares them. Colour values match exactly because the builder resolves theme references to hex before applying them. Font families and sizes also match exactly.
+
+Data accuracy is 100\% across all 36 comparisons (3 values $\times$ 12 runs, verified in Appendix~C) because financial figures come directly from the Yahoo Finance API and are passed through to the content planner as-is. The LLM does not generate financial numbers. It receives them in the prompt and places them in the slide text. This design choice eliminates the main source of hallucination risk for numerical data.
+
+\subsection{Test Results}
+
+Table~\ref{tab:test-results} summarises the automated test outcomes across the three applications.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{App} & \textbf{Tests} & \textbf{Pass Rate} & \textbf{Coverage} \\
+\hline
+\texttt{apps/service} & 8 test suites, 42 tests & 100\% & 76\% (services + routes) \\
+\hline
+\texttt{apps/web} & 3 test suites, 18 tests & 100\% & 64\% (hooks + lib) \\
+\hline
+\texttt{apps/powerpoint-addin} & 3 test suites, 15 tests & 100\% & 58\% (helpers + logic) \\
+\hline
+Cypress E2E & 7 spec files, 28 tests & 100\% & N/A (full user flows) \\
+\hline
+\end{tabular}
+\caption{Automated Test Results}
+\label{tab:test-results}
+\end{table}
+
+The service tests have the highest coverage because the core pipeline modules (template analyser, content planner, slide builder) are the most critical and the most testable. The web app and add-in have lower coverage because much of their code is UI rendering, which Cypress tests cover through user flow testing rather than unit tests.
+
+The CI pipeline catches regressions on every push (SE6). During development, it flagged 14 breaking changes before they reached the main branch. The most common failure was type mismatches after changing a shared interface, which the TypeScript compiler caught at the type-check stage.
+
+\subsection{Comparison with Existing Tools}
+
+To put the results in context, the same company overview was generated using three approaches: this system, Gamma (a commercial AI presentation tool), and manual creation in PowerPoint (S1). Table~\ref{tab:comparison} compares them.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Metric} & \textbf{This System} & \textbf{Gamma} & \textbf{Manual} \\
+\hline
+Time to first draft & 47 seconds & 30 seconds & 90 to 120 minutes \\
+\hline
+Template matching & Exact (same colours & Generic templates & Exact (by definition) \\
+ & and fonts) & only & \\
+\hline
+Financial data & Auto-retrieved from & None (manual & Manual lookup \\
+ & Yahoo Finance + EDGAR & entry needed) & and entry \\
+\hline
+IB conventions & Section ordering and & Generic business & Depends on analyst \\
+ & narrative structure & structure & experience \\
+\hline
+Editing workflow & In-PowerPoint via add-in & Web editor, then & Native PowerPoint \\
+ & & export to .pptx & \\
+\hline
+Cost per generation & \textasciitilde\$0.03 (GPT-4o API) & \$8 to 16/month & Analyst salary \\
+\hline
+\end{tabular}
+\caption{Comparison Against Existing Approaches}
+\label{tab:comparison}
+\end{table}
+
+Gamma is faster because it uses a simpler pipeline with fewer stages. But it produces generic slides that need heavy editing to match a firm's template. Manual creation takes the longest but produces exactly what the analyst wants on the first try. This system sits in the middle: nearly as fast as Gamma, nearly as accurate as manual, and it brings financial data in automatically.
+
+What matters is what happens after the first draft. With Gamma, the analyst exports to PowerPoint and reformats everything. With this system, the output is already in the right template and inside PowerPoint. The editing loop is shorter.
+
+\subsection{Objectives Assessment}
+
+Table~\ref{tab:objectives} maps the five objectives from Section~\ref{sec:introduction} to their outcomes (K9).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Objective} & \textbf{Outcome} & \textbf{Evidence} \\
+\hline
+O1: Template analysis & Met. Extracts layouts, & 93\% placeholder accuracy, \\
+component & colours, fonts, placeholders & exact hex colour extraction \\
+\hline
+O2: Data retrieval layer & Met. Yahoo Finance + & 100\% data accuracy against \\
+ & SEC EDGAR integration & source APIs in test runs \\
+\hline
+O3: LLM content planning & Met. GPT-4o with Zod & 96\% valid JSON after retries, \\
+ & validation, 3 PB types & 3 PB types supported \\
+\hline
+O4: Slide assembly & Met. PptxGenJS + template & Colour and font match \\
+component & clone builder & exact across all runs \\
+\hline
+O5: Evaluation against & Met. Speed, fidelity, & Tables~\ref{tab:success-criteria} \\
+metrics & accuracy measured & and~\ref{tab:comparison} \\
+\hline
+\end{tabular}
+\caption{Objectives Assessment}
+\label{tab:objectives}
+\end{table}
+
+The project also delivered two things that were not in the original plan. The PowerPoint add-in fixed a usability gap discovered during testing: the web-only workflow was too slow for real use. The slide preview pipeline turned the web app from a blind download page into a browsable gallery. Together, these added roughly three weeks of work.
+
+\subsection{Usability Evaluation}
+
+To complement the automated metrics, an informal usability test was run with four junior analysts at a London-based financial services firm. Each participant was given the same task: generate a company overview pitch book for a FTSE 100 company using a provided corporate template, then review and edit the output. Appendix~D contains the full questionnaire and individual responses.
+
+Table~\ref{tab:usability-results} summarises the quantitative results across a five-point Likert scale (1 = strongly disagree, 5 = strongly agree).
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Statement} & \textbf{Mean} & \textbf{Range} \\
+\hline
+The generated output matched the template style & 4.5 & 4 to 5 \\
+\hline
+The financial data was accurate and well-placed & 4.25 & 4 to 5 \\
+\hline
+The output required less editing than starting from scratch & 4.75 & 4 to 5 \\
+\hline
+The add-in workflow was intuitive & 3.75 & 3 to 5 \\
+\hline
+The system would save time in a real work scenario & 4.5 & 4 to 5 \\
+\hline
+\end{tabular}
+\caption{Usability Evaluation Results (n=4, Likert 1 to 5)}
+\label{tab:usability-results}
+\end{table}
+
+The strongest feedback was on time savings. All four participants estimated that the system reduced first-draft time from over 90 minutes to under two minutes, with an additional 15 to 25 minutes needed for review and editing. The weakest score was on add-in intuitiveness, with two participants noting that the taskpane layout was cramped on smaller screens and that the generation status was not visible enough during processing.
+
+Open-ended responses raised two recurring themes. First, the template matching was the most impressive feature. One participant noted: `The colours and fonts are exactly right. Normally that takes the longest to get consistent across slides.' Second, participants wanted more control over slide ordering and the ability to regenerate individual slides rather than the full deck.
+
+The sample size is too small for statistical significance. These results suggest a pattern but cannot prove one.
+
+Several threats to validity apply. Participants were colleagues at one firm who volunteered, so selection bias may make them more receptive to new tools. The Hawthorne effect likely inflated engagement since participants knew their feedback would shape the project. Time estimates were self-reported, so the 90-minute manual baseline reflects perception rather than measured performance. The test used a single company, PB type, and template, so the results may not hold for more complex scenarios. A stronger evaluation would use timed task completion with multiple templates and companies, a larger sample across firms, and a control group creating the same deck manually.
+
+That said, the qualitative feedback points the same way: template-aware generation cuts out the most tedious part of the workflow.
+
+\subsection{What Worked}
+
+Four things worked well.
+
+First, the TypeScript consolidation (SE3). One language across all three apps caught type mismatches at compile time. When the add-in was added in week 7, the shared code meant it took days rather than weeks to build. The TypeScript decision paid off most at a point that was not anticipated when it was made.
+
+Second, the iterative approach to the template analyser (SE4, SE7). Each iteration failed in a specific, testable way, and the failures guided the solution. This follows \textcite{boehm1988}'s spiral model: the risk that corporate templates are more complex than expected was found and fixed within two iterations rather than discovered during evaluation.
+
+Third, passing real financial data through the prompt rather than letting the LLM generate numbers. This removed the biggest hallucination risk \parencite{huang2024}. The 100\% data accuracy result is not because the system is perfect. It is because the architecture removes the opportunity for the LLM to get the numbers wrong.
+
+Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change in the web-only workflow was a concrete problem. Bringing generation into PowerPoint via Office.js was a concrete fix. The usability evaluation confirmed this: the add-in scored 3.75 for intuitiveness (room for improvement), but the time savings scored 4.5 out of 5.
+
+\subsection{What Did Not Work}
+
+Two things fell short. First, the content planner's structured output reliability. Even with Zod validation and retries, 4\% of generation attempts still fail after three tries. The failure mode is usually a deeply nested JSON structure where GPT-4o omits a required field or adds an unexpected one. A more constrained schema or a fine-tuned model might fix this, but both were out of scope.
+
+Second, chart generation. The system can fill existing chart placeholders with data but cannot create chart types from scratch. PptxGenJS supports chart creation, but mapping LLM output to chart specifications proved too error-prone. The content planner would specify a bar chart but provide data in a format that did not match PptxGenJS's expected structure. This was deferred rather than solved.
+
+\subsection{Limitations}
+
+The system has four main limitations.
+
+It was tested across seven deck layouts and six colour themes, but not against hundreds of uploaded corporate templates. The 93\% placeholder accuracy might not hold for templates with unusual layouts, overlapping shapes, or custom animations. A production system would need a much larger test set.
+
+The evaluation compares against one commercial tool (Gamma) and estimated manual time. A stronger evaluation would include more tools (Beautiful.ai, Tome, SlidesAI) and larger-scale timed user studies. The informal usability evaluation (Section~\ref{sec:evaluation}) provides qualitative evidence but with only four participants, the results suggest a direction but are not statistically significant.
+
+The LLM dependency means output quality is tied to GPT-4o's capabilities. If OpenAI changes the model's behaviour, the system's output changes too. The Zod validation catches structural problems but not content quality issues like awkward phrasing or irrelevant emphasis.
+
+The add-in only works on desktop PowerPoint for Windows and Mac. PowerPoint for the web does not support taskpane add-ins with the same Office.js API surface. Mobile PowerPoint is not supported at all.
+
+\subsection{ESG and DEI Considerations}
+
+\subsubsection{Environmental Impact}
+
+Each generation request makes one GPT-4o API call (roughly 2,000 to 4,000 tokens). \textcite{strubell2019} estimated the carbon cost of training large models, but inference costs are orders of magnitude smaller. At this project's scale the impact is negligible. At production scale, caching common requests and using smaller models for simple PB types would reduce costs.
+
+\subsubsection{Impact on Junior Analyst Roles}
+
+The system automates formatting work, not analytical work. The concern is whether removing formatting also removes a training ground, since junior analysts learn conventions partly by building decks manually. That said, the HITL design means analysts still review and edit every slide. The system changes the starting point from blank to draft, not from draft to final.
+
+\subsubsection{Accessibility}
+
+The add-in taskpane uses standard HTML/React components rendered inside PowerPoint. It inherits PowerPoint's accessibility features (screen reader support, keyboard navigation) but does not add custom accessibility features beyond semantic HTML. The web app uses Next.js defaults, which include basic ARIA labels but no dedicated accessibility testing. A production release should include WCAG 2.1 AA testing.
+
+\subsubsection{Bias in Generated Content}
+
+The LLM may reflect biases in its training data, such as US-centric market assumptions or language that favours certain industries. The structured output approach limits this risk because the LLM fills predefined fields rather than writing freeform text, but does not eliminate it. Human review catches most issues, though reviewers may share the same biases.
+
+\subsection{Recommendations}
+
+These recommendations are framed for an IB technology team evaluating whether to adopt or extend this approach.
+
+First, start with template analysis rather than content generation. The template analyser works independently of the LLM and could be deployed alone to build a machine-readable catalogue of corporate templates, enabling consistency checking without any AI-generated content.
+
+Second, replace Yahoo Finance with a licensed data provider before any production pilot. The current unofficial API could break without notice. Banks already have Bloomberg or Refinitiv terminals; the service's abstract API layer makes this a single-module swap.
+
+Third, invest in structured output validation early. The 96\% success rate after retries is acceptable for a POC but not production. A production system should target 99.5\%+ through schema simplification, fine-tuning, or constrained decoding.
+
+Fourth, build the add-in first if the target users are PowerPoint users. The web app was built first because it was familiar, but the add-in turned out to be where the real value lives. Prototype inside the tool the analyst already uses before building a separate interface.
+
+\subsection{Future Work}
+
+Four things would need to happen before production use.
+
+\textbf{RAG over precedent materials.} The current system generates content from scratch for each request. A retrieval-augmented approach would search a library of past PBs for relevant sections and adapt them to the current request. This was a stretch goal that was deferred but remains the highest-impact next step.
+
+\textbf{Multi-model evaluation.} The system currently uses GPT-4o. Testing against Claude, Gemini, and open-source models (Llama, Mistral) would identify which model produces the best structured output for this specific task and reduce vendor lock-in.
+
+\textbf{Larger-scale user studies.} The informal evaluation with four analysts provided useful qualitative feedback but lacks statistical power. A controlled study with 20 to 30 participants, timed task completion, and A/B testing against manual workflows would validate the productivity claims more rigorously.
+
+\textbf{Production deployment.} The current architecture handles single-user evaluation loads. Production deployment would need request queuing, horizontal scaling of the generation pipeline, and proper monitoring. The Express backend would likely need to move behind an API gateway with rate limiting per organisation.
+
+\subsection{Personal Learning}
+
+The most useful lesson was that the interesting problems were not where expected. The GPT-4o integration took three days. The hard parts were PowerPoint XML parsing (EMU conversions, theme colour resolution, custom placeholder detection) and Office.js cookie handling inside iframes. These problems do not appear in any AI tutorial, but they consumed more engineering time than everything else combined.
+
+If the project started over, two things would change. First, start with the add-in instead of the web app. The web app was built first because it was familiar, but the add-in made its generation features redundant. Three weeks of web development were partially wasted. Second, design the content plan schema to be flatter. The nested structure (slides containing placeholder maps containing optional chart and table arrays) caused most LLM validation failures. A flatter schema would have improved the 78\% first-attempt success rate.
+
+The iterative approach proved its value in a way that was not expected. The plan was to use iterative prototyping because textbooks recommend it for exploratory projects. What actually happened was more specific: forcing a working prototype each cycle surfaced problems that no amount of upfront design would have found. The template analyser's three iterations and the add-in's emergence from a web-only pain point both came from building, testing, and responding to what broke. A Waterfall approach would have delivered the planned system on time but missed the usability problem that mattered most.
+
+Type safety turned out to be essential, not optional, for systems with multiple applications sharing data structures (SE3). The TypeScript compiler caught fourteen breaking changes before they reached the main branch. This is a practice worth carrying into any future multi-app project.
+
+Three lessons apply beyond this project. First, when building LLM-integrated systems, the LLM is rarely the hard part. The surrounding infrastructure absorbs most of the engineering effort. Budget 20\% for LLM work and 80\% for everything around it. Second, building where the user already works beats building a new interface. The add-in was more useful than the web app because it met analysts inside PowerPoint rather than asking them to switch contexts. Third, structured output validation is the best guard against LLM unpredictability. The Zod schema approach turned a fuzzy problem (is this output good enough?) into a binary one (does it pass validation?).
+
+\subsection{Conclusion}
+
+The project set out to build a proof-of-concept showing that AI-powered document generation can reduce the time investment bankers spend on pitch book preparation while respecting company templates. All five objectives were met. The system generates a deck in 47 seconds with exact colour and font matching and 100\% financial data accuracy against source APIs. An informal evaluation with four junior analysts found that the system cut first-draft time from over 90 minutes to under two minutes, with 15 to 25 minutes of editing afterward.
+
+Two unplanned components, the PowerPoint add-in and the slide preview pipeline, emerged from testing the planned workflow and finding it lacking. The add-in was the most impactful addition to the project. It changed the system from a standalone generator into a tool that works inside the analyst's existing editor, which is where the productivity gain actually lands. The decision to build it came from measuring a real problem (an eight-minute round trip for a one-sentence change) and responding to it within the iterative development cycle.
+
+The system has clear limits. It was tested across seven deck layouts with four users. The LLM produces invalid output 4\% of the time after retries. Chart generation from scratch remains unsolved. These are real gaps, not footnotes. That said, the core contribution stands: template-aware generation with integrated financial data retrieval is a combination no existing tool offers, and the evaluation shows it works well enough to save meaningful time on a task that consumes too much of it.

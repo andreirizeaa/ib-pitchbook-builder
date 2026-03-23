@@ -6,6 +6,7 @@ import { templateAnalyser } from './template-analyser.service';
 import { dataRetrieval } from './data-retrieval.service';
 import { contentPlanner } from './content-planner.service';
 import { slideBuilder } from './slide-builder.service';
+import { templateSlideBuilder } from './template-slide-builder.service';
 import { pptxPreview } from './pptx-preview.service';
 import env from '../config/env';
 
@@ -76,6 +77,8 @@ export class OrchestrationService {
       await this.updateGeneration(generationId, 'analyzing_template', 10, 'Analysing template...');
 
       let templateAnalysis;
+      let templateBuffer: Buffer | null = null;
+
       if (request.template_id) {
         const { data: template } = await supabaseAdmin
           .from('templates')
@@ -85,6 +88,19 @@ export class OrchestrationService {
 
         if (template?.analysis_data) {
           templateAnalysis = template.analysis_data;
+        }
+
+        // Download the original template PPTX for template-based slide building
+        if (template?.file_url) {
+          try {
+            const res = await fetch(template.file_url, { signal: AbortSignal.timeout(30000) });
+            if (res.ok) {
+              templateBuffer = Buffer.from(await res.arrayBuffer());
+              console.log(`[Orchestration] Downloaded template PPTX (${(templateBuffer.length / 1024).toFixed(0)}KB)`);
+            }
+          } catch (err: any) {
+            console.warn(`[Orchestration] Failed to download template PPTX: ${err.message}`);
+          }
         }
       }
 
@@ -171,13 +187,27 @@ export class OrchestrationService {
       // Step 4: Build slides
       await this.updateGeneration(generationId, 'building_slides', 75, 'Building presentation...');
 
-      const { buffer, slidesData } = await slideBuilder.buildPresentation(contentPlan, templateAnalysis, {
-        pbType: request.pb_type,
-        company: request.company,
-        ticker: ticker || request.ticker,
-        colorTheme: request.color_theme,
-        designStyle: request.design_style,
-      });
+      let buffer: Buffer;
+      let slidesData;
+
+      if (templateBuffer) {
+        // Template mode: clone template slides and inject content
+        console.log('[Orchestration] Using template-based slide builder');
+        const result = await templateSlideBuilder.buildFromTemplate(templateBuffer, contentPlan);
+        buffer = result.buffer;
+        slidesData = result.slidesData;
+      } else {
+        // Default mode: generate from scratch with PptxGenJS
+        const result = await slideBuilder.buildPresentation(contentPlan, templateAnalysis, {
+          pbType: request.pb_type,
+          company: request.company,
+          ticker: ticker || request.ticker,
+          colorTheme: request.color_theme,
+          designStyle: request.design_style,
+        });
+        buffer = result.buffer;
+        slidesData = result.slidesData;
+      }
 
       // Step 5: Upload PPTX file to Supabase Storage
       const fileName = `${pitchBookId}/${request.company.replace(/\s+/g, '_')}_pitch_book.pptx`;
