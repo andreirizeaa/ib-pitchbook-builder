@@ -1,4 +1,10 @@
+// This spec requires a running backend — skip in CI.
 describe('Generate Screenshots for Dissertation', () => {
+  before(function () {
+    if (Cypress.env('CI')) {
+      this.skip();
+    }
+  });
     beforeEach(() => {
         // Force light mode
         cy.on('window:before:load', (win) => {
