@@ -206,3 +206,64 @@ export function getDefaultTheme(pbType?: string, colorTheme?: string): DefaultTh
   }
   return pbTypeThemes[pbType || 'company_overview'] || navyGold;
 }
+
+/**
+ * Build a DefaultTheme from an extracted template color palette.
+ * Derives decorative/panel colors from the palette so that the same
+ * layout builders work for template mode.
+ */
+export function themeFromPalette(palette: ColorPalette): DefaultTheme {
+  const primary = palette.primary || '#003366';
+  const secondary = palette.secondary || '#0066CC';
+  const accent = palette.accent || '#FF6600';
+  const background = palette.background || '#FFFFFF';
+
+  // Derive a lighter tint from the primary for panels
+  const panelTint = lighten(primary, 0.92);
+  const cardBg = lighten(primary, 0.96);
+
+  // Create intermediate colors for section backgrounds
+  const mid = blendHex(primary, secondary, 0.5);
+
+  return {
+    palette,
+    decorPrimary: primary,
+    decorSecondary: accent,
+    panelTint,
+    cardBg,
+    cardAccent: accent,
+    sectionBgLayers: [primary, mid, secondary],
+  };
+}
+
+/** Lighten a hex color toward white by the given factor (0 = original, 1 = white) */
+function lighten(hex: string, factor: number): string {
+  const c = parseHex(hex);
+  const r = Math.round(c.r + (255 - c.r) * factor);
+  const g = Math.round(c.g + (255 - c.g) * factor);
+  const b = Math.round(c.b + (255 - c.b) * factor);
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+/** Blend two hex colors */
+function blendHex(hex1: string, hex2: string, t: number): string {
+  const c1 = parseHex(hex1);
+  const c2 = parseHex(hex2);
+  const r = Math.round(c1.r + (c2.r - c1.r) * t);
+  const g = Math.round(c1.g + (c2.g - c1.g) * t);
+  const b = Math.round(c1.b + (c2.b - c1.b) * t);
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+function parseHex(hex: string): { r: number; g: number; b: number } {
+  const h = hex.replace('#', '');
+  return {
+    r: parseInt(h.substring(0, 2), 16) || 0,
+    g: parseInt(h.substring(2, 4), 16) || 0,
+    b: parseInt(h.substring(4, 6), 16) || 0,
+  };
+}
+
+function toHex(n: number): string {
+  return Math.max(0, Math.min(255, n)).toString(16).padStart(2, '0');
+}

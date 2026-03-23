@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "predev": "for port in 8000 8001 8002 8003; do lsof -ti:$port | xargs kill -9 2>/dev/null; done; echo 'Ports cleared'",
-    "dev": "turbo run dev --parallel",
+    "dev": "turbo run dev",
     "build": "turbo run build",
     "start": "turbo run start",
     "lint": "turbo run lint",
@@ -18,7 +18,12 @@
     "cy:run": "cypress run"
   },
   "devDependencies": {
+    "@vitest/ui": "^4.1.0",
+    "mochawesome": "^7.1.4",
+    "mochawesome-merge": "^4.4.1",
+    "mochawesome-report-generator": "^6.3.2",
     "turbo": "latest",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "wait-on": "^9.0.4"
   }
 }

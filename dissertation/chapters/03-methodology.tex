@@ -1,0 +1,483 @@
+\section{Methodology and Project Plan}
+\label{sec:methodology}
+
+This section covers the development approach, requirements, technology choices, project schedule, and considerations around risks and ethics.
+
+\subsection{Development Methodology}
+
+Software development methodologies range from plan-driven approaches like Waterfall to adaptive approaches like Agile \parencite{sommerville2016}. Table~\ref{tab:methodologies} compares methodologies against criteria relevant to this project.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Criteria} & \textbf{Waterfall} & \textbf{Scrum} & \textbf{Iterative Prototyping} \\
+\hline
+Requirements stability & Requires fixed & Accommodates & Works well when \\
+ & requirements upfront & changing requirements & requirements change \\
+\hline
+Feedback loops & Late feedback after & Sprint reviews every & Continuous feedback \\
+ & implementation & 2 to 4 weeks & through prototypes \\
+\hline
+Risk management & Risks discovered late & Regular risk & Early risk identification \\
+ & & reassessment & through prototypes \\
+\hline
+Solo developer suitability & Moderate & Low (designed for & High \\
+ & & teams) & \\
+\hline
+Research integration & Poor & Moderate & Excellent \\
+\hline
+\end{tabular}
+\caption{Comparison of Development Methodologies}
+\label{tab:methodologies}
+\end{table}
+
+The project uses iterative prototyping combined with structured research engineering practices, drawing on \textcite{boehm1988}'s spiral model (K3, K4, SE8). Pure Waterfall cannot accommodate the exploratory nature of this work, and full Scrum adds overhead for a solo developer. Each two-week iteration produces a working prototype targeting defined requirements, with a review at each cycle's end (SE7).
+
+The project uses Git with a simplified GitFlow model (main, develop, feature branches) (SE12). Continuous integration via GitHub Actions runs tests and linting on every push, enforcing 80\% coverage for core modules \parencite{fowler2006} (SE6). ESLint \parencite{eslint2024} enforces code style and catches common errors (unused variables, missing imports, type inconsistencies) at the lint stage before tests run. Architecture Decision Records document technical choices and trade-offs \parencite{tyree2005}.
+
+\subsection{Requirements Analysis}
+
+Following established requirements engineering practice \parencite{robertson2012}, this section separates business, functional, and non-functional requirements (K9, SE2, SE9). Requirements follow MoSCoW prioritisation \parencite{clegg1994}.
+
+\subsubsection{Business Requirements}
+
+\begin{enumerate}
+    \item \textbf{BR1: Productivity Enhancement}: Reduce time spent on initial PB drafting by generating solid first drafts from minimal input.
+    \item \textbf{BR2: Capturing Standards}: Capture company presentation standards through template analysis, reducing reliance on knowledge that lives only in people's heads.
+    \item \textbf{BR3: Quality Consistency}: Follow corporate visual identity standards consistently, reducing revision cycles caused by formatting issues.
+    \item \textbf{BR4: Data Accuracy}: Financial data in generated PBs should accurately reflect source information.
+\end{enumerate}
+
+\subsubsection{Functional Requirements}
+
+Table~\ref{tab:func-req} lists functional requirements by component.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{ID} & \textbf{Component} & \textbf{Requirement} & \textbf{Priority} \\
+\hline
+FR1 & Template Analyser & Extract slide layouts from reference .pptx files & Must \\
+\hline
+FR2 & Template Analyser & Identify colour palettes and font specifications & Must \\
+\hline
+FR3 & Template Analyser & Map placeholder positions and content types & Must \\
+\hline
+FR4 & Data Retrieval & Fetch company financials from Yahoo Finance API & Must \\
+\hline
+FR5 & Data Retrieval & Retrieve SEC filings via EDGAR API & Should \\
+\hline
+FR6 & Data Retrieval & Perform web searches for company news & Should \\
+\hline
+FR7 & Content Planner & Generate slide-by-slide content specifications & Must \\
+\hline
+FR8 & Content Planner & Adapt content structure to PB type & Must \\
+\hline
+FR9 & Content Planner & Maintain narrative coherence across slides & Should \\
+\hline
+FR10 & Slide Builder & Assemble slides matching template layouts & Must \\
+\hline
+FR11 & Slide Builder & Populate placeholders with generated content & Must \\
+\hline
+FR12 & Slide Builder & Generate charts from financial data & Could \\
+\hline
+FR13 & Orchestration & Coordinate multi-step generation workflow & Must \\
+\hline
+FR14 & Orchestration & Handle API failures gracefully & Should \\
+\hline
+FR15 & RAG Search & Query precedent material repository & Could \\
+\hline
+\end{tabular}
+\caption{Functional Requirements Specification}
+\label{tab:func-req}
+\end{table}
+
+\subsubsection{Non-Functional Requirements}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{ID} & \textbf{Category} & \textbf{Requirement} & \textbf{Acceptance Criterion} \\
+\hline
+NFR1 & Performance & System generates complete PB draft & Within 5 minutes of input submission \\
+\hline
+NFR2 & Performance & API response handling & Timeout after 30s with graceful fallback \\
+\hline
+NFR3 & Reliability & System availability during demonstration & 95\% uptime during evaluation period \\
+\hline
+NFR4 & Usability & Input specification interface & Requires no technical expertise to operate \\
+\hline
+NFR5 & Maintainability & Codebase documentation & All public functions documented \\
+\hline
+NFR6 & Security & API credential management & No credentials in source code \\
+\hline
+NFR7 & Security & Input validation & All user inputs sanitised before processing \\
+\hline
+NFR8 & Compatibility & Output format & Valid .pptx files openable in PowerPoint \\
+\hline
+\end{tabular}
+\caption{Non-Functional Requirements Specification}
+\label{tab:nfr}
+\end{table}
+
+\subsection{Technology Stack}
+
+Technologies were chosen based on task fit, familiarity, maturity, and maintainability (K8, SE12).
+
+\subsubsection{Programming Language and Framework}
+
+TypeScript was chosen over Python despite Python's stronger AI/ML ecosystem. Table~\ref{tab:lang-comparison} compares the options.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Criteria} & \textbf{TypeScript/Node.js} & \textbf{Python} & \textbf{Java} \\
+\hline
+Benefits & Type safety, same language & Best AI/ML libraries, & Strong typing, \\
+ & frontend and backend, & mature PowerPoint & enterprise support \\
+ & native async & library (python-pptx) & \\
+\hline
+Risks & AI/ML ecosystem less & Two languages needed & Verbose code, \\
+ & mature than Python & (Python backend + & slower development \\
+ & & JS frontend) & \\
+\hline
+PowerPoint & PptxGenJS (actively & python-pptx (mature, & Apache POI \\
+manipulation & maintained, typed) & well-documented) & (verbose API) \\
+\hline
+Full-stack & Single language across & Requires separate & Requires separate \\
+coherence & all three apps & frontend framework & frontend framework \\
+\hline
+\end{tabular}
+\caption{Programming Language Comparison}
+\label{tab:lang-comparison}
+\end{table}
+
+The deciding factor was using one language everywhere. The project has a backend API and a web frontend, both in TypeScript. Python would mean one language for the backend and another for the frontend, creating a split codebase with two dependency trees and two build systems. As the project evolved (discussed in Section~\ref{sec:implementation}), a third application was added, which justified the single-language decision further.
+
+TypeScript's static type system also matters here. The \texttt{shared-types} package defines data models once and shares them across all three apps. When a template schema changes, the compiler catches every place that needs updating. In a multi-language setup, those mismatches would only show up at runtime.
+
+Express.js handles the backend. It is minimal and well-understood, keeping the focus on domain logic rather than framework conventions.
+
+\subsubsection{AI and LLM Integration}
+
+Table~\ref{tab:llm-comparison} compares the LLM options considered.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Criteria} & \textbf{GPT-4/GPT-4o} & \textbf{Claude 3.5} & \textbf{Gemini 2.0 Flash} \\
+\hline
+Benefits & Best structured output, & Largest context window & Massive context (1M \\
+ & mature SDK, native JSON & (200K), strong reasoning & tokens), fast inference \\
+\hline
+Risks & Higher cost per token & Newer agent tooling & Less mature structured \\
+ & & & output \\
+\hline
+Structured output & Excellent (native JSON) & Good & Good \\
+\hline
+Cost (student budget) & Moderate (tiered pricing) & Moderate & Very affordable \\
+\hline
+\end{tabular}
+\caption{Large Language Model Comparison}
+\label{tab:llm-comparison}
+\end{table}
+
+GPT-4o was chosen for its structured output support. OpenAI's native JSON mode produces well-formed responses more reliably than the alternatives, which matters when the output feeds directly into a Zod validation pipeline. GPT-4o-mini handles the lighter AI chat feature at lower cost. The content planner enforces output structure through JSON schema validation regardless of which model sits behind it, so swapping models later requires changing only the API call.
+
+\subsubsection{Data Sources and APIs}
+
+Public APIs avoid proprietary licensing complications while keeping the project reproducible. Table~\ref{tab:data-sources} summarises the sources.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Source} & \textbf{Benefits} & \textbf{Risks} & \textbf{Access} \\
+\hline
+Yahoo Finance & Free, comprehensive & Unofficial API may & yahoo-finance2 \\
+ & financial data & change without notice & npm package \\
+\hline
+SEC EDGAR & Official regulatory & US companies only, & REST API \\
+ & filings, reliable, free & complex document parsing & (10 req/s) \\
+\hline
+Web Search & Current news, market & Cost per query & SerpAPI or similar \\
+ & commentary & & \\
+\hline
+\end{tabular}
+\caption{External Data Sources}
+\label{tab:data-sources}
+\end{table}
+
+\subsubsection{Frontend and Deployment}
+
+Next.js handles the web frontend for PB creation and management.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Criteria} & \textbf{Vercel + Render} & \textbf{AWS} & \textbf{Self-hosted} \\
+\hline
+Benefits & Zero config, auto deploy, & Full control, & Complete control, \\
+ & free tiers for POC & scalable & no vendor lock-in \\
+\hline
+Risks & Vendor lock-in, cold starts & Complex setup, cost & Maintenance burden \\
+\hline
+Cost for POC & Free tier sufficient & May incur charges & Server costs \\
+\hline
+\end{tabular}
+\caption{Deployment Platform Comparison}
+\label{tab:deploy}
+\end{table}
+
+The frontend deploys through Vercel, the backend on Render, and Supabase provides PostgreSQL and authentication.
+
+\subsection{Reproducibility}
+
+LLM-based systems are harder to reproduce than traditional software since the same prompt can produce different outputs across runs \parencite{runeson2012}. Several measures address this. All npm dependencies are pinned via \texttt{package-lock.json}, and the Node.js version (22.x) is specified in \texttt{.nvmrc}. LLM temperature is set to zero for evaluation runs, and all prompts and responses are logged with timestamps. Each evaluation run is tied to a specific Git commit, so someone replicating the experiment can check out the exact codebase state. The three test templates used for evaluation are committed to the repository under \texttt{fixtures/}. A reproduction requires cloning the repository, running \texttt{npm install}, setting the environment variables listed in the README (OpenAI API key, Supabase credentials), and running the evaluation script. The main source of unpredictable variation is GPT-4o itself: even at temperature zero, OpenAI does not guarantee identical outputs across API calls because of how their servers batch and process requests internally. The Zod validation layer ensures structural consistency regardless of minor output variations.
+
+\subsection{Evaluation Methodology}
+
+The evaluation follows the Goal-Question-Metric (GQM) approach \parencite{basili1994}. GQM works by defining a measurement goal, deriving questions that would indicate whether the goal is met, and then identifying metrics that answer those questions. This avoids collecting data for its own sake and keeps every metric tied to a specific project goal.
+
+The goal is to determine whether the system produces usable first drafts faster than manual creation while matching template formatting. Four questions follow from this goal, each with a measurable metric:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Question} & \textbf{Metric} & \textbf{Target} \\
+\hline
+How fast does the system & Generation time per & Under 300 seconds \\
+generate a deck? & 10-slide deck & for a complete draft \\
+\hline
+Does the output match & Colour and font & Exact colour and \\
+the reference template? & comparison (programmatic) & font match \\
+\hline
+Is the financial data & Comparison against & 100\% match on market cap, \\
+correct? & source API responses & revenue, and share price \\
+\hline
+Does the content follow & Rubric-based assessment & Correct section ordering \\
+IB conventions? & of narrative structure & across 3 PB types \\
+\hline
+\end{tabular}
+\caption{GQM Evaluation Framework}
+\label{tab:gqm}
+\end{table}
+
+These targets were fixed before evaluation began and not adjusted after seeing results, following the pre-registration principle recommended by \textcite{wohlin2012} to avoid post-hoc rationalisation. Outputs are compared against generic tools (Gamma, Beautiful.ai) and estimated manual creation time. Fixed test cases cover different company types, sectors, and PB types to support replication. An informal usability evaluation with junior analysts provides qualitative feedback on the system's practical value. Participants were told their responses would appear anonymously in this report and are identified only as P1 to P4 in the results.
+
+\subsection{Project Plan}
+
+The project runs for thirteen weeks (K10). Figure~\ref{fig:gantt} shows the schedule, and Table~\ref{tab:milestones} lists milestones. Dates are targets; if a milestone slips, `Could have' requirements are dropped first.
+
+\begin{figure}[H]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{ganttchart}[
+    hgrid,
+    vgrid={*{12}{draw=gray!30}},
+    x unit=1.1cm,
+    y unit chart=0.7cm,
+    y unit title=0.6cm,
+    title height=1,
+    bar/.style={fill=blue!40, draw=blue!60},
+    bar height=0.6,
+    bar label font=\normalsize,
+    title label font=\normalsize\bfseries,
+    milestone label font=\normalsize\itshape,
+    group left shift=0,
+    group right shift=0,
+]{1}{13}
+\gantttitle[title label node/.append style={anchor=east, left=-3pt}]{}{0}
+\gantttitle{Jan}{2}
+\gantttitle{Feb}{4}
+\gantttitle{Mar}{4}
+\gantttitle{Apr}{3} \\
+\gantttitle[title label node/.append style={anchor=east, xshift=-2pt}]{Week}{0}
+\gantttitlelist{1,...,13}{1} \\
+\ganttbar{Intro + Methodology}{1}{2} \\
+\ganttbar{Literature Review}{2}{4} \\
+\ganttbar{Research \& Design}{3}{6} \\
+\ganttbar{Implementation}{5}{10} \\
+\ganttbar{Evaluation}{9}{12} \\
+\ganttbar{Finalisation}{12}{13} \\
+\ganttmilestone{Submission}{13}
+\end{ganttchart}%
+}
+\caption{Project Gantt Chart (weeks 1 to 13, January to April 2026)}
+\label{fig:gantt}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Phase} & \textbf{Date} & \textbf{Milestone} & \textbf{Deliverables} \\
+\hline
+1 & 19 Jan & Project Initiation & Repository setup, dev environment configured \\
+\hline
+2 & 31 Jan & Initial Chapters & Introduction, Scope, Methodology complete \\
+\hline
+3 & 21 Feb & Literature Review & Literature review chapter complete \\
+\hline
+4 & 28 Feb & Design Complete & Architecture diagrams, API specs, data models \\
+\hline
+5 & 14 Mar & Core Components & Template analyser and data retrieval functional \\
+\hline
+6 & 28 Mar & MVP Complete & End-to-end generation pipeline operational \\
+\hline
+7 & 4 Apr & Testing Complete & Tests passing, evaluation data collected \\
+\hline
+8 & 11 Apr & Evaluation Complete & Results analysis and evaluation chapter written \\
+\hline
+9 & 18 Apr & Document Finalised & All chapters complete, proofread, formatted \\
+\hline
+10 & 20 Apr & Submission & Final report submitted via QMPlus \\
+\hline
+\end{tabular}
+\caption{Project Milestones and Deliverables}
+\label{tab:milestones}
+\end{table}
+
+\subsection{Plan Execution and Adaptations}
+
+The original plan did not survive contact with implementation. Table~\ref{tab:plan-vs-reality} compares planned milestones against actual outcomes.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Milestone} & \textbf{Planned Date} & \textbf{Actual Date} & \textbf{Notes} \\
+\hline
+Core components functional & 14 Mar & 7 Mar & Ahead of schedule due to \\
+ & & & TypeScript migration in week 3 \\
+\hline
+MVP pipeline operational & 28 Mar & 21 Mar & Template analyser iterations \\
+ & & & completed faster than expected \\
+\hline
+PowerPoint add-in & Not planned & 22 Mar to 11 Apr & Added after usability testing \\
+ & & & revealed web-only workflow gap \\
+\hline
+Slide preview pipeline & Not planned & 28 Mar to 4 Apr & Web app needed visual output \\
+\hline
+RAG search (FR15) & 14 to 28 Mar & Dropped & Deferred to make room for add-in \\
+\hline
+Testing complete & 4 Apr & 8 Apr & 4-day delay from add-in scope \\
+\hline
+Evaluation complete & 11 Apr & 14 Apr & Delayed by 3 days \\
+\hline
+\end{tabular}
+\caption{Planned vs Actual Project Milestones}
+\label{tab:plan-vs-reality}
+\end{table}
+
+Three things changed from the original plan.
+
+The Python-to-TypeScript migration happened in week 3. The original plan assumed a Python backend, but silent type mismatches across the API boundary caused enough runtime failures that switching everything to TypeScript became urgent. The migration took four days but removed a whole category of bugs. It paid back quickly because later changes were caught by the compiler instead of crashing at runtime.
+
+The PowerPoint add-in was not in the original scope. Usability testing of the web-only workflow in week 7 revealed that downloading and re-uploading files created friction that offset the productivity gains. The add-in took three weeks to build but changed the system from a standalone generator into an assistant inside the banker's existing workflow.
+
+Dropping RAG search (FR15, a `Could have' requirement) made room for the add-in. The MoSCoW prioritisation made this decision straightforward: the add-in addressed a real usability gap, while RAG was a stretch goal. The Kanban board was reorganised at the end of week 7 to reflect this trade-off.
+
+These changes worked out because of the iterative approach. Each two-week cycle had a working prototype, so scope changes could be assessed against a running system rather than a plan on paper. The end-of-cycle reviews caught the web-only workflow problem early enough to act on it (SE7, SE8).
+
+\subsection{Risk Assessment}
+
+Table~\ref{tab:risks} identifies key risks following \textcite{boehm1991}'s framework. For high-impact risks, simple backup plans apply: if LLM validation failures become frequent, scope is reduced; if template extraction struggles with complex layouts, supported types are narrowed.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+\textbf{ID} & \textbf{Risk} & \textbf{L} & \textbf{I} & \textbf{Backup Plan} & \textbf{Outcome} \\
+\hline
+R1 & API rate limits & M & M & Caching, staggered calls & Did not materialise; \\
+ & & & & & 24h cache sufficient \\
+\hline
+R2 & LLM output & H & H & Schemas, validation, & Materialised: 22\% invalid \\
+ & inconsistency & & & HITL review & on first attempt; Zod \\
+ & & & & & retries raised to 96\% \\
+\hline
+R3 & Template analysis & M & H & Scope to common layouts, & Materialised: custom \\
+ & fails on complex layouts & & & graceful fallback & placeholders (30\%); \\
+ & & & & & heuristics raised to 93\% \\
+\hline
+R4 & External API & L & H & Abstract API layer, & Did not materialise \\
+ & deprecation & & & fallback sources & \\
+\hline
+R5 & Scope creep & M & M & MoSCoW prioritisation, & Materialised: add-in added; \\
+ & & & & regular scope reviews & RAG dropped via MoSCoW \\
+\hline
+R6 & Technical complexity & M & H & Iterative delivery, & Partially: Python-to-TS \\
+ & exceeds time & & & defer stretch goals & migration cost 4 days; \\
+ & & & & & recovered via faster builds \\
+\hline
+R7 & Data accuracy & M & H & Manual verification, & Did not materialise; API \\
+ & issues & & & source attribution & passthrough approach \\
+ & & & & & eliminated LLM fabrication \\
+\hline
+R8 & Compliance & L & H & Mandatory human review, & Did not materialise \\
+ & violations & & & no PII processing & \\
+\hline
+\end{tabular}
+\caption{Risk Assessment with Outcomes. L = Likelihood, I = Impact, M = Medium, H = High.}
+\label{tab:risks}
+\end{table}
+
+\subsection{Ethics and Compliance}
+
+AI in financial services raises ethical concerns around transparency, accountability, and human control \parencite{jobin2019}. Generated documents can influence business decisions, so errors or bias could mislead clients or create liability.
+
+The system addresses this through HITL design: generated content is marked as AI-assisted, and professional review is mandatory before distribution. The system flags uncertainty rather than making up believable content.
+
+Data governance follows a minimal-retention approach. Table~\ref{tab:data-governance} summarises what data the system stores, where, and for how long. No personally identifiable information is collected beyond the user's email address for authentication. These practices follow GDPR's data minimisation principle \parencite{bis2024}, though a production deployment would need a formal Data Protection Impact Assessment.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Data Type} & \textbf{Storage} & \textbf{Retention} & \textbf{Deletion Trigger} \\
+\hline
+User email and password hash & Supabase Auth & Indefinite & Account deletion \\
+\hline
+Uploaded .pptx templates & Supabase Storage & Indefinite & User deletes template \\
+\hline
+Template structural schema & Supabase DB (JSON) & Indefinite & Parent template deleted \\
+\hline
+Financial data (Yahoo/EDGAR) & In-memory cache & 24 hours & Cache expiry \\
+\hline
+Generated .pptx files & Supabase Storage & Indefinite & User deletes pitch book \\
+\hline
+Slide preview PNGs & Supabase Storage & Indefinite & Parent pitch book deleted \\
+\hline
+Chat messages & Supabase DB & Indefinite & User deletes pitch book \\
+\hline
+LLM prompts and responses & Server logs & Per evaluation run & Tied to Git commit \\
+\hline
+\end{tabular}
+\caption{Data Governance: Storage, Retention, and Deletion Policies}
+\label{tab:data-governance}
+\end{table}
+
+The project relies on three external services with licensing constraints worth noting (K10). OpenAI's API usage policy permits commercial and academic use of generated outputs but prohibits using them to train competing models. Yahoo Finance data is accessed through the unofficial \texttt{yahoo-finance2} npm package, which scrapes public endpoints rather than using a licensed API; this works for a POC but would need replacement with a licensed data provider (Bloomberg, Refinitiv) for production use. SEC EDGAR is a public government resource with no licensing restrictions beyond a rate limit of ten requests per second.
+
+The HITL architecture meets EU AI Act requirements for human oversight \parencite{bis2024}. The system logs generation parameters and data sources to support audit trails.
+
+\subsection{Project Tracking}
+
+Progress is tracked using a Kanban board (SE8). Each functional requirement maps to one or more cards, so each requirement can be tracked back to the code that implements it (SE10). Figure~\ref{fig:kanban} shows the board near the end of the project, with most cards in `Done', a few items still in testing, and remaining nice-to-have features in `To Do'.
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/tracking/jira.png}
+\caption{Kanban board showing task progress across four stages: To Do, In Progress, Testing, and Done.}
+\label{fig:kanban}
+\end{figure}
+
+The architecture separates concerns into independent modules (template analysis, data retrieval, content planning, slide assembly), each usable on its own. All code includes JSDoc-style documentation and the codebase is released under MIT License. Settings live in environment variables and config files, so adapting the system does not need code changes.

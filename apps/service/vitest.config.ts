@@ -5,6 +5,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/**/*.test.ts'],
+    reporters: ['default', 'html'],
+    outputFile: { html: './test-report/index.html' },
     coverage: {
       provider: 'v8',
       include: ['src/services/**', 'src/routes/**', 'src/middlewares/**'],

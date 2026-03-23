@@ -17,13 +17,9 @@ describe('Pitch Books list (authenticated)', () => {
   });
 
   it('shows empty state or pitch book cards', () => {
-    // Wait for loading to finish
-    cy.get('[class*="animate-spin"]', { timeout: 15000 }).should('not.exist');
-    cy.get('body').then(($body) => {
-      const hasCards = $body.find('[data-testid^="pitchbook-card-"]').length > 0;
-      const hasEmpty = $body.text().includes('No pitch books');
-      expect(hasCards || hasEmpty).to.be.true;
-    });
+    // Wait for pitch book cards or empty state text to appear (data loaded)
+    cy.get('[data-testid^="pitchbook-card-"], :contains("No pitch books")', { timeout: 20000 })
+      .should('exist');
   });
 });
 

@@ -1,0 +1,346 @@
+\section{Preliminary Research and Design Documentation}
+\label{sec:research-design}
+
+\subsection{Literature Review}
+
+Sources were identified through Google Scholar, ACM Digital Library, and IEEE Xplore using search terms including `LLM document generation', `automated presentation', `agentic AI architecture', and `human-in-the-loop AI'. Inclusion criteria: peer-reviewed papers or established industry reports published after 2018 (with foundational works from earlier where relevant), available in English, and addressing at least one of the four review domains. Commercial tool documentation (Gamma, Beautiful.ai, Tome) was included for the gap analysis but not treated as academic evidence. Snowball searching from reference lists of key papers (particularly \textcite{zheng2025} and \textcite{wang2024}) identified additional sources.
+
+This review covers four domains: LLM productivity effects, automated presentation generation, agentic architectures, and human-in-the-loop design. Each domain is evaluated against IB document generation requirements, with gaps identified that motivated this project.
+
+The implementation focuses on the core generation pipeline: template analysis, content planning, and slide assembly. Agentic data retrieval from financial APIs and RAG over precedent materials are stretch goals. The literature review still covers these areas because they inform the architecture and would be the natural next steps if the project continued beyond its current scope.
+
+\subsubsection{LLM Productivity}
+
+Large-scale studies back up LLM productivity gains with real numbers. \textcite{brynjolfsson2023} studied 5,179 customer support agents and found a 14\% average productivity increase, with novice workers gaining up to 34\%. \textcite{noy2023} found professionals completed writing tasks 40\% faster with 18\% higher quality when using ChatGPT. Both studies show uneven benefits: less experienced workers gain most because AI gives them access to patterns that experts have already learned.
+
+\textcite{dellacqua2023} ran a randomised experiment with 758 BCG consultants and found that those using GPT-4 completed 12.2\% more tasks, 25.1\% faster, with 40\% higher quality. Their main finding was the `jagged technological frontier': tasks inside the AI's capability boundary saw large gains, while tasks outside it made consultants perform worse. PB formatting and data retrieval sit inside the frontier; analytical judgement sits outside it, which is why the system produces drafts rather than finished documents. \textcite{peng2023} found that developers with GitHub Copilot completed tasks 55.8\% faster, with less experienced developers benefiting most. The parallel is direct: junior analysts are the less experienced workers who stand to gain the most.
+
+That said, none of these studies addressed template-constrained document generation where outputs must match precise visual specifications. General writing assistance helps with content but does nothing for the mechanical formatting work that consumes analyst time. This project targets that gap.
+
+\subsubsection{Automated Presentation Generation}
+
+Table~\ref{tab:pres-taxonomy} breaks down the main approaches to presentation generation, measured against IB requirements. Every existing approach fails on at least one dimension that IB documents require.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+\textbf{Approach} & \textbf{Mechanism} & \textbf{Strengths} & \textbf{Limitations for IB} \\
+\hline
+Rule-based layout & Algorithmic text-to- & Fast, deterministic & Poor visual quality, \\
+ & slide conversion & & no domain awareness \\
+\hline
+Rigid templates & Fixed layouts with & High visual fidelity & Cannot adapt to \\
+ & manual content & & varying content lengths \\
+\hline
+LLM-based (PPTAgent) & Reference analysis & Preserves source & Domain-generic, \\
+ & + edit-based generation & style, good content & no financial data \\
+\hline
+Multi-agent semantic & Template-constrained & Maintains document & Text documents only, \\
+(Di Genio) & multi-agent pipeline & structure & not PowerPoint \\
+\hline
+VLM-based & Visual understanding & Handles complex & Approximate values, \\
+ & of layouts & visual elements & not exact matching \\
+\hline
+\end{tabular}
+\caption{Presentation Generation Approaches Compared}
+\label{tab:pres-taxonomy}
+\end{table}
+
+Automated slide generation has a longer history than LLM-based approaches suggest. \textcite{hu2013} introduced PPSGen, one of the first systems to learn slide generation from paper-slide pairs. It used regression models to score sentence importance and integer linear programming to select and align content into structured slides. The approach worked for academic presentations but produced rigid, text-heavy output with no visual sophistication. More recently, \textcite{sun2025} proposed Auto-Slides, a multi-agent system that transforms documents into slides through content understanding, quality assurance, and interactive generation phases. Auto-Slides is the closest architectural parallel to this project's pipeline approach, but it targets academic content rather than financial documents.
+
+PPTAgent \parencite{zheng2025} comes closest to what this project needs. Its two-stage approach (analyse reference, generate matching slides) aligns with IB document generation because it preserves the source deck's visual identity rather than imposing a new one. PPTAgent outperforms earlier systems on both content and design quality using their PPTEval framework.
+
+The limitation is that PPTAgent targets general-purpose presentations. It knows nothing about financial tables, transaction comparables, or the narrative conventions that bankers expect. It also cannot connect to external data sources, so any financial figures would need to be manually inserted. \textcite{liu2024} surveyed 51 professionals and found template consistency was their top priority for LLM-generated output, which validates the template-first direction PPTAgent takes but reinforces that domain awareness is the missing piece.
+
+Vision-language models offer an alternative path. \textcite{faysse2024} show VLMs can understand document layouts visually. But code-based extraction via xml2js provides exact colour hex values and font sizes, while VLM-based approaches yield approximations. For corporate template matching where a colour being off by a shade flags the document as non-compliant, exact values are non-negotiable. This is why the project uses code-based extraction over visual understanding, building on PPTAgent's template-first approach while adding the IB domain layer that PPTAgent lacks.
+
+\subsubsection{Agentic Architectures and Tool Use}
+
+\textcite{wang2024} propose a framework where agents operate through planning, memory, and action loops. This maps directly to PB generation: the system plans slide structure, remembers template constraints, and acts through tool calls and slide assembly.
+
+\textcite{guo2024} show multi-agent systems add value when sub-tasks require negotiation or parallel reasoning. PB generation is sequential (analyse template, plan content, assemble slides), so a single agent with tool-use capabilities is sufficient. \textcite{qu2025} identify function calling as the primary LLM-tool interface, and \textcite{li2025paradigms} confirm it as the most broadly applicable pattern. In this project, the agent calls PptxGenJS to write slides and uses structured output schemas to maintain format consistency.
+
+\subsubsection{Structured Output Reliability}
+
+Getting reliable structured output from LLMs is a harder problem than it first appears. \textcite{geng2025} introduced JSONSchemaBench, a benchmark of 10,000 real-world JSON schemas, and tested six constrained decoding frameworks. They found that constrained decoding speeds generation by 50\% and improves downstream task performance by up to 4\%, but success rates vary sharply depending on schema complexity. Simple flat schemas succeed nearly every time. Deeply nested schemas with conditional fields fail more often.
+
+\textcite{lieber2024} benchmarked LLMs' ability to produce valid JSON across six tasks and found an average success rate of 82.55\%, with rates ranging from 0\% to 100\% depending on the task and model. This aligns with the experience in this project, where GPT-4o produces valid JSON 78\% of the time on first attempt for the content plan schema. The content plan schema is moderately complex: it has nested arrays of slide specifications, each containing a record of placeholder mappings and optional chart and table arrays.
+
+These findings shaped the validation strategy. Rather than relying on the model to always produce valid output, the system validates every response against a Zod schema and retries with an error-specific prompt. This approach treats structured output as a best-effort capability that needs a safety net, not a guarantee.
+
+\subsubsection{Document Automation}
+
+\textcite{achachlouei2023} surveyed document automation architectures and analysed how each component, including content reusability, personalisation, and template variability, can benefit from LLM capabilities. Their taxonomy identifies three generations of document automation: rule-based (fixed templates with mail-merge), model-driven (content models with conditional logic), and AI-augmented (LLM-assisted content generation within structural constraints). This project sits in the third generation, using LLM-generated content within template-extracted structural constraints.
+
+The survey also identifies a gap that this project targets. Most document automation systems either automate structure (keeping content manual) or automate content (ignoring structure). Few systems do both. The pitch book generation pipeline automates both: the template analyser captures structure, and the content planner generates content that fits within that structure.
+
+Knowledge sharing in banking faces specific challenges that compound the document automation problem. \textcite{chaves2022} systematically reviewed knowledge sharing research in the banking sector and identified knowledge hiding, structural barriers, and inadequate digital tools as recurring themes. Banks accumulate institutional knowledge in the form of past pitch books, but this knowledge is difficult to search, difficult to reuse, and difficult to transfer to new analysts. The template analysis component addresses this partially by making template knowledge explicit and machine-readable.
+
+\subsubsection{Hallucination and Human Oversight}
+
+\textcite{huang2024} distinguish two types of hallucination. Intrinsic hallucination contradicts information given in the prompt. Extrinsic hallucination generates claims with no grounding in any source. For IB, extrinsic hallucination is more dangerous: made-up numbers or invented deal precedents could reach clients and regulators, causing regulatory problems or legal liability.
+
+\textcite{alansari2025} group prevention into three categories: grounding outputs in real sources, forcing structured output formats, and human review. No single strategy eliminates hallucination. This project layers all three: financial data comes from APIs rather than LLM generation, structured JSON schemas enforce the format of each slide specification, and human review is mandatory before any output reaches a client.
+
+\textcite{wu2022} classify HITL approaches into data processing, interventional training, and system design. This project uses system design: the analyst defines inputs, reviews outputs, and decides whether to use them. The EU AI Act requires human oversight for AI in financial services \parencite{bis2024}, making this a compliance requirement as well as a design choice. Junior analysts already produce drafts that senior bankers revise. The system replaces the blank page, not the review process.
+
+\subsubsection{Research Gaps}
+
+Four gaps emerge from this review. First, no presentation generation tool targets IB-specific conventions. PPTAgent \parencite{zheng2025}, Auto-Slides \parencite{sun2025}, and PPSGen \parencite{hu2013} all target general or academic presentations. Second, no system automates both structure and content within a single pipeline \parencite{achachlouei2023}. Third, no system integrates data retrieval with template-aware assembly. Fourth, the productivity literature measures general tasks but none measured template-constrained document generation where outputs must match precise visual specifications.
+
+This project targets these gaps with code-based template extraction for exact visual matching, IB-specific content planning, and mandatory human review for accuracy. The evaluation measures template matching and generation speed, and includes an informal usability evaluation with junior analysts.
+
+\subsection{System Design}
+
+This section documents the system architecture, data models, and component specifications derived from the requirements and literature review. The design puts template matching, clean separation of components, and human oversight first.
+
+\subsubsection{Architecture Overview}
+
+Figure~\ref{fig:architecture} shows the high-level system architecture. The design follows a pipeline pattern with three main stages: template analysis, content planning, and slide assembly.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=2cm and 4cm,
+    box/.style={draw, rounded corners, minimum width=3.5cm, minimum height=1.1cm, align=center, font=\small},
+    data/.style={draw, dashed, rounded corners, minimum width=3cm, minimum height=0.9cm, align=center, font=\footnotesize},
+    arr/.style={->, thick, >=stealth}
+]
+% Main column
+\node[data] (input) {User Input\\(company, template, type)};
+\node[box, below=of input] (ta) {Template Analyser};
+\node[box, below=of ta] (cp) {Content Planner\\(LLM Agent)};
+\node[box, below=of cp] (sb) {Slide Builder};
+\node[data, below=of sb] (out) {Generated PB (.pptx)};
+\node[box, below=1.2cm of out] (hr) {Human Review};
+
+% Side nodes
+\node[data, left=of ta] (ref) {Reference\\Template (.pptx)};
+\node[data, right=of cp] (dr) {Data Retrieval\\(stretch goal)};
+
+% Arrows - main flow
+\draw[arr] (input) -- (ta);
+\draw[arr] (ta) -- (cp);
+\draw[arr] (cp) -- (sb);
+\draw[arr] (sb) -- (out);
+\draw[arr] (out) -- (hr);
+
+% Side arrows
+\draw[arr] (ref) -- (ta);
+\draw[arr, dashed] (dr) -- (cp);
+
+% Content Plan on the left, between planner and builder
+\node[data, left=of sb] (plan) {Content\\Plan (JSON)};
+\draw[arr] (cp.west) -- ++(-1.8,0) |- (plan.north);
+\draw[arr] (plan.east) -- (sb.west);
+\end{tikzpicture}
+\caption{System Architecture showing the three-stage core pipeline. Data Retrieval is a stretch goal.}
+\label{fig:architecture}
+\end{figure}
+
+The architecture separates concerns into independent modules (SE2, SE9). The Template Analyser extracts layout patterns without generating content. The Content Planner uses an LLM to structure the narrative without touching PowerPoint files. The Slide Builder assembles files from specifications without making content decisions. This separation supports testing and allows components to be reused independently. Data Retrieval from external APIs is a stretch goal that can be added later without changing the core pipeline.
+
+\subsubsection{Data Models}
+
+The system uses two primary data structures that flow between components. Table~\ref{tab:data-models} summarises the key fields.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Model} & \textbf{Key Fields} & \textbf{Purpose} \\
+\hline
+TemplateSchema & layouts[], colours, fonts, & Stores extracted template properties \\
+ & placeholders[] & for content planning and slide assembly \\
+\hline
+SlideLayout & layout\_index, placeholder\_map, & Maps placeholder positions to \\
+ & background & content types for a single layout \\
+\hline
+ContentPlan & slides[], metadata & LLM-generated specification of \\
+ & & slide content and structure \\
+\hline
+SlideSpec & layout\_id, placeholders, & Content specification for \\
+ & charts[], tables[] & a single slide \\
+\hline
+\end{tabular}
+\caption{Primary Data Model Specifications}
+\label{tab:data-models}
+\end{table}
+
+\textbf{Template Schema} captures extracted template properties including layouts, colour palettes, fonts, and placeholder specifications. Each slide layout maps placeholder indices to content types (title, body, picture, chart, table).
+
+\textbf{Content Plan} specifies the content for each slide: which layout to use, what text goes in each placeholder, and what data to display. The LLM generates this structure; the Slide Builder consumes it.
+
+Figure~\ref{fig:er-diagram} shows the database schema. Row-level security (RLS) policies on every table restrict access so that authenticated users can only read and write their own records. The service role bypasses RLS for backend operations.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    entity/.style={draw, rounded corners, minimum width=3.2cm, minimum height=0.8cm, align=center, font=\small\bfseries},
+    attr/.style={font=\footnotesize, align=left},
+    rel/.style={->, thick, >=stealth},
+    node distance=2.5cm and 4cm
+]
+% Entities
+\node[entity] (users) {auth.users};
+\node[entity, below left=2.5cm and 0.5cm of users] (pb) {pitch\_books};
+\node[entity, below right=2.5cm and 0.5cm of users] (tmpl) {templates};
+\node[entity, below=2.5cm of pb] (chat) {chat\_messages};
+\node[entity, right=3.5cm of chat] (gen) {generations};
+
+% Attributes
+\node[attr, below=0.15cm of pb] {\texttt{id, user\_id, title, company,}\\
+\texttt{ticker, pb\_type, status,}\\
+\texttt{slides\_data, file\_url,}\\
+\texttt{slide\_previews[], template\_id}};
+
+\node[attr, below=0.15cm of tmpl] {\texttt{id, user\_id, name,}\\
+\texttt{file\_url, analysis\_data}};
+
+\node[attr, below=0.15cm of chat] {\texttt{id, pitch\_book\_id,}\\
+\texttt{role, content}};
+
+\node[attr, below=0.15cm of gen] {\texttt{id, pitch\_book\_id,}\\
+\texttt{status, progress,}\\
+\texttt{current\_step, error}};
+
+% Relationships
+\draw[rel] (users.south) -- node[left, font=\footnotesize] {1:N} (pb.north);
+\draw[rel] (users.south) -- node[right, font=\footnotesize] {1:N} (tmpl.north);
+\draw[rel] (pb.south) -- node[left, font=\footnotesize] {1:N} (chat.north);
+\draw[rel] (pb.south east) -- node[right, font=\footnotesize, near start] {1:N} (gen.north west);
+\draw[rel, dashed] (tmpl.south west) -- node[below, font=\footnotesize, sloped] {0..1:N} (pb.east);
+\end{tikzpicture}
+\caption{Database entity-relationship diagram. All tables use UUID primary keys. RLS policies enforce per-user access. The dashed line indicates an optional foreign key (pitch books may or may not reference a template).}
+\label{fig:er-diagram}
+\end{figure}
+
+\subsubsection{Component Specifications}
+
+\textbf{Template Analyser.} Input: reference .pptx file. Output: TemplateSchema JSON. Uses JSZip and xml2js to parse the .pptx file at the XML level, extracting slide masters, layouts, colour schemes, and placeholder positions. Identifies placeholder types (title, body, picture, chart, table) by inspecting shape properties. Extracts exact colour values as hex codes and font specifications including family, size, and weight.
+
+\textbf{Content Planner.} Input: user parameters, TemplateSchema. Output: ContentPlan JSON. Implemented as an LLM call with JSON schema validation to check the output structure. Selects appropriate layouts from the template schema based on content requirements. Plans slide sequence following IB narrative conventions (context, analysis, recommendation).
+
+\textbf{Slide Builder.} Input: ContentPlan, TemplateSchema, reference template. Output: .pptx file. Uses PptxGenJS to generate slides with code. Iterates through ContentPlan slides, selects layouts, and populates placeholders. Applies exact formatting from TemplateSchema. Generates charts and tables with code.
+
+\subsubsection{API Design}
+
+The backend exposes a REST API via Express.js. The primary endpoint accepts generation requests and returns job identifiers for async processing.
+
+\vspace{0.5em}\filbreak
+\begin{lstlisting}[language=JavaScript, caption=Core API endpoint specification]
+// POST /api/pitchbooks/generate
+interface GenerationRequest {
+  company: string;        // ticker or name
+  templateFile: File;     // .pptx upload
+  pitchbookType: 'company_overview' | 'market_update' | 'transaction_summary';
+  sections?: string[];    // optional section overrides
+}
+
+interface GenerationResponse {
+  jobId: string;
+  status: 'queued' | 'processing' | 'complete' | 'failed';
+  downloadUrl?: string;
+}
+\end{lstlisting}
+
+\subsubsection{Design Trade-offs}
+
+Table~\ref{tab:tradeoffs} summarises the four main design trade-offs.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Decision} & \textbf{Chosen Option} & \textbf{Rationale} \\
+\hline
+Single vs multi-agent & Single agent with tools & PB generation is sequential; \\
+ & & multi-agent overhead not justified \\
+\hline
+Programmatic vs VLM & Programmatic extraction & Exact values needed for \\
+template extraction & (JSZip + xml2js) & corporate template matching \\
+\hline
+SDK vs custom & Structured LLM calls & Vendor-agnostic; component \\
+orchestration & with JSON schemas & interfaces allow swapping later \\
+\hline
+Sync vs async & Async job processing & Generation takes minutes; \\
+generation & & users poll for completion \\
+\hline
+\end{tabular}
+\caption{Design Trade-offs}
+\label{tab:tradeoffs}
+\end{table}
+
+\subsubsection{Data Flow}
+
+Figure~\ref{fig:dataflow} shows how data moves through the system during a generation request.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=2.2cm and 2cm,
+    box/.style={draw, rounded corners, minimum width=3.2cm, minimum height=1cm, align=center},
+    data/.style={draw, dashed, rounded corners, minimum width=2.8cm, minimum height=0.8cm, align=center, font=\small},
+    arr/.style={->, thick, >=stealth}
+]
+% Main pipeline down the centre
+\node[box] (iv) {Input Validation};
+\node[box, below=of iv] (te) {Template Extraction};
+\node[box, below=of te] (cpl) {Content Planning};
+\node[box, below=of cpl] (sa) {Slide Assembly};
+\node[data, below=1.5cm of sa] (out) {Generated .pptx};
+
+% Inputs above validation, spread apart
+\node[data, above=1.2cm of iv, xshift=-2.5cm] (t) {.pptx Template};
+\node[data, above=1.2cm of iv, xshift=2.5cm] (u) {User Parameters};
+
+% Side data stores - simple left-side placement
+\node[data, left=3cm of te, yshift=-1.1cm] (ts) {Template\\Schema};
+\node[data, left=3cm of cpl, yshift=-1.1cm] (cp) {Content\\Plan};
+
+% Input arrows into validation
+\draw[arr] (t.south) -- ([xshift=-0.8cm]iv.north);
+\draw[arr] (u.south) -- ([xshift=0.8cm]iv.north);
+
+% Main flow
+\draw[arr] (iv) -- (te);
+\draw[arr] (te) -- (cpl);
+\draw[arr] (cpl) -- (sa);
+\draw[arr] (sa) -- (out);
+
+% Template Schema: extraction produces, planning consumes
+\draw[arr] (te.south west) -- (ts.north east);
+\draw[arr] (ts.south east) -- (cpl.north west);
+
+% Content Plan: planning produces, assembly consumes
+\draw[arr] (cpl.south west) -- (cp.north east);
+\draw[arr] (cp.south east) -- (sa.north west);
+\end{tikzpicture}
+\caption{Data flow through the generation pipeline}
+\label{fig:dataflow}
+\end{figure}
+
+The flow begins with input validation, which checks that the uploaded template is a valid .pptx file and that required parameters are present. Template extraction runs next, producing a schema that captures all layout information. The content planner receives the template schema and user parameters, producing a structured plan that the slide builder consumes to generate the output .pptx.
+
+\subsubsection{User Interface Design}
+
+The web app provides a form for company ticker, PB type, and template upload, with a preview area showing generation progress and completed slides. A download button appears when generation completes. The interface deliberately omits advanced options to reinforce the HITL design principle: users edit the downloaded PowerPoint directly rather than configuring generation parameters in the browser.
+
+\subsubsection{Error Handling and Validation}
+
+The system validates at three levels. Input validation checks file types and required fields before processing. Processing validation retries LLM calls with adjusted prompts on failure and skips unsupported layouts rather than failing entirely. Output validation compares generated slides against the extracted schema, logging any differences beyond allowed limits.
+
+\subsubsection{Security Considerations}
+
+The system validates uploaded files are genuine .pptx archives (ZIP files with expected internal structure) rather than trusting file extensions, preventing path traversal and zip bomb attacks (K6, SE1). File size limits prevent denial-of-service. API credentials use environment variables following twelve-factor app principles and are never logged. Rate limiting prevents endpoint abuse.
+
+\subsubsection{Design Limitations}
+
+Four limitations constrain what the current design can achieve.
+
+The system cannot generate charts from scratch. It can populate chart placeholders with data, but the chart type and styling must already exist in the template. The template analyser handles standard placeholder-based layouts but does not attempt to reverse-engineer arbitrary PowerPoint constructions, so complex layouts with overlapping elements or custom animations may not extract correctly.
+
+The content planner has no memory across sessions. Each generation request starts fresh. The RAG capability that would enable learning from past PBs is a stretch goal, not part of the core design.
+
+The system produces drafts, not finished documents. Human review is mandatory. Any evaluation must account for this: the goal is reducing time to first draft, not eliminating human involvement.

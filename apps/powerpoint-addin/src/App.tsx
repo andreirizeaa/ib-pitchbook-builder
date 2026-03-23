@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import type { Session } from '@supabase/supabase-js';
-import { Menu, Plus, Layers, LogOut } from 'lucide-react';
+import { Menu, Plus, Layers, LogOut, X, BookOpen } from 'lucide-react';
 import { Login } from './components/Login';
 import { PitchbookList } from './components/PitchbookList';
 import { CreatePitchbook } from './components/CreatePitchbook';
@@ -19,6 +19,7 @@ export default function App() {
   const [pitchBookId, setPitchBookId] = useState<string | null>(null);
   const [pitchBook, setPitchBook] = useState<any>(null);
   const [selectedDeckType, setSelectedDeckType] = useState<any>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -88,40 +89,53 @@ export default function App() {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 bg-white border-b">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleNewPitchbook}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            New
-          </button>
-        </div>
+      <div className="flex items-center justify-between px-3 py-2 bg-white border-b relative">
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="inline-flex items-center px-2 py-1.5 text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
+          title="Menu"
+        >
+          {menuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+        </button>
         <h1 className="text-xs font-bold text-gray-900">AI Pitch Deck</h1>
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setView('layouts')}
-            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
-            title="Deck Layouts"
-          >
-            <Layers className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={handleBack}
-            className="inline-flex items-center gap-1 px-2 py-1.5 text-xs font-medium text-gray-600 rounded-md hover:bg-gray-100 transition-colors"
-            title="My Pitch Books"
-          >
-            <Menu className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={() => supabase.auth.signOut()}
-            className="inline-flex items-center px-2 py-1.5 text-xs text-gray-400 rounded-md hover:bg-gray-100 hover:text-gray-600 transition-colors"
-            title="Sign out"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <button
+          onClick={handleNewPitchbook}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          New
+        </button>
+
+        {/* Dropdown menu */}
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+            <div className="absolute left-3 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border z-20 py-1">
+              <button
+                onClick={() => { handleBack(); setMenuOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-gray-400" />
+                My Pitch Books
+              </button>
+              <button
+                onClick={() => { setView('layouts'); setMenuOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                <Layers className="w-3.5 h-3.5 text-gray-400" />
+                Deck Layouts
+              </button>
+              <div className="border-t my-1" />
+              <button
+                onClick={() => { supabase.auth.signOut(); setMenuOpen(false); }}
+                className="flex items-center gap-2.5 w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign Out
+              </button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Content */}

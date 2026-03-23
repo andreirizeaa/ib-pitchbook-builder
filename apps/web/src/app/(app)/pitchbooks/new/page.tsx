@@ -31,6 +31,25 @@ const txTypes = [
   { value: 'debt_financing', label: 'Debt Financing' },
 ];
 
+const colorThemes = [
+  { value: 'navy_gold', label: 'Navy & Gold' },
+  { value: 'teal_coral', label: 'Teal & Coral' },
+  { value: 'slate_emerald', label: 'Slate & Emerald' },
+  { value: 'midnight_blue', label: 'Midnight Blue' },
+  { value: 'charcoal_red', label: 'Charcoal & Red' },
+  { value: 'forest_cream', label: 'Forest & Cream' },
+  { value: 'purple_gold', label: 'Purple & Gold' },
+  { value: 'monochrome', label: 'Monochrome' },
+];
+
+const designStyles = [
+  { value: 'modern', label: 'Modern' },
+  { value: 'classic', label: 'Classic' },
+  { value: 'playful', label: 'Playful' },
+  { value: 'minimal', label: 'Minimal' },
+  { value: 'corporate', label: 'Corporate' },
+];
+
 export default function NewPitchBookPage() {
   const router = useRouter();
   const { session } = useAuth();
@@ -41,6 +60,8 @@ export default function NewPitchBookPage() {
     ticker: '',
     pb_type: '',
     transaction_type: '',
+    color_theme: 'navy_gold',
+    design_style: 'modern',
     additional_context: '',
   });
   const [templateFile, setTemplateFile] = useState<File | null>(null);
@@ -164,42 +185,76 @@ export default function NewPitchBookPage() {
             <CardDescription>Select the type of presentation and transaction context</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pb_type">Pitch Book Type *</Label>
-              <select
-                id="pb_type"
-                data-testid="new-pb-type"
-                value={form.pb_type}
-                onChange={(e) => updateForm('pb_type', e.target.value)}
-                className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                style={{ color: form.pb_type ? 'var(--foreground)' : 'var(--muted-foreground)' }}
-              >
-                <option value="" disabled>Select pitch book type...</option>
-                {pbTypes.map((type) => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
-                ))}
-              </select>
-              {form.pb_type && (
-                <p className="text-xs text-[var(--muted-foreground)]">
-                  {pbTypes.find(t => t.value === form.pb_type)?.desc}
-                </p>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="pb_type">Pitch Book Type *</Label>
+                <select
+                  id="pb_type"
+                  data-testid="new-pb-type"
+                  value={form.pb_type}
+                  onChange={(e) => updateForm('pb_type', e.target.value)}
+                  className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                  style={{ color: form.pb_type ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+                >
+                  <option value="" disabled>Select pitch book type...</option>
+                  {pbTypes.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+                {form.pb_type && (
+                  <p className="text-xs text-[var(--muted-foreground)]">
+                    {pbTypes.find(t => t.value === form.pb_type)?.desc}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tx_type">Transaction Type</Label>
+                <select
+                  id="tx_type"
+                  data-testid="new-pb-tx-type"
+                  value={form.transaction_type}
+                  onChange={(e) => updateForm('transaction_type', e.target.value)}
+                  className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                  style={{ color: form.transaction_type ? 'var(--foreground)' : 'var(--muted-foreground)' }}
+                >
+                  <option value="" disabled>Select transaction type...</option>
+                  {txTypes.map((type) => (
+                    <option key={type.value} value={type.value}>{type.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="tx_type">Transaction Type</Label>
-              <select
-                id="tx_type"
-                data-testid="new-pb-tx-type"
-                value={form.transaction_type}
-                onChange={(e) => updateForm('transaction_type', e.target.value)}
-                className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                style={{ color: form.transaction_type ? 'var(--foreground)' : 'var(--muted-foreground)' }}
-              >
-                <option value="" disabled>Select transaction type...</option>
-                {txTypes.map((type) => (
-                  <option key={type.value} value={type.value}>{type.label}</option>
-                ))}
-              </select>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="design_style">Design Style</Label>
+                <select
+                  id="design_style"
+                  data-testid="new-pb-design-style"
+                  value={form.design_style}
+                  onChange={(e) => updateForm('design_style', e.target.value)}
+                  className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                  style={{ color: 'var(--foreground)' }}
+                >
+                  {designStyles.map((style) => (
+                    <option key={style.value} value={style.value}>{style.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="color_theme">Color Theme</Label>
+                <select
+                  id="color_theme"
+                  data-testid="new-pb-color-theme"
+                  value={form.color_theme}
+                  onChange={(e) => updateForm('color_theme', e.target.value)}
+                  className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                  style={{ color: 'var(--foreground)' }}
+                >
+                  {colorThemes.map((theme) => (
+                    <option key={theme.value} value={theme.value}>{theme.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </CardContent>
         </Card>

@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit-tests:
+    name: Unit & Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm install
+
+      - name: Run Vitest (all apps)
+        run: npx turbo run test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-reports
+          path: |
+            apps/service/test-report/
+            apps/web/test-report/
+            apps/powerpoint-addin/test-report/
+          retention-days: 14
+
+  e2e-tests:
+    name: Cypress E2E Tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_API_URL: http://localhost:8002
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - run: npm install
+
+      - name: Check Supabase secrets are set
+        run: |
+          if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] || [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+            echo "::error::NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY secrets must be set for E2E tests"
+            exit 1
+          fi
+
+      - name: Build web app
+        run: npm run build --workspace=apps/web
+
+      - name: Start web app
+        run: npm run start --workspace=apps/web -- --port 8000 &
+
+      - name: Wait for web app
+        run: npx wait-on http://localhost:8000 --timeout 60000
+
+      - name: Run Cypress tests
+        run: |
+          mkdir -p cypress/reports/json
+          npx cypress run \
+            --reporter mochawesome \
+            --reporter-options reportDir=cypress/reports/json,overwrite=false,html=false,json=true
+
+      - name: Merge and generate Cypress HTML report
+        if: always()
+        run: |
+          if ls cypress/reports/json/*.json 1>/dev/null 2>&1; then
+            npx mochawesome-merge cypress/reports/json/*.json -o cypress/reports/merged.json
+            npx marge cypress/reports/merged.json -f report -o cypress/reports/html
+          else
+            echo "No Cypress report files found — skipping merge"
+          fi
+
+      - name: Upload Cypress report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-report
+          path: cypress/reports/html/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Upload Cypress screenshots (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots/
+          retention-days: 7
+          if-no-files-found: ignore
