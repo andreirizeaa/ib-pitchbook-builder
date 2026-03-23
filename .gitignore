@@ -5,6 +5,7 @@ build
 .env
 .env.local
 .env.production
+.env.prod
 *.log
 .DS_Store
 .turbo
