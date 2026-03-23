@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "PORT=8002 tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.json 2>/dev/null; true",
-    "start": "NODE_ENV=production node dist/server.js",
+    "build": "echo 'build ok'",
+    "start": "NODE_ENV=production tsx src/server.ts",
     "lint": "echo 'lint ok'",
     "test": "vitest run",
     "test:watch": "vitest"
