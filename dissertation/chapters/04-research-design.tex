@@ -141,6 +141,7 @@ Figure~\ref{fig:architecture} shows the high-level system architecture. The desi
 
 The architecture separates concerns into independent modules (SE2, SE9). The Template Analyser extracts layout patterns without generating content. The Content Planner uses an LLM to structure the narrative without touching PowerPoint files. The Slide Builder assembles files from specifications without making content decisions. This separation supports testing and allows components to be reused independently. Data Retrieval from external APIs is a stretch goal that can be added later without changing the core pipeline.
 
+\newpage
 \subsubsection{Data Models}
 
 The system uses two primary data structures that flow between components. Table~\ref{tab:data-models} summarises the key fields.
@@ -172,47 +173,91 @@ SlideSpec & layout\_id, placeholders, & Content specification for \\
 
 \textbf{Content Plan} specifies the content for each slide: which layout to use, what text goes in each placeholder, and what data to display. The LLM generates this structure; the Slide Builder consumes it.
 
-Figure~\ref{fig:er-diagram} shows the database schema. Row-level security (RLS) policies on every table restrict access so that authenticated users can only read and write their own records. The service role bypasses RLS for backend operations.
+\newpage
+
+Figure~\ref{fig:er-diagram} shows the database schema. Row-level security (RLS) policies on every table restrict access so that authenticated users can only read and write their own records.
 
 \begin{figure}[H]
 \centering
 \begin{tikzpicture}[
-    entity/.style={draw, rounded corners, minimum width=3.2cm, minimum height=0.8cm, align=center, font=\small\bfseries},
-    attr/.style={font=\footnotesize, align=left},
+    table/.style={draw, rectangle, rounded corners=2pt, inner sep=0pt, outer sep=0pt},
     rel/.style={->, thick, >=stealth},
-    node distance=2.5cm and 4cm
 ]
-% Entities
-\node[entity] (users) {auth.users};
-\node[entity, below left=2.5cm and 0.5cm of users] (pb) {pitch\_books};
-\node[entity, below right=2.5cm and 0.5cm of users] (tmpl) {templates};
-\node[entity, below=2.5cm of pb] (chat) {chat\_messages};
-\node[entity, right=3.5cm of chat] (gen) {generations};
 
-% Attributes
-\node[attr, below=0.15cm of pb] {\texttt{id, user\_id, title, company,}\\
-\texttt{ticker, pb\_type, status,}\\
-\texttt{slides\_data, file\_url,}\\
-\texttt{slide\_previews[], template\_id}};
+% ── auth.users ──
+\node[table] (users) at (6, 14) {
+  \begin{tabular}{l}
+    \cellcolor{blue!15} \textbf{\small auth.users} \\[2pt]
+    \textbf{\footnotesize\ttfamily id} \textnormal{\scriptsize (uuid, PK)} \\
+    {\footnotesize\ttfamily email} \\
+  \end{tabular}
+};
 
-\node[attr, below=0.15cm of tmpl] {\texttt{id, user\_id, name,}\\
-\texttt{file\_url, analysis\_data}};
+% ── pitch_books ──
+\node[table] (pb) at (0, 7.5) {
+  \begin{tabular}{l}
+    \cellcolor{blue!15} \textbf{\small pitch\_books} \\[2pt]
+    \textbf{\footnotesize\ttfamily id} \textnormal{\scriptsize (uuid, PK)} \\
+    \textit{\footnotesize\ttfamily user\_id} \textnormal{\scriptsize (FK $\to$ auth.users)} \\
+    {\footnotesize\ttfamily title, company, ticker} \\
+    {\footnotesize\ttfamily pb\_type, transaction\_type} \\
+    {\footnotesize\ttfamily status} \textnormal{\scriptsize (draft|generating|completed|failed)} \\
+    {\footnotesize\ttfamily slides\_data} \textnormal{\scriptsize (jsonb)} \\
+    {\footnotesize\ttfamily file\_url, slide\_previews} \textnormal{\scriptsize (text array)} \\
+    \textit{\footnotesize\ttfamily template\_id} \textnormal{\scriptsize (FK $\to$ templates, optional)} \\
+  \end{tabular}
+};
 
-\node[attr, below=0.15cm of chat] {\texttt{id, pitch\_book\_id,}\\
-\texttt{role, content}};
+% ── templates ──
+\node[table] (tmpl) at (12, 7.5) {
+  \begin{tabular}{l}
+    \cellcolor{blue!15} \textbf{\small templates} \\[2pt]
+    \textbf{\footnotesize\ttfamily id} \textnormal{\scriptsize (uuid, PK)} \\
+    \textit{\footnotesize\ttfamily user\_id} \textnormal{\scriptsize (FK $\to$ auth.users)} \\
+    {\footnotesize\ttfamily name} \\
+    {\footnotesize\ttfamily file\_url} \\
+    {\footnotesize\ttfamily analysis\_data} \textnormal{\scriptsize (jsonb)} \\
+  \end{tabular}
+};
 
-\node[attr, below=0.15cm of gen] {\texttt{id, pitch\_book\_id,}\\
-\texttt{status, progress,}\\
-\texttt{current\_step, error}};
+% ── chat_messages ──
+\node[table] (chat) at (0, 1) {
+  \begin{tabular}{l}
+    \cellcolor{blue!15} \textbf{\small chat\_messages} \\[2pt]
+    \textbf{\footnotesize\ttfamily id} \textnormal{\scriptsize (uuid, PK)} \\
+    \textit{\footnotesize\ttfamily pitch\_book\_id} \textnormal{\scriptsize (FK $\to$ pitch\_books)} \\
+    {\footnotesize\ttfamily role} \textnormal{\scriptsize (user|assistant|system)} \\
+    {\footnotesize\ttfamily content} \\
+  \end{tabular}
+};
 
-% Relationships
-\draw[rel] (users.south) -- node[left, font=\footnotesize] {1:N} (pb.north);
-\draw[rel] (users.south) -- node[right, font=\footnotesize] {1:N} (tmpl.north);
-\draw[rel] (pb.south) -- node[left, font=\footnotesize] {1:N} (chat.north);
-\draw[rel] (pb.south east) -- node[right, font=\footnotesize, near start] {1:N} (gen.north west);
-\draw[rel, dashed] (tmpl.south west) -- node[below, font=\footnotesize, sloped] {0..1:N} (pb.east);
-\end{tikzpicture}
-\caption{Database entity-relationship diagram. All tables use UUID primary keys. RLS policies enforce per-user access. The dashed line indicates an optional foreign key (pitch books may or may not reference a template).}
+% ── generations ──
+\node[table] (gen) at (9.5, 1) {
+  \begin{tabular}{l}
+    \cellcolor{blue!15} \textbf{\small generations} \\[2pt]
+    \textbf{\footnotesize\ttfamily id} \textnormal{\scriptsize (uuid, PK)} \\
+    \textit{\footnotesize\ttfamily pitch\_book\_id} \textnormal{\scriptsize (FK $\to$ pitch\_books)} \\
+    {\footnotesize\ttfamily status} \textnormal{\scriptsize (queued|analyzing|fetching|...)} \\
+    {\footnotesize\ttfamily progress} \textnormal{\scriptsize (0--100)} \\
+    {\footnotesize\ttfamily current\_step, error} \\
+  \end{tabular}
+};
+
+% ── Relationships (routed to avoid overlaps) ──
+% users -> pitch_books
+\draw[rel] (users.south west) -- node[left, font=\footnotesize, pos=0.45] {1:N} (pb.north east);
+% users -> templates
+\draw[rel] (users.south east) -- node[right, font=\footnotesize, pos=0.45] {1:N} (tmpl.north west);
+% pitch_books -> chat_messages (straight down, left side)
+\draw[rel] ([xshift=-0.5cm]pb.south) -- node[left, font=\footnotesize, pos=0.5] {1:N} ([xshift=-0.5cm]chat.north);
+% pitch_books -> generations (route right then down to avoid overlap)
+\draw[rel] (pb.south east) -- ++(0,-1) -| node[above, font=\footnotesize, pos=0.25] {1:N} (gen.north);
+% templates -..-> pitch_books (optional FK, horizontal)
+\draw[rel, dashed] (tmpl.west) -- node[above, font=\footnotesize] {0..1} (pb.east);
+
+\end{tikzpicture}%
+}
+\caption{Database entity-relationship diagram. Primary keys in bold, foreign keys in italics. All tables use UUID primary keys with row-level security. The dashed line indicates an optional foreign key (pitch books may or may not reference a template).}
 \label{fig:er-diagram}
 \end{figure}
 
