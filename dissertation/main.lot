@@ -19,13 +19,13 @@
 \contentsline {table}{\numberline {19}{\ignorespaces E2E Test Framework Comparison}}{45}{table.caption.35}%
 \contentsline {table}{\numberline {20}{\ignorespaces Cypress E2E Test Specs}}{46}{table.caption.36}%
 \contentsline {table}{\numberline {21}{\ignorespaces CI/CD Pipeline Stages}}{48}{table.caption.40}%
-\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{49}{table.caption.42}%
-\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{49}{table.caption.43}%
-\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{51}{table.caption.44}%
-\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{52}{table.caption.45}%
-\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{52}{table.caption.46}%
-\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{53}{table.caption.47}%
-\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{54}{table.caption.48}%
-\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{56}{table.caption.49}%
-\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{69}{table.30}%
-\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. JSON OK = which attempt produced valid structured output.}}{69}{table.31}%
+\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{50}{table.caption.44}%
+\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{50}{table.caption.45}%
+\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{52}{table.caption.46}%
+\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{53}{table.caption.47}%
+\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{53}{table.caption.48}%
+\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{54}{table.caption.49}%
+\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{55}{table.caption.50}%
+\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{57}{table.caption.51}%
+\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{70}{table.30}%
+\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. JSON OK = which attempt produced valid structured output.}}{70}{table.31}%

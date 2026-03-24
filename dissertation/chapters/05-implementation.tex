@@ -110,7 +110,7 @@ The iterative approach paid off (SE4). Each version failed in a specific, observ
 
 The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The prompt includes the available layouts, their placeholder types, and IB-specific instructions about narrative structure.
 
-Getting valid structured output was the main challenge (SE1). \textcite{lieber2024} found an average JSON success rate of 82.55\% across LLM benchmarks, and this project's experience aligns with that figure. GPT-4o occasionally returns JSON with extra fields, missing required properties, or string values where numbers are expected. The first attempt produced valid JSON 78\% of the time, consistent with the rates \textcite{geng2025} observed for moderately complex schemas.
+Getting valid structured output was the main challenge (SE1). \textcite{lieber2024} found an average JSON success rate of 82.55\% across LLM benchmarks, and this project's numbers are similar. GPT-4o occasionally returns JSON with extra fields, missing required properties, or string values where numbers are expected. The first attempt produced valid JSON 78\% of the time, consistent with the rates \textcite{geng2025} observed for moderately complex schemas.
 
 The system validates every response using Zod \parencite{zod2024}, a TypeScript-first schema validation library. Zod defines the expected shape of the LLM output as a TypeScript schema, then parses the response at runtime. If the response is missing a required field, has the wrong type, or contains unexpected values, Zod rejects it and returns a structured error message listing exactly which fields failed and why. The system feeds that error message back into a retry prompt so the LLM can correct the specific problem. After up to three retries, the success rate reached 96\%.
 
@@ -454,6 +454,22 @@ Mochawesome \parencite{mochawesome2024} merges per-spec Cypress results into a s
 \screenshot{screenshots/actions/ci.png}
 \caption{GitHub Actions CI pipeline running lint, type checks, unit tests, E2E tests, and build on every push. All stages must pass before code can be merged to main.}
 \label{fig:github-actions}
+\end{figure}
+
+The web app deploys automatically to Vercel on every push to \texttt{main}. The Express backend runs on Render's free tier. Figures~\ref{fig:vercel-deploy} and~\ref{fig:render-deploy} show both services live in production.
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/deployment/vercel.png}
+\caption{Vercel production deployment of the Next.js web app, deployed from the \texttt{main} branch.}
+\label{fig:vercel-deploy}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/deployment/render.png}
+\caption{Render dashboard showing the Express backend service running with live logs.}
+\label{fig:render-deploy}
 \end{figure}
 
 \subsection{Challenges and Resolutions}

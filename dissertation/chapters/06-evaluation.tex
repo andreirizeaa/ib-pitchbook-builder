@@ -248,13 +248,13 @@ The first recommendation carries the lowest risk. The template analyser works in
 
 Four things would need to happen before production use.
 
-\textbf{RAG over precedent materials.} The current system generates content from scratch for each request. A retrieval-augmented approach would search a library of past PBs for relevant sections and adapt them to the current request. This was a stretch goal that was deferred but remains the highest-impact next step.
+The highest-impact next step is RAG over precedent materials. The current system generates content from scratch for each request. A retrieval-augmented approach would search a library of past PBs for relevant sections and adapt them, which was a stretch goal deferred to make room for the add-in.
 
-\textbf{Multi-model evaluation.} The system currently uses GPT-4o. Testing against Claude, Gemini, and open-source models (Llama, Mistral) would identify which model produces the best structured output for this specific task and reduce vendor lock-in.
+The system also needs multi-model evaluation. It currently depends on GPT-4o. Testing against Claude, Gemini, and open-source models (Llama, Mistral) would identify which model produces the best structured output for this task and reduce vendor lock-in.
 
-\textbf{Larger-scale user studies.} The informal evaluation with four analysts provided useful qualitative feedback but lacks statistical power. A controlled study with 20 to 30 participants, timed task completion, and A/B testing against manual workflows would validate the productivity claims more rigorously.
+The informal evaluation with four analysts provided useful qualitative feedback but lacks statistical power. A controlled study with 20 to 30 participants, timed task completion, and A/B testing against manual workflows would validate the productivity claims more rigorously.
 
-\textbf{Production deployment.} The current architecture handles single-user evaluation loads. Production deployment would need request queuing, horizontal scaling of the generation pipeline, and proper monitoring. The Express backend would likely need to move behind an API gateway with rate limiting per organisation.
+Finally, the current architecture handles single-user loads. Production deployment would need request queuing, horizontal scaling of the generation pipeline, and monitoring. The Express backend would likely move behind an API gateway with rate limiting per organisation.
 
 \subsection{Personal Learning}
 

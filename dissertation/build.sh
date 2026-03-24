@@ -2,7 +2,6 @@
 # Build the dissertation PDF
 # Usage: ./build.sh [clean]
 
-set -e
 cd "$(dirname "$0")"
 
 if [ "$1" = "clean" ]; then
@@ -12,15 +11,15 @@ if [ "$1" = "clean" ]; then
 fi
 
 echo "=== Pass 1: pdflatex ==="
-pdflatex -interaction=nonstopmode main.tex
+pdflatex -interaction=nonstopmode main.tex || true
 
 echo "=== Pass 2: biber ==="
-biber main
+biber main || { echo "Biber failed"; exit 1; }
 
 echo "=== Pass 3: pdflatex ==="
-pdflatex -interaction=nonstopmode main.tex
+pdflatex -interaction=nonstopmode main.tex || true
 
 echo "=== Pass 4: pdflatex (final) ==="
-pdflatex -interaction=nonstopmode main.tex
+pdflatex -interaction=nonstopmode main.tex || true
 
 echo "=== Done: main.pdf ==="

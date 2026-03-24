@@ -176,6 +176,58 @@
       \verb https://www.apqc.org/about-apqc/news-press-release/apqc-survey-finds-one-quarter-knowledge-workers-time-lost-due
       \endverb
     \endentry
+    \entry{autor2022}{article}{}{}
+      \name{author}{4}{}{%
+        {{un=0,uniquepart=base,hash=3e9e4236efb9d339f6608030d0cca439}{%
+           family={Autor},
+           familyi={A\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=f75eec99f5b104a830d468d2816ff126}{%
+           family={Chin},
+           familyi={C\bibinitperiod},
+           given={Caroline},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=8751a205b8b6f06cd3c15e4f750bddbd}{%
+           family={Salomons},
+           familyi={S\bibinitperiod},
+           given={Anna},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3b12ea27e8870fce335c6fd2813480a1}{%
+           family={Seegmiller},
+           familyi={S\bibinitperiod},
+           given={Bryan},
+           giveni={B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{40fbda24d49b1ee680b86a0b18a3d0df}
+      \strng{fullhash}{3ddd14a45da80d505b5dff87bb1f38a3}
+      \strng{fullhashraw}{3ddd14a45da80d505b5dff87bb1f38a3}
+      \strng{bibnamehash}{3ddd14a45da80d505b5dff87bb1f38a3}
+      \strng{authorbibnamehash}{3ddd14a45da80d505b5dff87bb1f38a3}
+      \strng{authornamehash}{40fbda24d49b1ee680b86a0b18a3d0df}
+      \strng{authorfullhash}{3ddd14a45da80d505b5dff87bb1f38a3}
+      \strng{authorfullhashraw}{3ddd14a45da80d505b5dff87bb1f38a3}
+      \field{sortinit}{A}
+      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The Quarterly Journal of Economics}
+      \field{number}{3}
+      \field{title}{New Frontiers: The Origins and Content of New Work, 1940--2018}
+      \field{volume}{139}
+      \field{year}{2024}
+      \field{pages}{1399\bibrangedash 1465}
+      \range{pages}{67}
+      \verb{doi}
+      \verb 10.1093/qje/qjae008
+      \endverb
+    \endentry
     \entry{bis2024}{report}{}{}
       \name{author}{1}{}{%
         {{un=0,uniquepart=base,hash=0c39aae51737b6bfb6c5b9de5963c7bf}{%
