@@ -270,14 +270,16 @@
 \newlabel{fig:er-diagram}{{5}{29}{Database entity-relationship diagram. All tables use UUID primary keys. RLS policies enforce per-user access. The dashed line indicates an optional foreign key (pitch books may or may not reference a template)}{figure.caption.24}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.3}Component Specifications}{30}{subsubsection.3.2.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.4}API Design}{30}{subsubsection.3.2.4}\protected@file@percent }
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Core API endpoint specification}}{31}{lstlisting.1}\protected@file@percent }
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {1}{\ignorespaces Pitch book creation request interface (from shared-types)}}{31}{lstlisting.1}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Swagger UI showing the REST API endpoints grouped by resource: Companies (data retrieval), Pitch Books (generation and CRUD), and Templates (upload and analysis).}}{31}{figure.caption.25}\protected@file@percent }
+\newlabel{fig:swagger}{{6}{31}{Swagger UI showing the REST API endpoints grouped by resource: Companies (data retrieval), Pitch Books (generation and CRUD), and Templates (upload and analysis)}{figure.caption.25}{}}
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.5}Design Trade-offs}{31}{subsubsection.3.2.5}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Design Trade-offs}}{31}{table.caption.25}\protected@file@percent }
-\newlabel{tab:tradeoffs}{{16}{31}{Design Trade-offs}{table.caption.25}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.6}Data Flow}{31}{subsubsection.3.2.6}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {6}{\ignorespaces Data flow through the generation pipeline}}{32}{figure.caption.26}\protected@file@percent }
-\newlabel{fig:dataflow}{{6}{32}{Data flow through the generation pipeline}{figure.caption.26}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.7}User Interface Design}{32}{subsubsection.3.2.7}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {16}{\ignorespaces Design Trade-offs}}{32}{table.caption.26}\protected@file@percent }
+\newlabel{tab:tradeoffs}{{16}{32}{Design Trade-offs}{table.caption.26}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.6}Data Flow}{32}{subsubsection.3.2.6}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Data flow through the generation pipeline}}{32}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:dataflow}{{7}{32}{Data flow through the generation pipeline}{figure.caption.27}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.7}User Interface Design}{33}{subsubsection.3.2.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.8}Error Handling and Validation}{33}{subsubsection.3.2.8}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.9}Security Considerations}{33}{subsubsection.3.2.9}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {3.2.10}Design Limitations}{33}{subsubsection.3.2.10}\protected@file@percent }
@@ -285,188 +287,187 @@
 \newlabel{sec:implementation}{{4}{34}{Project Implementation and Outcomes}{section.4}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Architecture Evolution}{34}{subsection.4.1}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Monorepo Structure}{34}{subsection.4.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Monorepo Package Structure}}{34}{table.caption.27}\protected@file@percent }
-\newlabel{tab:monorepo}{{17}{34}{Monorepo Package Structure}{table.caption.27}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {7}{\ignorespaces Web app dashboard showing pitch book counts, recent generation history, and sidebar navigation.}}{35}{figure.caption.28}\protected@file@percent }
-\newlabel{fig:dashboard}{{7}{35}{Web app dashboard showing pitch book counts, recent generation history, and sidebar navigation}{figure.caption.28}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {17}{\ignorespaces Monorepo Package Structure}}{34}{table.caption.28}\protected@file@percent }
+\newlabel{tab:monorepo}{{17}{34}{Monorepo Package Structure}{table.caption.28}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces Web app dashboard showing pitch book counts, recent generation history, and sidebar navigation.}}{35}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:dashboard}{{8}{35}{Web app dashboard showing pitch book counts, recent generation history, and sidebar navigation}{figure.caption.29}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Orchestration Layer}{35}{subsection.4.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Deck Layouts and Colour Themes}{35}{subsection.4.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {8}{\ignorespaces New pitch book creation form. The user selects a deck layout, colour theme, and enters company details before generating.}}{36}{figure.caption.29}\protected@file@percent }
-\newlabel{fig:new-pitchbook}{{8}{36}{New pitch book creation form. The user selects a deck layout, colour theme, and enters company details before generating}{figure.caption.29}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces New pitch book creation form. The user selects a deck layout, colour theme, and enters company details before generating.}}{36}{figure.caption.30}\protected@file@percent }
+\newlabel{fig:new-pitchbook}{{9}{36}{New pitch book creation form. The user selects a deck layout, colour theme, and enters company details before generating}{figure.caption.30}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {4.5}Core Pipeline}{36}{subsection.4.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.1}Template Analysis}{36}{subsubsection.4.5.1}\protected@file@percent }
-\abx@aux@cite{0}{lieber2024}
-\abx@aux@segm{0}{0}{lieber2024}
-\abx@aux@cite{0}{geng2025}
-\abx@aux@segm{0}{0}{geng2025}
-\abx@aux@cite{0}{zod2024}
-\abx@aux@segm{0}{0}{zod2024}
 \@writefile{lol}{\contentsline {lstlisting}{\numberline {2}{\ignorespaces Template extraction core logic (simplified)}}{38}{lstlisting.2}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.2}Content Planning with GPT-4o}{38}{subsubsection.4.5.2}\protected@file@percent }
-\abx@aux@page{65}{38}
-\abx@aux@page{66}{38}
-\abx@aux@page{67}{38}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Content plan validation with Zod}}{39}{lstlisting.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.3}Slide Building}{39}{subsubsection.4.5.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.4}Data Retrieval}{40}{subsubsection.4.5.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.5}Slide Preview Generation}{40}{subsubsection.4.5.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}PowerPoint Add-in}{40}{subsection.4.6}\protected@file@percent }
-\newlabel{sec:addin}{{4.6}{40}{PowerPoint Add-in}{subsection.4.6}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {9}{\ignorespaces System architecture with PowerPoint Add-in. The add-in and web app share the same backend and database. Generated slides are pushed directly into the active presentation via Office.js.}}{41}{figure.caption.30}\protected@file@percent }
-\newlabel{fig:addin-architecture}{{9}{41}{System architecture with PowerPoint Add-in. The add-in and web app share the same backend and database. Generated slides are pushed directly into the active presentation via Office.js}{figure.caption.30}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces PowerPoint with the add-in taskpane open. Generated slides appear in the slide panel on the left, and the AI chat input sits at the bottom of the taskpane.}}{41}{figure.caption.31}\protected@file@percent }
-\newlabel{fig:addin-taskpane}{{10}{41}{PowerPoint with the add-in taskpane open. Generated slides appear in the slide panel on the left, and the AI chat input sits at the bottom of the taskpane}{figure.caption.31}{}}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Inserting generated slides into the active presentation}}{42}{lstlisting.4}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces Pitch book viewer showing slide preview, thumbnail navigation, and AI chat panel.}}{42}{figure.caption.32}\protected@file@percent }
-\newlabel{fig:pitchbook-viewer}{{11}{42}{Pitch book viewer showing slide preview, thumbnail navigation, and AI chat panel}{figure.caption.32}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}AI Chat Assistant}{42}{subsection.4.7}\protected@file@percent }
-\newlabel{sec:ai-chat}{{4.7}{42}{AI Chat Assistant}{subsection.4.7}{}}
+\abx@aux@cite{0}{lieber2024}
+\abx@aux@segm{0}{0}{lieber2024}
+\abx@aux@cite{0}{zod2024}
+\abx@aux@segm{0}{0}{zod2024}
+\newlabel{lst:system-prompt}{{3}{39}{Content planner system prompt excerpt (from pitchbook-content.prompt.ts)}{lstlisting.3}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {3}{\ignorespaces Content planner system prompt excerpt (from pitchbook-content.prompt.ts)}}{39}{lstlisting.3}\protected@file@percent }
+\abx@aux@page{65}{39}
+\abx@aux@page{66}{39}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {4}{\ignorespaces Content plan validation with Zod (from pitchbook-content.schema.ts)}}{40}{lstlisting.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.3}Slide Building}{40}{subsubsection.4.5.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.4}Data Retrieval}{41}{subsubsection.4.5.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.5.5}Slide Preview Generation}{41}{subsubsection.4.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.6}PowerPoint Add-in}{41}{subsection.4.6}\protected@file@percent }
+\newlabel{sec:addin}{{4.6}{41}{PowerPoint Add-in}{subsection.4.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {10}{\ignorespaces System architecture with PowerPoint Add-in. The add-in and web app share the same backend and database. Generated slides are pushed directly into the active presentation via Office.js.}}{42}{figure.caption.31}\protected@file@percent }
+\newlabel{fig:addin-architecture}{{10}{42}{System architecture with PowerPoint Add-in. The add-in and web app share the same backend and database. Generated slides are pushed directly into the active presentation via Office.js}{figure.caption.31}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {11}{\ignorespaces PowerPoint with the add-in taskpane open. Generated slides appear in the slide panel on the left, and the AI chat input sits at the bottom of the taskpane.}}{42}{figure.caption.32}\protected@file@percent }
+\newlabel{fig:addin-taskpane}{{11}{42}{PowerPoint with the add-in taskpane open. Generated slides appear in the slide panel on the left, and the AI chat input sits at the bottom of the taskpane}{figure.caption.32}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces Inserting generated slides into the active presentation (from office-helpers.ts)}}{43}{lstlisting.5}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Pitch book viewer showing slide preview, thumbnail navigation, and AI chat panel.}}{43}{figure.caption.33}\protected@file@percent }
+\newlabel{fig:pitchbook-viewer}{{12}{43}{Pitch book viewer showing slide preview, thumbnail navigation, and AI chat panel}{figure.caption.33}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.7}AI Chat Assistant}{43}{subsection.4.7}\protected@file@percent }
+\newlabel{sec:ai-chat}{{4.7}{43}{AI Chat Assistant}{subsection.4.7}{}}
+\@writefile{lol}{\contentsline {lstlisting}{\numberline {6}{\ignorespaces AI chat service (from ai-chat.service.ts)}}{44}{lstlisting.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Authentication and Session Management}{44}{subsection.4.8}\protected@file@percent }
 \abx@aux@cite{0}{vitest2024}
 \abx@aux@segm{0}{0}{vitest2024}
-\@writefile{lol}{\contentsline {lstlisting}{\numberline {5}{\ignorespaces AI chat service (simplified)}}{43}{lstlisting.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.8}Authentication and Session Management}{43}{subsection.4.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Testing}{43}{subsection.4.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.1}Unit and Integration Tests}{44}{subsubsection.4.9.1}\protected@file@percent }
-\abx@aux@page{68}{44}
-\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces Unit and Integration Test Coverage}}{44}{table.caption.33}\protected@file@percent }
-\newlabel{tab:test-coverage}{{18}{44}{Unit and Integration Test Coverage}{table.caption.33}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.9}Testing}{45}{subsection.4.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.1}Unit and Integration Tests}{45}{subsubsection.4.9.1}\protected@file@percent }
+\abx@aux@page{67}{45}
+\@writefile{lot}{\contentsline {table}{\numberline {18}{\ignorespaces Unit and Integration Test Coverage}}{45}{table.caption.34}\protected@file@percent }
+\newlabel{tab:test-coverage}{{18}{45}{Unit and Integration Test Coverage}{table.caption.34}{}}
 \abx@aux@cite{0}{cypress2024}
 \abx@aux@segm{0}{0}{cypress2024}
-\@writefile{lof}{\contentsline {figure}{\numberline {12}{\ignorespaces Vitest UI showing all 14 test files and 134 tests passing across the three apps. The right panel displays the selected test's source code and can switch to console output on failure.}}{45}{figure.caption.34}\protected@file@percent }
-\newlabel{fig:vitest-ui}{{12}{45}{Vitest UI showing all 14 test files and 134 tests passing across the three apps. The right panel displays the selected test's source code and can switch to console output on failure}{figure.caption.34}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.2}E2E Test Framework}{45}{subsubsection.4.9.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces E2E Test Framework Comparison}}{45}{table.caption.35}\protected@file@percent }
-\newlabel{tab:e2e-comparison}{{19}{45}{E2E Test Framework Comparison}{table.caption.35}{}}
-\abx@aux@page{69}{45}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.3}E2E Test Suite}{45}{subsubsection.4.9.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces Cypress E2E Test Specs}}{46}{table.caption.36}\protected@file@percent }
-\newlabel{tab:cypress-specs}{{20}{46}{Cypress E2E Test Specs}{table.caption.36}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Cypress test runner showing the E2E spec files grouped by feature area.}}{46}{figure.caption.37}\protected@file@percent }
-\newlabel{fig:cypress-specs}{{13}{46}{Cypress test runner showing the E2E spec files grouped by feature area}{figure.caption.37}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces A passing Cypress test. The left panel shows each automated step (clicking elements, checking text), and the right panel shows the browser state at each step.}}{47}{figure.caption.38}\protected@file@percent }
-\newlabel{fig:cypress-passed}{{14}{47}{A passing Cypress test. The left panel shows each automated step (clicking elements, checking text), and the right panel shows the browser state at each step}{figure.caption.38}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces A failing Cypress test. The assertion expected either pitch book cards or an empty state message, but the data had not loaded yet when the check ran. This was a test logic error, not an application bug.}}{47}{figure.caption.39}\protected@file@percent }
-\newlabel{fig:cypress-failed}{{15}{47}{A failing Cypress test. The assertion expected either pitch book cards or an empty state message, but the data had not loaded yet when the check ran. This was a test logic error, not an application bug}{figure.caption.39}{}}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.4}CI/CD Pipeline}{47}{subsubsection.4.9.4}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {13}{\ignorespaces Vitest UI showing all 14 test files and 134 tests passing across the three apps. The right panel displays the selected test's source code and can switch to console output on failure.}}{46}{figure.caption.35}\protected@file@percent }
+\newlabel{fig:vitest-ui}{{13}{46}{Vitest UI showing all 14 test files and 134 tests passing across the three apps. The right panel displays the selected test's source code and can switch to console output on failure}{figure.caption.35}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.2}E2E Test Framework}{46}{subsubsection.4.9.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {19}{\ignorespaces E2E Test Framework Comparison}}{46}{table.caption.36}\protected@file@percent }
+\newlabel{tab:e2e-comparison}{{19}{46}{E2E Test Framework Comparison}{table.caption.36}{}}
+\abx@aux@page{68}{46}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.3}E2E Test Suite}{46}{subsubsection.4.9.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {20}{\ignorespaces Cypress E2E Test Specs}}{47}{table.caption.37}\protected@file@percent }
+\newlabel{tab:cypress-specs}{{20}{47}{Cypress E2E Test Specs}{table.caption.37}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {14}{\ignorespaces Cypress test runner showing the E2E spec files grouped by feature area.}}{47}{figure.caption.38}\protected@file@percent }
+\newlabel{fig:cypress-specs}{{14}{47}{Cypress test runner showing the E2E spec files grouped by feature area}{figure.caption.38}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {15}{\ignorespaces A passing Cypress test. The left panel shows each automated step (clicking elements, checking text), and the right panel shows the browser state at each step.}}{48}{figure.caption.39}\protected@file@percent }
+\newlabel{fig:cypress-passed}{{15}{48}{A passing Cypress test. The left panel shows each automated step (clicking elements, checking text), and the right panel shows the browser state at each step}{figure.caption.39}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces A failing Cypress test. The assertion expected either pitch book cards or an empty state message, but the data had not loaded yet when the check ran. This was a test logic error, not an application bug.}}{48}{figure.caption.40}\protected@file@percent }
+\newlabel{fig:cypress-failed}{{16}{48}{A failing Cypress test. The assertion expected either pitch book cards or an empty state message, but the data had not loaded yet when the check ran. This was a test logic error, not an application bug}{figure.caption.40}{}}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {4.9.4}CI/CD Pipeline}{48}{subsubsection.4.9.4}\protected@file@percent }
 \abx@aux@cite{0}{mochawesome2024}
 \abx@aux@segm{0}{0}{mochawesome2024}
-\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces CI/CD Pipeline Stages}}{48}{table.caption.40}\protected@file@percent }
-\newlabel{tab:cicd}{{21}{48}{CI/CD Pipeline Stages}{table.caption.40}{}}
-\abx@aux@page{70}{48}
-\@writefile{lof}{\contentsline {figure}{\numberline {16}{\ignorespaces GitHub Actions CI pipeline running lint, type checks, unit tests, E2E tests, and build on every push. All stages must pass before code can be merged to main.}}{48}{figure.caption.41}\protected@file@percent }
-\newlabel{fig:github-actions}{{16}{48}{GitHub Actions CI pipeline running lint, type checks, unit tests, E2E tests, and build on every push. All stages must pass before code can be merged to main}{figure.caption.41}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces Vercel production deployment of the Next.js web app, deployed from the \texttt  {main} branch.}}{49}{figure.caption.42}\protected@file@percent }
-\newlabel{fig:vercel-deploy}{{17}{49}{Vercel production deployment of the Next.js web app, deployed from the \texttt {main} branch}{figure.caption.42}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Render dashboard showing the Express backend service running with live logs.}}{49}{figure.caption.43}\protected@file@percent }
-\newlabel{fig:render-deploy}{{18}{49}{Render dashboard showing the Express backend service running with live logs}{figure.caption.43}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.10}Challenges and Resolutions}{49}{subsection.4.10}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{50}{table.caption.44}\protected@file@percent }
-\newlabel{tab:challenges}{{22}{50}{Implementation Challenges and Resolutions}{table.caption.44}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.11}Requirements Tracking}{50}{subsection.4.11}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{50}{table.caption.45}\protected@file@percent }
-\newlabel{tab:req-evidence}{{23}{50}{Functional Requirements Status}{table.caption.45}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.12}Scalability Considerations}{51}{subsection.4.12}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {4.13}Additions Beyond Original Design}{51}{subsection.4.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{\numberline {5}Evaluation and Conclusions}{52}{section.5}\protected@file@percent }
-\newlabel{sec:evaluation}{{5}{52}{Evaluation and Conclusions}{section.5}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Results Against Success Criteria}{52}{subsection.5.1}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{52}{table.caption.46}\protected@file@percent }
-\newlabel{tab:success-criteria}{{24}{52}{Success Criteria Results}{table.caption.46}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Test Results}{52}{subsection.5.2}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{53}{table.caption.47}\protected@file@percent }
-\newlabel{tab:test-results}{{25}{53}{Automated Test Results}{table.caption.47}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Comparison with Existing Tools}{53}{subsection.5.3}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{53}{table.caption.48}\protected@file@percent }
-\newlabel{tab:comparison}{{26}{53}{Comparison Against Existing Approaches}{table.caption.48}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Objectives Assessment}{54}{subsection.5.4}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{54}{table.caption.49}\protected@file@percent }
-\newlabel{tab:objectives}{{27}{54}{Objectives Assessment}{table.caption.49}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Business Case Validation}{54}{subsection.5.5}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Usability Evaluation}{54}{subsection.5.6}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {21}{\ignorespaces CI/CD Pipeline Stages}}{49}{table.caption.41}\protected@file@percent }
+\newlabel{tab:cicd}{{21}{49}{CI/CD Pipeline Stages}{table.caption.41}{}}
+\abx@aux@page{69}{49}
+\@writefile{lof}{\contentsline {figure}{\numberline {17}{\ignorespaces GitHub Actions CI pipeline running lint, type checks, unit tests, E2E tests, and build on every push. All stages must pass before code can be merged to main.}}{49}{figure.caption.42}\protected@file@percent }
+\newlabel{fig:github-actions}{{17}{49}{GitHub Actions CI pipeline running lint, type checks, unit tests, E2E tests, and build on every push. All stages must pass before code can be merged to main}{figure.caption.42}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {18}{\ignorespaces Vercel production deployment of the Next.js web app, deployed from the \texttt  {main} branch.}}{50}{figure.caption.43}\protected@file@percent }
+\newlabel{fig:vercel-deploy}{{18}{50}{Vercel production deployment of the Next.js web app, deployed from the \texttt {main} branch}{figure.caption.43}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces Render dashboard showing the Express backend service running with live logs.}}{50}{figure.caption.44}\protected@file@percent }
+\newlabel{fig:render-deploy}{{19}{50}{Render dashboard showing the Express backend service running with live logs}{figure.caption.44}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.10}Challenges and Resolutions}{50}{subsection.4.10}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{51}{table.caption.45}\protected@file@percent }
+\newlabel{tab:challenges}{{22}{51}{Implementation Challenges and Resolutions}{table.caption.45}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.11}Requirements Tracking}{51}{subsection.4.11}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{51}{table.caption.46}\protected@file@percent }
+\newlabel{tab:req-evidence}{{23}{51}{Functional Requirements Status}{table.caption.46}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.12}Scalability Considerations}{52}{subsection.4.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.13}Additions Beyond Original Design}{52}{subsection.4.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Evaluation and Conclusions}{53}{section.5}\protected@file@percent }
+\newlabel{sec:evaluation}{{5}{53}{Evaluation and Conclusions}{section.5}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.1}Results Against Success Criteria}{53}{subsection.5.1}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{53}{table.caption.47}\protected@file@percent }
+\newlabel{tab:success-criteria}{{24}{53}{Success Criteria Results}{table.caption.47}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.2}Test Results}{53}{subsection.5.2}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{54}{table.caption.48}\protected@file@percent }
+\newlabel{tab:test-results}{{25}{54}{Automated Test Results}{table.caption.48}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.3}Comparison with Existing Tools}{54}{subsection.5.3}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{54}{table.caption.49}\protected@file@percent }
+\newlabel{tab:comparison}{{26}{54}{Comparison Against Existing Approaches}{table.caption.49}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.4}Objectives Assessment}{55}{subsection.5.4}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{55}{table.caption.50}\protected@file@percent }
+\newlabel{tab:objectives}{{27}{55}{Objectives Assessment}{table.caption.50}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.5}Business Case Validation}{55}{subsection.5.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.6}Usability Evaluation}{55}{subsection.5.6}\protected@file@percent }
 \abx@aux@cite{0}{boehm1988}
 \abx@aux@segm{0}{0}{boehm1988}
 \abx@aux@cite{0}{huang2024}
 \abx@aux@segm{0}{0}{huang2024}
-\@writefile{lot}{\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{55}{table.caption.50}\protected@file@percent }
-\newlabel{tab:usability-results}{{28}{55}{Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data}{table.caption.50}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}What Worked}{55}{subsection.5.7}\protected@file@percent }
-\abx@aux@page{71}{55}
-\abx@aux@page{72}{55}
+\@writefile{lot}{\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{56}{table.caption.51}\protected@file@percent }
+\newlabel{tab:usability-results}{{28}{56}{Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data}{table.caption.51}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.7}What Worked}{56}{subsection.5.7}\protected@file@percent }
+\abx@aux@page{70}{56}
+\abx@aux@page{71}{56}
 \abx@aux@cite{0}{strubell2019}
 \abx@aux@segm{0}{0}{strubell2019}
 \abx@aux@cite{0}{autor2022}
 \abx@aux@segm{0}{0}{autor2022}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.8}What Did Not Work}{56}{subsection.5.8}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.9}Limitations}{56}{subsection.5.9}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.10}ESG and DEI Considerations}{56}{subsection.5.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.1}Environmental Impact}{56}{subsubsection.5.10.1}\protected@file@percent }
-\abx@aux@page{73}{56}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.2}Impact on Junior Analyst Roles}{56}{subsubsection.5.10.2}\protected@file@percent }
-\abx@aux@page{74}{56}
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.3}Accessibility}{57}{subsubsection.5.10.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.4}Bias in Generated Content}{57}{subsubsection.5.10.4}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.11}Recommendations}{57}{subsection.5.11}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{57}{table.caption.51}\protected@file@percent }
-\newlabel{tab:recommendations}{{29}{57}{Prioritised Recommendations with Effort and Impact Estimates}{table.caption.51}{}}
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.12}Future Work}{58}{subsection.5.12}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.13}Personal Learning}{58}{subsection.5.13}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {5.14}Conclusion}{59}{subsection.5.14}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{References}{60}{section*.52}\protected@file@percent }
-\abx@aux@page{75}{60}
-\abx@aux@page{76}{60}
-\abx@aux@page{77}{60}
-\abx@aux@page{78}{60}
-\abx@aux@page{79}{60}
-\abx@aux@page{80}{60}
-\abx@aux@page{81}{60}
-\abx@aux@page{82}{60}
-\abx@aux@page{83}{60}
-\abx@aux@page{84}{60}
-\abx@aux@page{85}{60}
-\abx@aux@page{86}{60}
-\abx@aux@page{87}{60}
-\abx@aux@page{88}{60}
-\abx@aux@page{89}{60}
-\abx@aux@page{90}{60}
-\abx@aux@page{91}{60}
-\abx@aux@page{92}{61}
-\abx@aux@page{93}{61}
-\abx@aux@page{94}{61}
-\abx@aux@page{95}{61}
-\abx@aux@page{96}{61}
-\abx@aux@page{97}{61}
-\abx@aux@page{98}{61}
-\abx@aux@page{99}{61}
-\abx@aux@page{100}{61}
-\abx@aux@page{101}{61}
-\abx@aux@page{102}{61}
-\abx@aux@page{103}{61}
-\abx@aux@page{104}{61}
-\abx@aux@page{105}{61}
-\abx@aux@page{106}{61}
-\abx@aux@page{107}{61}
-\abx@aux@page{108}{62}
-\abx@aux@page{109}{62}
-\abx@aux@page{110}{62}
-\abx@aux@page{111}{62}
-\abx@aux@page{112}{62}
-\abx@aux@page{113}{62}
-\abx@aux@page{114}{62}
-\abx@aux@page{115}{62}
-\abx@aux@page{116}{62}
-\abx@aux@page{117}{62}
-\abx@aux@page{118}{62}
-\abx@aux@page{119}{62}
-\abx@aux@page{120}{62}
-\abx@aux@page{121}{62}
-\abx@aux@page{122}{62}
-\abx@aux@page{123}{62}
-\abx@aux@page{124}{62}
-\@writefile{toc}{\contentsline {section}{Appendix A: KSB Mapping}{63}{section*.53}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.8}What Did Not Work}{57}{subsection.5.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.9}Limitations}{57}{subsection.5.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.10}ESG and DEI Considerations}{57}{subsection.5.10}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.1}Environmental Impact}{57}{subsubsection.5.10.1}\protected@file@percent }
+\abx@aux@page{72}{57}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.2}Impact on Junior Analyst Roles}{57}{subsubsection.5.10.2}\protected@file@percent }
+\abx@aux@page{73}{57}
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.3}Accessibility}{58}{subsubsection.5.10.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsubsection}{\numberline {5.10.4}Bias in Generated Content}{58}{subsubsection.5.10.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.11}Recommendations}{58}{subsection.5.11}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{58}{table.caption.52}\protected@file@percent }
+\newlabel{tab:recommendations}{{29}{58}{Prioritised Recommendations with Effort and Impact Estimates}{table.caption.52}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.12}Future Work}{59}{subsection.5.12}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.13}Personal Learning}{59}{subsection.5.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {5.14}Conclusion}{60}{subsection.5.14}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{61}{section*.53}\protected@file@percent }
+\abx@aux@page{74}{61}
+\abx@aux@page{75}{61}
+\abx@aux@page{76}{61}
+\abx@aux@page{77}{61}
+\abx@aux@page{78}{61}
+\abx@aux@page{79}{61}
+\abx@aux@page{80}{61}
+\abx@aux@page{81}{61}
+\abx@aux@page{82}{61}
+\abx@aux@page{83}{61}
+\abx@aux@page{84}{61}
+\abx@aux@page{85}{61}
+\abx@aux@page{86}{61}
+\abx@aux@page{87}{61}
+\abx@aux@page{88}{61}
+\abx@aux@page{89}{61}
+\abx@aux@page{90}{61}
+\abx@aux@page{91}{62}
+\abx@aux@page{92}{62}
+\abx@aux@page{93}{62}
+\abx@aux@page{94}{62}
+\abx@aux@page{95}{62}
+\abx@aux@page{96}{62}
+\abx@aux@page{97}{62}
+\abx@aux@page{98}{62}
+\abx@aux@page{99}{62}
+\abx@aux@page{100}{62}
+\abx@aux@page{101}{62}
+\abx@aux@page{102}{62}
+\abx@aux@page{103}{62}
+\abx@aux@page{104}{62}
+\abx@aux@page{105}{62}
+\abx@aux@page{106}{62}
+\abx@aux@page{107}{63}
+\abx@aux@page{108}{63}
+\abx@aux@page{109}{63}
+\abx@aux@page{110}{63}
+\abx@aux@page{111}{63}
+\abx@aux@page{112}{63}
+\abx@aux@page{113}{63}
+\abx@aux@page{114}{63}
+\abx@aux@page{115}{63}
+\abx@aux@page{116}{63}
+\abx@aux@page{117}{63}
+\abx@aux@page{118}{63}
+\abx@aux@page{119}{63}
+\abx@aux@page{120}{63}
+\abx@aux@page{121}{63}
+\abx@aux@page{122}{63}
+\abx@aux@page{123}{63}
+\@writefile{toc}{\contentsline {section}{Appendix A: KSB Mapping}{64}{section*.54}\protected@file@percent }
 \abx@aux@cite{0}{robertson2012}
 \abx@aux@segm{0}{0}{robertson2012}
-\abx@aux@page{125}{66}
-\@writefile{toc}{\contentsline {section}{Appendix B: Architecture Decision Records}{68}{section*.77}\protected@file@percent }
+\abx@aux@page{124}{67}
+\@writefile{toc}{\contentsline {section}{Appendix B: Architecture Decision Records}{69}{section*.78}\protected@file@percent }
 \gdef \LT@i {\LT@entry 
     {1}{32.8821pt}\LT@entry 
     {1}{122.74205pt}\LT@entry 
@@ -479,51 +480,51 @@
     {1}{39.78539pt}\LT@entry 
     {1}{45.24968pt}\LT@entry 
     {1}{37.33287pt}\LT@entry 
-    {1}{64.41187pt}}
-\@writefile{toc}{\contentsline {section}{Appendix C: Evaluation Run Data}{70}{section*.82}\protected@file@percent }
-\@writefile{lot}{\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{70}{table.30}\protected@file@percent }
-\newlabel{tab:eval-inputs}{{30}{70}{Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested}{table.30}{}}
-\@writefile{lot}{\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. JSON OK = which attempt produced valid structured output.}}{70}{table.31}\protected@file@percent }
-\newlabel{tab:eval-results-full}{{31}{70}{Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. JSON OK = which attempt produced valid structured output}{table.31}{}}
+    {1}{87.01265pt}}
+\@writefile{toc}{\contentsline {section}{Appendix C: Evaluation Run Data}{71}{section*.83}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{71}{table.30}\protected@file@percent }
+\newlabel{tab:eval-inputs}{{30}{71}{Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested}{table.30}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation).}}{71}{table.31}\protected@file@percent }
+\newlabel{tab:eval-results-full}{{31}{71}{Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation)}{table.31}{}}
 \gdef \LT@iii {\LT@entry 
     {1}{183.51651pt}\LT@entry 
     {1}{24.56543pt}\LT@entry 
     {1}{24.56543pt}\LT@entry 
     {1}{24.56543pt}\LT@entry 
     {1}{24.56543pt}}
-\@writefile{toc}{\contentsline {section}{Appendix D: Usability Evaluation Questionnaire and Responses}{72}{section*.83}\protected@file@percent }
-\@writefile{toc}{\contentsline {section}{Appendix E: Web Application Screenshots}{74}{section*.86}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {19}{\ignorespaces Login page with email and password form alongside application branding.}}{74}{figure.caption.88}\protected@file@percent }
-\newlabel{fig:app-login}{{19}{74}{Login page with email and password form alongside application branding}{figure.caption.88}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces Registration page with name, email, and password fields.}}{74}{figure.caption.89}\protected@file@percent }
-\newlabel{fig:app-register}{{20}{74}{Registration page with name, email, and password fields}{figure.caption.89}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {21}{\ignorespaces Forgot password page. Sends a reset link via Supabase Auth.}}{75}{figure.caption.90}\protected@file@percent }
-\newlabel{fig:app-forgot-password}{{21}{75}{Forgot password page. Sends a reset link via Supabase Auth}{figure.caption.90}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces Dashboard with summary cards, recent pitch books, and generation status indicators.}}{76}{figure.caption.92}\protected@file@percent }
-\newlabel{fig:app-dashboard}{{22}{76}{Dashboard with summary cards, recent pitch books, and generation status indicators}{figure.caption.92}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {23}{\ignorespaces Pitch books list with company name, type, date, and generation status. Includes search filtering.}}{77}{figure.caption.94}\protected@file@percent }
-\newlabel{fig:app-pitchbooks-list}{{23}{77}{Pitch books list with company name, type, date, and generation status. Includes search filtering}{figure.caption.94}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {24}{\ignorespaces Pitch book viewer with full-size slide, thumbnail strip, and AI chat panel for requesting edits.}}{77}{figure.caption.95}\protected@file@percent }
-\newlabel{fig:app-pitchbook-viewer}{{24}{77}{Pitch book viewer with full-size slide, thumbnail strip, and AI chat panel for requesting edits}{figure.caption.95}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {25}{\ignorespaces New pitch book form with company details, pitch book type, transaction context, and design options.}}{78}{figure.caption.97}\protected@file@percent }
-\newlabel{fig:app-new-pitchbook}{{25}{78}{New pitch book form with company details, pitch book type, transaction context, and design options}{figure.caption.97}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {26}{\ignorespaces Templates page (empty state) with upload prompt for .pptx reference templates.}}{79}{figure.caption.99}\protected@file@percent }
-\newlabel{fig:app-templates}{{26}{79}{Templates page (empty state) with upload prompt for .pptx reference templates}{figure.caption.99}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {27}{\ignorespaces Deck layouts overview with seven pre-configured deck types, each showing a description and slide count.}}{80}{figure.caption.101}\protected@file@percent }
-\newlabel{fig:app-layouts}{{27}{80}{Deck layouts overview with seven pre-configured deck types, each showing a description and slide count}{figure.caption.101}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {28}{\ignorespaces Deck layout editor for Company Overview. Each slide has a title, layout type, and content description. Slides can be reordered, added, or deleted.}}{80}{figure.caption.102}\protected@file@percent }
-\newlabel{fig:app-layout-edit}{{28}{80}{Deck layout editor for Company Overview. Each slide has a title, layout type, and content description. Slides can be reordered, added, or deleted}{figure.caption.102}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {29}{\ignorespaces Settings page with profile details, password change, and sign-out.}}{81}{figure.caption.104}\protected@file@percent }
-\newlabel{fig:app-settings}{{29}{81}{Settings page with profile details, password change, and sign-out}{figure.caption.104}{}}
-\@writefile{toc}{\contentsline {section}{Appendix F: PowerPoint Add-in Screenshots}{82}{section*.105}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {30}{\ignorespaces Add-in after generation. 11 slides have been inserted into the presentation. The taskpane shows a completion message and an AI chat input for requesting edits.}}{82}{figure.caption.106}\protected@file@percent }
-\newlabel{fig:addin-full}{{30}{82}{Add-in after generation. 11 slides have been inserted into the presentation. The taskpane shows a completion message and an AI chat input for requesting edits}{figure.caption.106}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {31}{\ignorespaces New pitch book form in the add-in. The user enters company name, ticker, pitch book type, transaction type, colour theme, design style, and optional context before generating.}}{83}{figure.caption.107}\protected@file@percent }
-\newlabel{fig:addin-new}{{31}{83}{New pitch book form in the add-in. The user enters company name, ticker, pitch book type, transaction type, colour theme, design style, and optional context before generating}{figure.caption.107}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {32}{\ignorespaces Generation in progress. The taskpane shows a step-by-step progress indicator: analysing template, fetching company data, planning content with AI, building slides, and generating previews.}}{84}{figure.caption.108}\protected@file@percent }
-\newlabel{fig:addin-loading}{{32}{84}{Generation in progress. The taskpane shows a step-by-step progress indicator: analysing template, fetching company data, planning content with AI, building slides, and generating previews}{figure.caption.108}{}}
-\@writefile{lof}{\contentsline {figure}{\numberline {33}{\ignorespaces Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests.}}{84}{figure.caption.109}\protected@file@percent }
-\newlabel{fig:addin-output}{{33}{84}{Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests}{figure.caption.109}{}}
+\@writefile{toc}{\contentsline {section}{Appendix D: Usability Evaluation Questionnaire and Responses}{73}{section*.84}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{Appendix E: Web Application Screenshots}{75}{section*.87}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {20}{\ignorespaces Login page with email and password form alongside application branding.}}{75}{figure.caption.89}\protected@file@percent }
+\newlabel{fig:app-login}{{20}{75}{Login page with email and password form alongside application branding}{figure.caption.89}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {21}{\ignorespaces Registration page with name, email, and password fields.}}{75}{figure.caption.90}\protected@file@percent }
+\newlabel{fig:app-register}{{21}{75}{Registration page with name, email, and password fields}{figure.caption.90}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {22}{\ignorespaces Forgot password page. Sends a reset link via Supabase Auth.}}{76}{figure.caption.91}\protected@file@percent }
+\newlabel{fig:app-forgot-password}{{22}{76}{Forgot password page. Sends a reset link via Supabase Auth}{figure.caption.91}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {23}{\ignorespaces Dashboard with summary cards, recent pitch books, and generation status indicators.}}{77}{figure.caption.93}\protected@file@percent }
+\newlabel{fig:app-dashboard}{{23}{77}{Dashboard with summary cards, recent pitch books, and generation status indicators}{figure.caption.93}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {24}{\ignorespaces Pitch books list with company name, type, date, and generation status. Includes search filtering.}}{78}{figure.caption.95}\protected@file@percent }
+\newlabel{fig:app-pitchbooks-list}{{24}{78}{Pitch books list with company name, type, date, and generation status. Includes search filtering}{figure.caption.95}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {25}{\ignorespaces Pitch book viewer with full-size slide, thumbnail strip, and AI chat panel for requesting edits.}}{78}{figure.caption.96}\protected@file@percent }
+\newlabel{fig:app-pitchbook-viewer}{{25}{78}{Pitch book viewer with full-size slide, thumbnail strip, and AI chat panel for requesting edits}{figure.caption.96}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {26}{\ignorespaces New pitch book form with company details, pitch book type, transaction context, and design options.}}{79}{figure.caption.98}\protected@file@percent }
+\newlabel{fig:app-new-pitchbook}{{26}{79}{New pitch book form with company details, pitch book type, transaction context, and design options}{figure.caption.98}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {27}{\ignorespaces Templates page (empty state) with upload prompt for .pptx reference templates.}}{80}{figure.caption.100}\protected@file@percent }
+\newlabel{fig:app-templates}{{27}{80}{Templates page (empty state) with upload prompt for .pptx reference templates}{figure.caption.100}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {28}{\ignorespaces Deck layouts overview with seven pre-configured deck types, each showing a description and slide count.}}{81}{figure.caption.102}\protected@file@percent }
+\newlabel{fig:app-layouts}{{28}{81}{Deck layouts overview with seven pre-configured deck types, each showing a description and slide count}{figure.caption.102}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {29}{\ignorespaces Deck layout editor for Company Overview. Each slide has a title, layout type, and content description. Slides can be reordered, added, or deleted.}}{81}{figure.caption.103}\protected@file@percent }
+\newlabel{fig:app-layout-edit}{{29}{81}{Deck layout editor for Company Overview. Each slide has a title, layout type, and content description. Slides can be reordered, added, or deleted}{figure.caption.103}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {30}{\ignorespaces Settings page with profile details, password change, and sign-out.}}{82}{figure.caption.105}\protected@file@percent }
+\newlabel{fig:app-settings}{{30}{82}{Settings page with profile details, password change, and sign-out}{figure.caption.105}{}}
+\@writefile{toc}{\contentsline {section}{Appendix F: PowerPoint Add-in Screenshots}{83}{section*.106}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {31}{\ignorespaces Add-in after generation. 11 slides have been inserted into the presentation. The taskpane shows a completion message and an AI chat input for requesting edits.}}{83}{figure.caption.107}\protected@file@percent }
+\newlabel{fig:addin-full}{{31}{83}{Add-in after generation. 11 slides have been inserted into the presentation. The taskpane shows a completion message and an AI chat input for requesting edits}{figure.caption.107}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {32}{\ignorespaces New pitch book form in the add-in. The user enters company name, ticker, pitch book type, transaction type, colour theme, design style, and optional context before generating.}}{84}{figure.caption.108}\protected@file@percent }
+\newlabel{fig:addin-new}{{32}{84}{New pitch book form in the add-in. The user enters company name, ticker, pitch book type, transaction type, colour theme, design style, and optional context before generating}{figure.caption.108}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {33}{\ignorespaces Generation in progress. The taskpane shows a step-by-step progress indicator: analysing template, fetching company data, planning content with AI, building slides, and generating previews.}}{85}{figure.caption.109}\protected@file@percent }
+\newlabel{fig:addin-loading}{{33}{85}{Generation in progress. The taskpane shows a step-by-step progress indicator: analysing template, fetching company data, planning content with AI, building slides, and generating previews}{figure.caption.109}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {34}{\ignorespaces Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests.}}{85}{figure.caption.110}\protected@file@percent }
+\newlabel{fig:addin-output}{{34}{85}{Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests}{figure.caption.110}{}}
 \abx@aux@read@bbl@mdfivesum{30A83496AAAFC062030BA17DB6D8FE73}
 \abx@aux@defaultrefcontext{0}{achachlouei2023}{nyt/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{mochawesome2024}{nyt/global//global/global/global}
@@ -575,4 +576,4 @@
 \abx@aux@defaultrefcontext{0}{wohlin2012}{nyt/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{wu2022}{nyt/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{zheng2025}{nyt/global//global/global/global}
-\gdef \@abspage@last{85}
+\gdef \@abspage@last{86}

@@ -400,9 +400,9 @@ Table~\ref{tab:risks} identifies key risks following \textcite{boehm1991}'s fram
 R1 & API rate limits & M & M & Caching, staggered calls & Did not materialise; \\
  & & & & & 24h cache sufficient \\
 \hline
-R2 & LLM output & H & H & Schemas, validation, & Materialised: 22\% invalid \\
- & inconsistency & & & HITL review & on first attempt; Zod \\
- & & & & & retries raised to 96\% \\
+R2 & LLM output & H & H & Schemas, validation, & Materialised: occasional \\
+ & inconsistency & & & HITL review & invalid JSON; handled by \\
+ & & & & & Zod validation + fallback \\
 \hline
 R3 & Template analysis & M & H & Scope to common layouts, & Materialised: custom \\
  & fails on complex layouts & & & graceful fallback & placeholders (30\%); \\

@@ -114,7 +114,7 @@ component & colours, fonts, placeholders & exact hex colour extraction \\
 O2: Data retrieval layer & Met. Yahoo Finance + & 100\% data accuracy against \\
  & SEC EDGAR integration & source APIs in test runs \\
 \hline
-O3: LLM content planning & Met. GPT-4o with Zod & 96\% valid JSON after retries, \\
+O3: LLM content planning & Met. GPT-4o with Zod & 12/12 runs passed validation, \\
  & validation, 3 PB types & 3 PB types supported \\
 \hline
 O4: Slide assembly & Met. PptxGenJS + template & Colour and font match \\
@@ -185,7 +185,7 @@ Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change 
 
 \subsection{What Did Not Work}
 
-Two things fell short. First, the content planner's structured output reliability. Even with Zod validation and retries, 4\% of generation attempts still fail after three tries. The failure mode is usually a deeply nested JSON structure where GPT-4o omits a required field or adds an unexpected one. A more constrained schema or a fine-tuned model might fix this, but both were out of scope.
+Two things fell short. First, the content planner's structured output reliability. While all 12 evaluation runs produced valid JSON, development experience showed that GPT-4o occasionally returns output that fails Zod validation, particularly for complex slide types with nested chart and table specifications. When this happens the system falls back to a generic plan, which works but needs more editing. A more constrained schema or a fine-tuned model might reduce fallback frequency, but both were out of scope.
 
 Second, chart generation. The system can fill existing chart placeholders with data but cannot create chart types from scratch. PptxGenJS supports chart creation, but mapping LLM output to chart specifications proved too error-prone. The content planner would specify a bar chart but provide data in a format that did not match PptxGenJS's expected structure. This was deferred rather than solved.
 
@@ -260,7 +260,7 @@ Finally, the current architecture handles single-user loads. Production deployme
 
 The most useful lesson was that the interesting problems were not where expected. The GPT-4o integration took three days. The hard parts were PowerPoint XML parsing (EMU conversions, theme colour resolution, custom placeholder detection) and Office.js cookie handling inside iframes. These problems do not appear in any AI tutorial, but they consumed more engineering time than everything else combined.
 
-If the project started over, two things would change. First, start with the add-in instead of the web app. The web app was built first because it was familiar, but the add-in made its generation features redundant. Three weeks of web development were partially wasted. Second, design the content plan schema to be flatter. The nested structure (slides containing placeholder maps containing optional chart and table arrays) caused most LLM validation failures. A flatter schema would have improved the 78\% first-attempt success rate.
+If the project started over, two things would change. First, start with the add-in instead of the web app. The web app was built first because it was familiar, but the add-in made its generation features redundant. Three weeks of web development were partially wasted. Second, design the content plan schema to be flatter. The nested structure (slides containing content blocks with varying types) caused most validation failures during development. A flatter schema would have reduced the need for the fallback plan.
 
 The iterative approach proved its value in a way that was not expected. Forcing a working prototype each cycle surfaced problems that no amount of upfront design would have found. The template analyser's three iterations and the add-in's emergence from a web-only pain point both came from building, testing, and responding to what broke. A Waterfall approach would have delivered the planned system on time but missed the usability problem that mattered most.
 
@@ -272,4 +272,4 @@ The project set out to build a proof-of-concept showing that AI-powered document
 
 Two unplanned components, the PowerPoint add-in and the slide preview pipeline, emerged from testing the planned workflow and finding it lacking. The add-in was the most impactful addition to the project. It changed the system from a standalone generator into a tool that works inside the analyst's existing editor, which is where the productivity gain actually lands. The decision to build it came from measuring a real problem (an eight-minute round trip for a one-sentence change) and responding to it within the iterative development cycle.
 
-The system has clear limits. It was tested across seven deck layouts with four users. The LLM produces invalid output 4\% of the time after retries. Chart generation from scratch remains unsolved. These are real gaps, not footnotes. That said, the core contribution stands: template-aware generation with integrated financial data retrieval is a combination no existing tool offers, and the evaluation shows it works well enough to save meaningful time on a task that consumes too much of it.
+The system has clear limits. It was tested across seven deck layouts with four users. The LLM occasionally produces output that needs the fallback plan. Chart generation from scratch remains unsolved. These are real gaps, not footnotes. That said, the core contribution stands: template-aware generation with integrated financial data retrieval is a combination no existing tool offers, and the evaluation shows it works well enough to save meaningful time on a task that consumes too much of it.

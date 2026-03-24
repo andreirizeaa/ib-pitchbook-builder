@@ -51,7 +51,7 @@ The orchestration service receives a generation request, runs each stage in sequ
 
 The orchestrator stays thin. Each service module handles its own domain, and the orchestrator only manages sequence and error boundaries. If data retrieval fails, it passes an empty data object to the content planner rather than aborting. If the content planner returns invalid JSON after three retries, it logs the failure and returns an error. This separation made it possible to test each service in isolation.
 
-One decision proved especially useful. The orchestrator passes the full template schema to the content planner rather than a summary. Early versions sent only layout names, but the content planner produced better output when it could see placeholder types, sizes, and positions. This increased first-attempt JSON validity from 68\% to 78\% because the model had enough context to match content to placeholders correctly.
+One decision proved especially useful. The orchestrator passes the full template schema to the content planner rather than a summary. Early versions sent only layout names, but the content planner produced better output when it could see placeholder types, sizes, and positions. With the full schema in the prompt, the model had enough context to match content to placeholders correctly, and the unwrapping logic handled the remaining structural quirks.
 
 \subsection{Deck Layouts and Colour Themes}
 
@@ -108,33 +108,67 @@ The iterative approach paid off (SE4). Each version failed in a specific, observ
 
 \subsubsection{Content Planning with GPT-4o}
 
-The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The prompt includes the available layouts, their placeholder types, and IB-specific instructions about narrative structure.
+The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The system prompt (Listing~\ref{lst:system-prompt}) sets the persona, enforces rules about data accuracy, and specifies the exact JSON structure the model must return. Two prompt engineering decisions matter here. First, the prompt bans generic phrasing (`NEVER write generic phrases like ``leading company in its sector''') because early versions produced boilerplate that no banker would use. Second, it specifies minimum content density per slide type, because GPT-4o defaults to sparse output unless told otherwise.
 
-Getting valid structured output was the main challenge (SE1). \textcite{lieber2024} found an average JSON success rate of 82.55\% across LLM benchmarks, and this project's numbers are similar. GPT-4o occasionally returns JSON with extra fields, missing required properties, or string values where numbers are expected. The first attempt produced valid JSON 78\% of the time, consistent with the rates \textcite{geng2025} observed for moderately complex schemas.
+\vspace{0.5em}\filbreak
+\begin{lstlisting}[language=JavaScript, caption=Content planner system prompt excerpt (from pitchbook-content.prompt.ts), label=lst:system-prompt]
+export const SYSTEM_PROMPT = `You are a senior Managing Director at
+Goldman Sachs creating investment banking pitch books.
 
-The system validates every response using Zod \parencite{zod2024}, a TypeScript-first schema validation library. Zod defines the expected shape of the LLM output as a TypeScript schema, then parses the response at runtime. If the response is missing a required field, has the wrong type, or contains unexpected values, Zod rejects it and returns a structured error message listing exactly which fields failed and why. The system feeds that error message back into a retry prompt so the LLM can correct the specific problem. After up to three retries, the success rate reached 96\%.
+CRITICAL RULES:
+1. ALL financial data MUST use the EXACT numbers provided in the
+   user message. NEVER fabricate numbers.
+2. Every chart MUST have a "data" array with real numbers.
+3. Content must be deeply specific to the company. Mention their
+   actual products, markets, competitors, recent events.
+4. Write like a real IB analyst: precise, data-driven, no fluff.
+5. NEVER write generic phrases like "leading company in its sector"
+   or "strong market position". Be SPECIFIC.
+
+CONTENT DENSITY:
+- Every Content Slide MUST have at least 5-7 bullet points.
+- Every bullet point must be a FULL SENTENCE with specific data.
+  BAD: "Strong revenue growth".
+  GOOD: "Revenue grew 61% YoY to 130.5B in FY2024, driven by
+  Data Center segment expansion to 115.2B."
+- Financial Tables should have 4-5 years of data with 5+ rows.
+
+You MUST return JSON in EXACTLY this format:
+{ "title": "...", "narrative_arc": "...", "slides": [...] }`;
+\end{lstlisting}
+
+Getting valid structured output was the main challenge (SE1). \textcite{lieber2024} found an average JSON success rate of 82.55\% across LLM benchmarks. GPT-4o occasionally returns JSON with extra fields, missing required properties, or wraps the response in an unexpected outer object. One recurring issue during development was GPT-4o nesting the plan inside a wrapper key (e.g., \texttt{\{"pitch\_book": \{...\}\}} instead of the flat structure the schema expects). The content planner handles this with an unwrapping step that detects single-key wrapper objects and extracts the inner value before validation.
+
+The system validates every response using Zod \parencite{zod2024}, a TypeScript-first schema validation library. Zod parses the LLM output at runtime against the expected schema. If the response fails validation, the content planner falls back to a hardcoded plan that uses the correct slide structure and formatting but with generic placeholder content. This means generation never fails entirely, though the fallback output needs more editing. Across the 12 evaluation runs in Appendix~C, all 12 produced valid JSON that passed Zod validation without needing the fallback.
 
 The content planner also receives historical financial data when available. Rather than letting the LLM fabricate numbers, the prompt explicitly provides retrieved data (revenue, market cap, share price) and instructs the model to reference only those figures. The LLM places real numbers rather than making them up, which removes the biggest hallucination risk.
 
 \vspace{0.5em}\filbreak
-\begin{lstlisting}[language=JavaScript, caption=Content plan validation with Zod]
-const SlideSpecSchema = z.object({
-  layoutId: z.number(),
-  placeholders: z.record(z.string(), z.string()),
-  charts: z.array(ChartSpecSchema).optional(),
-  tables: z.array(TableSpecSchema).optional(),
-  speakerNotes: z.string().optional(),
+\begin{lstlisting}[language=JavaScript, caption=Content plan validation with Zod (from pitchbook-content.schema.ts)]
+const contentBlockSchema = z.object({
+  type: z.enum(['heading', 'paragraph', 'bullet_list',
+                'table', 'chart', 'metric']),
+  content: z.any(),
 });
 
-const ContentPlanSchema = z.object({
-  slides: z.array(SlideSpecSchema).min(1),
-  metadata: z.object({
-    company: z.string(),
-    pitchbookType: z.enum(['company_overview', 'market_update',
-                           'transaction_summary']),
-    generatedAt: z.string(),
-  }),
+const slideSchema = z.object({
+  index: z.number().optional().default(0),
+  title: z.string(),
+  layout: z.string().optional().default('Content Slide'),
+  talking_points: z.array(z.string()).optional().default([]),
+  data_requirements: z.array(z.string()).optional().default([]),
+  content_blocks: z.array(contentBlockSchema).optional().default([]),
 });
+
+const contentPlanSchema = z.object({
+  title: z.string(),
+  narrative_arc: z.string().optional().default(''),
+  slides: z.array(slideSchema),
+});
+
+function parseContentPlan(raw: unknown): ContentPlanOutput {
+  return contentPlanSchema.parse(raw);
+}
 \end{lstlisting}
 
 \subsubsection{Slide Building}
@@ -221,14 +255,14 @@ The solution was to bring the generation system into PowerPoint itself. A taskpa
 The key API is \texttt{insertSlidesFromBase64()}, which takes a base64-encoded .pptx file and inserts its slides into the active presentation at a specified position. The generation pipeline produces the .pptx as before, but instead of offering a download, the add-in pushes the slides directly into the document the user already has open.
 
 \vspace{0.5em}\filbreak
-\begin{lstlisting}[language=JavaScript, caption=Inserting generated slides into the active presentation]
-async function insertGeneratedSlides(base64Pptx: string): Promise<void> {
-  await PowerPoint.run(async (context) => {
-    const presentation = context.presentation;
-    presentation.insertSlidesFromBase64(base64Pptx, {
-      formatting: 'UseDestinationTheme',
-    });
-    await context.sync();
+\begin{lstlisting}[language=JavaScript, caption=Inserting generated slides into the active presentation (from office-helpers.ts)]
+async function insertSlidesFromBase64(base64: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    PowerPoint.run(async (context) => {
+      context.presentation.insertSlidesFromBase64(base64);
+      await context.sync();
+      resolve();
+    }).catch(reject);
   });
 }
 \end{lstlisting}
@@ -250,28 +284,37 @@ The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitc
 The chat runs on GPT-4o-mini, chosen over GPT-4o because the task needs conversational ability rather than structured output. The system prompt includes the number of slides, each slide's title and layout type, and the last 50 messages in the conversation. The model can then reference specific slides by number and see what content already exists before suggesting changes.
 
 \vspace{0.5em}\filbreak
-\begin{lstlisting}[language=JavaScript, caption=AI chat service (simplified)]
-async function chat(params: {
+\begin{lstlisting}[language=JavaScript, caption=AI chat service (from ai-chat.service.ts)]
+async chat(params: {
+  pitchBookId: string;
   message: string;
-  slidesData: SlideData[];
-  history: { role: string; content: string }[];
+  slidesData: any[];
+  history: Array<{ role: string; content: string }>;
 }): Promise<string> {
-  const slideContext = params.slidesData
-    .map((s, i) => `Slide ${i + 1}: "${s.title}" (${s.layout})`)
-    .join('\n');
+  const { message, slidesData, history } = params;
+
+  const systemPrompt = `You are a senior IB presentation editor.
+Current pitch book has ${slidesData.length} slides:
+${slidesData.map((s, i) =>
+  `Slide ${i + 1}: "${s.title}" (${s.layout})`).join('\n')}
+When the user asks for changes, provide specific instructions.`;
 
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     temperature: 0.4,
     max_tokens: 4096,
     messages: [
-      { role: 'system', content: buildSystemPrompt(slideContext) },
-      ...params.history,
-      { role: 'user', content: params.message },
+      { role: 'system', content: systemPrompt },
+      ...history.map(msg => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content,
+      })),
+      { role: 'user', content: message },
     ],
   });
 
-  return response.choices[0].message.content;
+  return response.choices[0]?.message?.content
+    || 'I could not generate a response. Please try again.';
 }
 \end{lstlisting}
 
@@ -485,8 +528,8 @@ Table~\ref{tab:challenges} summarises the main technical challenges encountered 
 Python/TypeScript split & Silent type mismatches & Consolidated to TypeScript \\
 codebase & across API boundary & monorepo with shared-types \\
 \hline
-GPT-4o structured output & 22\% of first attempts & Zod validation + retry with \\
-inconsistency & returned invalid JSON & error-specific prompts (96\% success) \\
+GPT-4o structured output & Occasional invalid JSON & Zod validation + unwrapping \\
+inconsistency & or nested wrapper objects & logic + fallback plan \\
 \hline
 PowerPoint XML theme & Colours stored as theme & Built resolver mapping theme \\
 colour references & refs, not hex values & references to hex via palette \\

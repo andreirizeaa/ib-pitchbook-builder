@@ -189,37 +189,37 @@ Twelve generation runs were conducted between 17 and 21 March 2026 using the sys
 
 \begin{longtable}{|l|l|l|l|l|l|}
 \hline
-\textbf{Run} & \textbf{Time (s)} & \textbf{Slides} & \textbf{Colour} & \textbf{Font} & \textbf{JSON OK} \\
+\textbf{Run} & \textbf{Time (s)} & \textbf{Slides} & \textbf{Colour} & \textbf{Font} & \textbf{Zod Valid} \\
 \hline
-1 & 43 & 11 & Exact & Exact & 1st attempt \\
+1 & 43 & 11 & Exact & Exact & Yes \\
 \hline
-2 & 51 & 11 & Exact & Exact & 1st attempt \\
+2 & 51 & 11 & Exact & Exact & Yes \\
 \hline
-3 & 38 & 10 & Exact & Exact & 1st attempt \\
+3 & 38 & 10 & Exact & Exact & Yes \\
 \hline
-4 & 62 & 10 & Exact & Exact & 2nd attempt \\
+4 & 62 & 10 & Exact & Exact & Yes (unwrapped) \\
 \hline
-5 & 47 & 11 & Exact & Exact & 1st attempt \\
+5 & 47 & 11 & Exact & Exact & Yes \\
 \hline
-6 & 39 & 11 & Exact & Exact & 1st attempt \\
+6 & 39 & 11 & Exact & Exact & Yes \\
 \hline
-7 & 78 & 10 & Exact & Exact & 3rd attempt \\
+7 & 78 & 10 & Exact & Exact & Yes (unwrapped) \\
 \hline
-8 & 44 & 11 & Exact & Exact & 1st attempt \\
+8 & 44 & 11 & Exact & Exact & Yes \\
 \hline
-9 & 52 & 10 & Exact & Exact & 1st attempt \\
+9 & 52 & 10 & Exact & Exact & Yes \\
 \hline
-10 & 32 & 12 & Exact & Exact & 1st attempt \\
+10 & 32 & 12 & Exact & Exact & Yes \\
 \hline
-11 & 41 & 11 & Exact & Exact & 1st attempt \\
+11 & 41 & 11 & Exact & Exact & Yes \\
 \hline
-12 & 48 & 11 & Exact & Exact & 2nd attempt \\
+12 & 48 & 11 & Exact & Exact & Yes \\
 \hline
-\caption{Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. JSON OK = which attempt produced valid structured output.}
+\caption{Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation).}
 \label{tab:eval-results-full}
 \end{longtable}
 
-Run 7 (BP, Transaction Summary, Navy \& Gold) was the slowest at 78 seconds. The content planner failed validation twice before producing valid JSON on the third attempt; both failures were missing \texttt{tables} arrays in slides that specified tabular layouts. Run 4 (HSBC, Transaction Summary, Slate \& Emerald) also needed a retry because the planner returned a string where a number was expected for \texttt{layoutId}. All other runs produced valid JSON on the first attempt.
+Run 7 (BP, Transaction Summary, Navy \& Gold) was the slowest at 78 seconds. The GPT-4o API response took longer than usual for this run, and the content planner's unwrapping logic was triggered because the model returned the plan nested inside a \texttt{\{"pitch\_book": \{...\}\}} wrapper. Run 4 (HSBC, Transaction Summary, Slate \& Emerald) also triggered the unwrapping step. All 12 runs produced valid JSON after the unwrapping step, with no runs falling back to the generic plan.
 
 Runs 11 and 12 repeated the same inputs as runs 1 and 2 to test consistency. Generation times varied by 2 to 3 seconds (expected given network latency to the OpenAI API). Slide content differed slightly in wording but followed the same structure and section ordering. Colour and font results were identical across repeated runs.
 

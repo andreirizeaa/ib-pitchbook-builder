@@ -65,9 +65,9 @@ Vision-language models offer an alternative path. \textcite{faysse2024} show VLM
 
 Getting reliable structured output from LLMs is a harder problem than it first appears. \textcite{geng2025} introduced JSONSchemaBench, a benchmark of 10,000 real-world JSON schemas, and tested six constrained decoding frameworks. They found that constrained decoding speeds generation by 50\% and improves downstream task performance by up to 4\%, but success rates vary sharply depending on schema complexity. Simple flat schemas succeed nearly every time. Deeply nested schemas with conditional fields fail more often.
 
-\textcite{lieber2024} benchmarked LLMs' ability to produce valid JSON across six tasks and found an average success rate of 82.55\%, with rates ranging from 0\% to 100\% depending on the task and model. This matches the experience in this project, where GPT-4o produces valid JSON 78\% of the time on first attempt for the content plan schema. The content plan schema is moderately complex: it has nested arrays of slide specifications, each containing a record of placeholder mappings and optional chart and table arrays.
+\textcite{lieber2024} benchmarked LLMs' ability to produce valid JSON across six tasks and found an average success rate of 82.55\%, with rates ranging from 0\% to 100\% depending on the task and model. The content plan schema in this project is moderately complex: nested arrays of slide specifications, each containing typed content blocks with varying structures for charts, tables, and text. GPT-4o sometimes wraps the response in an unexpected outer object or omits optional fields, though all 12 evaluation runs produced valid output.
 
-These findings shaped the validation strategy. Rather than relying on the model to always produce valid output, the system validates every response against a Zod schema and retries with an error-specific prompt. This approach treats structured output as a best-effort capability that needs a safety net, not a guarantee.
+These findings shaped the validation strategy. Rather than relying on the model to always produce valid output, the system validates every response against a Zod schema and falls back to a generic plan on failure. This treats structured output as a best-effort capability that needs a safety net, not a guarantee.
 
 \subsubsection{Document Automation}
 
@@ -229,21 +229,31 @@ Figure~\ref{fig:er-diagram} shows the database schema. Row-level security (RLS) 
 The backend exposes a REST API via Express.js. The primary endpoint accepts generation requests and returns job identifiers for async processing.
 
 \vspace{0.5em}\filbreak
-\begin{lstlisting}[language=JavaScript, caption=Core API endpoint specification]
-// POST /api/pitchbooks/generate
-interface GenerationRequest {
-  company: string;        // ticker or name
-  templateFile: File;     // .pptx upload
-  pitchbookType: 'company_overview' | 'market_update' | 'transaction_summary';
-  sections?: string[];    // optional section overrides
-}
-
-interface GenerationResponse {
-  jobId: string;
-  status: 'queued' | 'processing' | 'complete' | 'failed';
-  downloadUrl?: string;
+\begin{lstlisting}[language=JavaScript, caption=Pitch book creation request interface (from shared-types)]
+// POST /api/pitchbooks - returns pitch book record with generation queued
+interface CreatePitchBookRequest {
+  title: string;
+  company: string;
+  ticker?: string;
+  transaction_type: 'ma' | 'capital_raising' | 'restructuring'
+                    | 'ipo' | 'debt_financing';
+  pb_type: 'company_overview' | 'market_update'
+           | 'transaction_summary';
+  template_id?: string;       // reference template UUID
+  additional_context?: string; // free-text instructions
+  color_theme?: string;        // e.g. 'navy_gold', 'teal_coral'
+  design_style?: string;
 }
 \end{lstlisting}
+
+The full API is documented with an OpenAPI 3.0 specification and served through Swagger UI (Figure~\ref{fig:swagger}). Authenticated endpoints (marked with a lock icon) require a valid Supabase session cookie.
+
+\begin{figure}[H]
+\centering
+\screenshot{screenshots/deployment/swagger.png}
+\caption{Swagger UI showing the REST API endpoints grouped by resource: Companies (data retrieval), Pitch Books (generation and CRUD), and Templates (upload and analysis).}
+\label{fig:swagger}
+\end{figure}
 
 \subsubsection{Design Trade-offs}
 

@@ -13,19 +13,19 @@
 \contentsline {table}{\numberline {13}{\ignorespaces Data Governance: Storage, Retention, and Deletion Policies}}{22}{table.caption.19}%
 \contentsline {table}{\numberline {14}{\ignorespaces Presentation Generation Approaches Compared}}{25}{table.caption.21}%
 \contentsline {table}{\numberline {15}{\ignorespaces Primary Data Model Specifications}}{29}{table.caption.23}%
-\contentsline {table}{\numberline {16}{\ignorespaces Design Trade-offs}}{31}{table.caption.25}%
-\contentsline {table}{\numberline {17}{\ignorespaces Monorepo Package Structure}}{34}{table.caption.27}%
-\contentsline {table}{\numberline {18}{\ignorespaces Unit and Integration Test Coverage}}{44}{table.caption.33}%
-\contentsline {table}{\numberline {19}{\ignorespaces E2E Test Framework Comparison}}{45}{table.caption.35}%
-\contentsline {table}{\numberline {20}{\ignorespaces Cypress E2E Test Specs}}{46}{table.caption.36}%
-\contentsline {table}{\numberline {21}{\ignorespaces CI/CD Pipeline Stages}}{48}{table.caption.40}%
-\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{50}{table.caption.44}%
-\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{50}{table.caption.45}%
-\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{52}{table.caption.46}%
-\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{53}{table.caption.47}%
-\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{53}{table.caption.48}%
-\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{54}{table.caption.49}%
-\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{55}{table.caption.50}%
-\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{57}{table.caption.51}%
-\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{70}{table.30}%
-\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. JSON OK = which attempt produced valid structured output.}}{70}{table.31}%
+\contentsline {table}{\numberline {16}{\ignorespaces Design Trade-offs}}{32}{table.caption.26}%
+\contentsline {table}{\numberline {17}{\ignorespaces Monorepo Package Structure}}{34}{table.caption.28}%
+\contentsline {table}{\numberline {18}{\ignorespaces Unit and Integration Test Coverage}}{45}{table.caption.34}%
+\contentsline {table}{\numberline {19}{\ignorespaces E2E Test Framework Comparison}}{46}{table.caption.36}%
+\contentsline {table}{\numberline {20}{\ignorespaces Cypress E2E Test Specs}}{47}{table.caption.37}%
+\contentsline {table}{\numberline {21}{\ignorespaces CI/CD Pipeline Stages}}{49}{table.caption.41}%
+\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{51}{table.caption.45}%
+\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{51}{table.caption.46}%
+\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{53}{table.caption.47}%
+\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{54}{table.caption.48}%
+\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{54}{table.caption.49}%
+\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{55}{table.caption.50}%
+\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{56}{table.caption.51}%
+\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{58}{table.caption.52}%
+\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{71}{table.30}%
+\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation).}}{71}{table.31}%

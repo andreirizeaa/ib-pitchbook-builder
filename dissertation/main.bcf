@@ -2437,16 +2437,15 @@
     <bcf:citekey order="62" intorder="1">hu2013</bcf:citekey>
     <bcf:citekey order="63" intorder="1">achachlouei2023</bcf:citekey>
     <bcf:citekey order="64" intorder="1">lieber2024</bcf:citekey>
-    <bcf:citekey order="65" intorder="1">geng2025</bcf:citekey>
-    <bcf:citekey order="66" intorder="1">zod2024</bcf:citekey>
-    <bcf:citekey order="67" intorder="1">vitest2024</bcf:citekey>
-    <bcf:citekey order="68" intorder="1">cypress2024</bcf:citekey>
-    <bcf:citekey order="69" intorder="1">mochawesome2024</bcf:citekey>
-    <bcf:citekey order="70" intorder="1">boehm1988</bcf:citekey>
-    <bcf:citekey order="71" intorder="1">huang2024</bcf:citekey>
-    <bcf:citekey order="72" intorder="1">strubell2019</bcf:citekey>
-    <bcf:citekey order="73" intorder="1">autor2022</bcf:citekey>
-    <bcf:citekey order="74" intorder="1">robertson2012</bcf:citekey>
+    <bcf:citekey order="65" intorder="1">zod2024</bcf:citekey>
+    <bcf:citekey order="66" intorder="1">vitest2024</bcf:citekey>
+    <bcf:citekey order="67" intorder="1">cypress2024</bcf:citekey>
+    <bcf:citekey order="68" intorder="1">mochawesome2024</bcf:citekey>
+    <bcf:citekey order="69" intorder="1">boehm1988</bcf:citekey>
+    <bcf:citekey order="70" intorder="1">huang2024</bcf:citekey>
+    <bcf:citekey order="71" intorder="1">strubell2019</bcf:citekey>
+    <bcf:citekey order="72" intorder="1">autor2022</bcf:citekey>
+    <bcf:citekey order="73" intorder="1">robertson2012</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="nyt">
