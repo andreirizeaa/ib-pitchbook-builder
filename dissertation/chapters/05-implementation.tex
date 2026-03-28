@@ -47,17 +47,11 @@ Turborepo handles build orchestration and caching, compiling \texttt{shared-type
 
 \subsection{Orchestration Layer}
 
-The orchestration service receives a generation request, runs each stage in sequence, and passes the output of one stage as input to the next: validate input, extract template, retrieve data, plan content, build slides, generate previews, store the result.
-
-The orchestrator stays thin. Each service module handles its own domain, and the orchestrator only manages sequence and error boundaries. If data retrieval fails, it passes an empty data object to the content planner rather than aborting. If the content planner returns invalid JSON after three retries, it logs the failure and returns an error. This separation made it possible to test each service in isolation.
-
-One decision proved especially useful. The orchestrator passes the full template schema to the content planner rather than a summary. Early versions sent only layout names, but the content planner produced better output when it could see placeholder types, sizes, and positions. With the full schema in the prompt, the model had enough context to match content to placeholders correctly, and the unwrapping logic handled the remaining structural quirks.
+The orchestrator runs each stage in sequence (validate, extract template, retrieve data, plan content, build slides, generate previews, store result) and stays thin: each service module handles its own domain. If data retrieval fails, it passes an empty object to the content planner rather than aborting. The orchestrator passes the full template schema to GPT-4o rather than a summary, because early versions with only layout names produced worse output.
 
 \subsection{Deck Layouts and Colour Themes}
 
-The system ships with seven deck layouts: Company Overview, Investor Pitch, Market Update, Transaction Summary, Industry Overview, Fundraising Deck, and Due Diligence. Each layout defines a fixed slide sequence with the right number and type of slides for that use case. IB presentations follow predictable formats. A company overview always needs a cover slide, an executive summary, a business description, and financial highlights. The order and structure rarely change between banks. What does change is the visual style: colours, fonts, and logo placement. Each bank has its own brand guidelines.
-
-To handle this, the system separates structure from style. The seven layouts are hardcoded because the slide sequence for a given pitch book type is standard across the industry. The visual style is customisable through eight built-in colour themes (such as Navy \& Gold, Teal \& Coral, and Slate \& Emerald) or by uploading a bank's own template file. When a user uploads a template, the template analyser extracts that bank's exact colours, fonts, and layout positions, and the slide builder applies them to whichever deck layout the user picks. This means a Company Overview generated with one bank's template looks different from one generated with another bank's, even though both follow the same slide structure. Figure~\ref{fig:new-pitchbook} shows the creation form where users pick a deck layout, colour theme, and company details.
+The system ships with seven deck layouts (Company Overview, Investor Pitch, Market Update, Transaction Summary, Industry Overview, Fundraising Deck, Due Diligence) and eight built-in colour themes. The layouts are hardcoded because IB slide sequences are standard across the industry. The visual style is customisable: users pick a theme or upload a bank's own template file. When a template is uploaded, the analyser extracts that bank's exact colours, fonts, and layout positions, and the slide builder applies them to whichever layout the user picks. Figure~\ref{fig:new-pitchbook} shows the creation form.
 
 \begin{figure}[H]
 \centering
@@ -104,7 +98,7 @@ async function analyseTemplate(buffer: Buffer): Promise<TemplateSchema> {
 }
 \end{lstlisting}
 
-The iterative approach paid off (SE4). Each version failed in a specific, observable way, and the fix was targeted rather than speculative. The unit tests grew alongside the implementation: the first iteration had no tests, the second had basic extraction tests, and the third added tests for edge cases like missing theme files, custom placeholders, and corrupted archives (SE5).
+Each version failed in a specific, observable way, and the fix was targeted rather than speculative (SE4). The unit tests grew alongside: the third iteration added edge-case tests for missing themes, custom placeholders, and corrupted archives (SE5).
 
 \subsubsection{Content Planning with GPT-4o}
 
@@ -141,7 +135,7 @@ Getting valid structured output was the main challenge (SE1). \textcite{lieber20
 
 The system validates every response using Zod \parencite{zod2024}, a TypeScript-first schema validation library. Zod parses the LLM output at runtime against the expected schema. If the response fails validation, the content planner falls back to a hardcoded plan that uses the correct slide structure and formatting but with generic placeholder content. This means generation never fails entirely, though the fallback output needs more editing. Across the 12 evaluation runs in Appendix~C, all 12 produced valid JSON that passed Zod validation without needing the fallback.
 
-The content planner also receives historical financial data when available. Rather than letting the LLM fabricate numbers, the prompt explicitly provides retrieved data (revenue, market cap, share price) and instructs the model to reference only those figures. The LLM places real numbers rather than making them up, which removes the biggest hallucination risk.
+The prompt also includes retrieved financial data (revenue, market cap, share price) so the LLM places real numbers rather than making them up.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=Content plan validation with Zod (from pitchbook-content.schema.ts)]
@@ -175,32 +169,24 @@ function parseContentPlan(raw: unknown): ContentPlanOutput {
 
 The slide builder takes the content plan and template schema and produces a .pptx file using PptxGenJS (SE10). For each slide in the content plan, it selects the matching layout, creates a new slide, and fills each placeholder with the specified content using the exact formatting from the template schema: font family, size, weight, and colour.
 
-The first version generated slides with correct structure but wrong colours. Some colours were stored as theme references (\texttt{accent1}, \texttt{dk1}) rather than hex values. PptxGenJS has no concept of PowerPoint's theme colour system, so passing theme references through produced default black text on every slide. The fix was a resolver that maps every theme reference to its hex value using the colour palette from the template analyser. A second problem then appeared: some templates use tinted or shaded variants (e.g., \texttt{accent1} at 60\% luminance). The builder now handles these modifiers by applying the percentage to the base hex value.
+The first version had correct structure but wrong colours. Some were stored as theme references (\texttt{accent1}, \texttt{dk1}) rather than hex values. PptxGenJS has no theme colour system, so passing references through produced default black. The fix was a resolver mapping theme references to hex values, including tinted variants (e.g.\ \texttt{accent1} at 60\% luminance).
 
-A separate service, \texttt{template-slide-builder}, handles a different workflow: cloning existing slides from the uploaded template and replacing placeholder text while keeping all visual styling intact. This uses JSZip and the xml2js \texttt{Builder} to modify and regenerate the XML directly, rather than creating slides from scratch via PptxGenJS. Both builders exist because they serve different needs. PptxGenJS creates new slides when the content plan calls for layouts not present in the template. The clone-based builder preserves exact formatting for layouts that already exist.
+A separate \texttt{template-slide-builder} clones existing slides from the uploaded template and replaces placeholder text via direct XML manipulation with JSZip, preserving exact formatting for layouts that already exist in the template.
 
 \subsubsection{Data Retrieval}
 
-The data retrieval service pulls financial information from Yahoo Finance using the \texttt{yahoo-finance2} npm package and SEC EDGAR via its REST API (K5). The orchestrator calls data retrieval before content planning, passing the retrieved data into the LLM prompt so the content planner can reference real figures.
-
-The service caches responses for 24 hours to respect API rate limits during development and evaluation. A fallback mechanism returns graceful null values if an API call fails, allowing generation to proceed with reduced data rather than failing entirely.
+The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-finance2}) and SEC EDGAR (K5), caching responses for 24 hours. If an API call fails, the service returns graceful null values so generation proceeds with reduced data rather than failing entirely.
 
 \subsubsection{Slide Preview Generation}
 
-Generating PNG previews of .pptx slides is not straightforward in a Node.js environment. The system uses LibreOffice in headless mode to convert the .pptx to PDF, then \texttt{pdftoppm} to render each page as a PNG image. These previews are uploaded to Supabase Storage and their public URLs stored in the database.
-
-This pipeline runs asynchronously after slide generation completes. The web frontend polls for preview availability and displays them as the user browses their pitch books. Neither the preview pipeline nor the add-in described in the next subsection were part of the original design. Both emerged from usability problems discovered during implementation.
+The system uses LibreOffice in headless mode to convert .pptx to PDF, then \texttt{pdftoppm} to render each page as a PNG. Previews are uploaded to Supabase Storage and displayed in the web frontend. Neither this pipeline nor the add-in below were in the original design; both emerged from usability problems found during implementation.
 
 \subsection{PowerPoint Add-in}
 \label{sec:addin}
 
-The original design assumed users would generate a PB through the web app, download the .pptx file, and edit it in PowerPoint. At the end of iteration 4 (week 7), a walkthrough of the full workflow exposed the flaw. The test was simple: generate a company overview, download it, open it in PowerPoint, notice that one slide needed a different data point, and try to fix it. The fix required going back to the web app, changing the input, regenerating the entire deck, downloading again, opening the new file, and manually copying the one corrected slide into the original. The round trip took eight minutes for a one-sentence change.
+The original design assumed users would generate a PB through the web app, download the .pptx file, and edit it in PowerPoint. A walkthrough at the end of week 7 exposed the flaw: fixing one slide required regenerating the full deck, downloading again, and manually copying the corrected slide into the original. The round trip took eight minutes for a one-sentence change. The generation itself took 47 seconds, but the surrounding workflow added enough friction to offset the time saved.
 
-This was the opposite of the productivity gain the system was supposed to deliver. The generation itself took 47 seconds, but the surrounding workflow added enough friction to offset the time saved. The review at the end of that iteration flagged this as the highest-priority problem to solve.
-
-The web app could generate slides, but it could not let users edit them. Supporting full PowerPoint editing in a browser (text formatting, shape manipulation, slide reordering, image insertion) would mean rebuilding most of PowerPoint. That was not realistic within the project timeline.
-
-The solution was to bring the generation system into PowerPoint itself. A taskpane add-in built with Office.js runs alongside the user's active presentation. The add-in communicates with the same Express backend as the web app but uses \texttt{Office.context.document} to interact with the open presentation directly.
+The solution was to bring generation into PowerPoint itself. A taskpane add-in built with Office.js runs alongside the user's active presentation, communicating with the same Express backend.
 
 \begin{figure}[H]
 \centering
@@ -267,7 +253,7 @@ async function insertSlidesFromBase64(base64: string): Promise<void> {
 }
 \end{lstlisting}
 
-This changed the web app's role to a management interface for browsing and organising pitch books. Both applications share the same Supabase backend for authentication and data (K5). Cookie-based sessions with Supabase Auth handle this, though getting cookies to work across the add-in's iframe security model required careful setup of \texttt{SameSite} and \texttt{Secure} attributes.
+This changed the web app's role to a management interface for browsing pitch books. Both applications share the same Supabase backend (K5).
 
 \begin{figure}[H]
 \centering
@@ -279,9 +265,7 @@ This changed the web app's role to a management interface for browsing and organ
 \subsection{AI Chat Assistant}
 \label{sec:ai-chat}
 
-The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request changes to their slides in plain English. A user can type `change the title on slide 3 to Market Opportunities' or `add a bullet point about revenue growth', and the assistant responds with edit instructions tied to specific slides.
-
-The chat runs on GPT-4o-mini, chosen over GPT-4o because the task needs conversational ability rather than structured output. The system prompt includes the number of slides, each slide's title and layout type, and the last 50 messages in the conversation. The model can then reference specific slides by number and see what content already exists before suggesting changes.
+The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. The chat runs on GPT-4o-mini, chosen over GPT-4o because the task needs conversational ability rather than structured output. The system prompt includes each slide's title and layout type so the model can reference specific slides.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=AI chat service (from ai-chat.service.ts)]
@@ -318,13 +302,11 @@ When the user asks for changes, provide specific instructions.`;
 }
 \end{lstlisting}
 
-The backend stores every message in a \texttt{chat\_messages} table linked to the pitch book via foreign key, preserving conversation history across sessions. Row-level security policies ensure users can only access their own chat messages. The chat is advisory: the assistant provides text or instructions, but the user applies the edits.
+The backend stores messages in a \texttt{chat\_messages} table linked to the pitch book, preserving history across sessions. The chat is advisory: the assistant provides instructions, but the user applies the edits.
 
 \subsection{Authentication and Session Management}
 
-Supabase Auth handles user authentication across both the web app and the add-in. The web app uses standard cookie-based sessions via Next.js middleware. The add-in runs inside an iframe within PowerPoint, which blocks cross-origin cookies by default.
-
-The fix uses Supabase's \texttt{createServerClient} with cookie forwarding. The Express backend acts as the single auth source: both the web app and the add-in authenticate through it, and the backend checks session cookies on every request (SE1). This avoids needing separate login flows while working within the iframe's security rules.
+Supabase Auth handles user authentication across both applications. The Express backend acts as the single auth source, checking session cookies on every request (SE1). The add-in runs inside an iframe which blocks cross-origin cookies by default, requiring \texttt{SameSite=None; Secure} cookie attributes and explicit CORS configuration.
 
 \subsection{Testing}
 
@@ -367,9 +349,7 @@ Vitest \parencite{vitest2024} runs all unit and integration tests. It was chosen
 \label{tab:test-coverage}
 \end{table}
 
-Tests use \texttt{vi.mock()} to stub external dependencies (SE11). The service tests mock the OpenAI client and Supabase client so they run without API keys or a database connection. The add-in tests use \texttt{vi.stubGlobal()} to mock the Office.js runtime, which is only available inside PowerPoint.
-
-A Vitest workspace config at the repository root runs all 14 test files across the three apps in a single command. Figure~\ref{fig:vitest-ui} shows the Vitest UI after a full run with all 134 tests passing. The right panel shows test source code or, on failure, the error trace.
+Tests use \texttt{vi.mock()} to stub external dependencies (SE11) so they run without API keys or a database connection. Figure~\ref{fig:vitest-ui} shows the Vitest UI after a full run with all 134 tests passing.
 
 \begin{figure}[H]
 \centering
@@ -378,42 +358,9 @@ A Vitest workspace config at the repository root runs all 14 test files across t
 \label{fig:vitest-ui}
 \end{figure}
 
-\subsubsection{E2E Test Framework}
+\subsubsection{E2E Tests}
 
-Table~\ref{tab:e2e-comparison} compares the two main E2E options considered.
-
-\begin{table}[H]
-\centering
-\begin{tabular}{|l|l|l|}
-\hline
-\textbf{Criteria} & \textbf{Cypress} & \textbf{Playwright} \\
-\hline
-Setup time & Minimal, works out of & Needs more config for \\
- & the box with Next.js & Next.js projects \\
-\hline
-Debugging & Built-in time-travel UI, & Trace viewer is powerful but \\
- & screenshots on failure & less intuitive for quick fixes \\
-\hline
-Browser support & Chrome, Firefox, Edge & Chrome, Firefox, Safari, Edge \\
-\hline
-Learning curve & Low, jQuery-like syntax & Moderate, async/await pattern \\
-\hline
-Reporting & Mochawesome integration & Built-in HTML reporter \\
-\hline
-Community & Large, many examples & Growing fast, newer \\
-\hline
-CI speed & Slower (heavier runtime) & Faster (lighter runtime) \\
-\hline
-\end{tabular}
-\caption{E2E Test Framework Comparison}
-\label{tab:e2e-comparison}
-\end{table}
-
-Cypress \parencite{cypress2024} was chosen for its low setup time with Next.js and its built-in time-travel debugger, which records a DOM snapshot at every command and lets the developer step backward through a failing test. Playwright's main advantages (Safari support, faster CI) were not priorities for this project.
-
-\subsubsection{E2E Test Suite}
-
-Cypress tests run against a real Supabase backend with a test user account. The custom \texttt{cy.login()} command handles Supabase session setup, chunking auth cookies to match the \texttt{@supabase/ssr} format. Seven spec files cover the main user flows:
+Cypress \parencite{cypress2024} was chosen over Playwright for its low setup time with Next.js and built-in time-travel debugger. Tests run against a real Supabase backend with a test user account. Seven spec files cover the main user flows:
 
 \begin{table}[H]
 \centering
@@ -440,7 +387,7 @@ Cypress tests run against a real Supabase backend with a test user account. The 
 \label{tab:cypress-specs}
 \end{table}
 
-Figures~\ref{fig:cypress-specs} to \ref{fig:cypress-failed} show the Cypress test runner. Figure~\ref{fig:cypress-specs} lists the spec files by feature area. Figure~\ref{fig:cypress-passed} shows a passing test stepping through UI actions automatically. Figure~\ref{fig:cypress-failed} shows a failure caused by a test logic error: the assertion checked for a spinner class the page did not use, not an application bug.
+Figures~\ref{fig:cypress-specs} to \ref{fig:cypress-failed} show the Cypress test runner in action.
 
 \begin{figure}[H]
 \centering
@@ -490,7 +437,7 @@ Reports & Mochawesome + Vitest HTML & Published as GitHub artifacts \\
 \label{tab:cicd}
 \end{table}
 
-Mochawesome \parencite{mochawesome2024} merges per-spec Cypress results into a single HTML report. Vitest generates separate HTML reports for each app. Both are uploaded as GitHub Actions build artifacts with 14-day retention, and failure screenshots are kept for 7 days. Figure~\ref{fig:github-actions} shows the GitHub Actions pipeline after a push. The pipeline blocks merges to main unless all stages pass, so broken code cannot reach the production branch.
+Mochawesome \parencite{mochawesome2024} merges Cypress results into a single HTML report. Both test reports are uploaded as GitHub Actions build artifacts. Figure~\ref{fig:github-actions} shows the pipeline, which blocks merges to main unless all stages pass.
 
 \begin{figure}[H]
 \centering
@@ -499,7 +446,7 @@ Mochawesome \parencite{mochawesome2024} merges per-spec Cypress results into a s
 \label{fig:github-actions}
 \end{figure}
 
-The web app deploys automatically to Vercel on every push to \texttt{main}. The Express backend runs on Render's free tier. Figures~\ref{fig:vercel-deploy} and~\ref{fig:render-deploy} show both services live in production.
+The web app deploys to Vercel on every push to \texttt{main}, and the backend runs on Render. Figures~\ref{fig:vercel-deploy} and~\ref{fig:render-deploy} show both services live.
 
 \begin{figure}[H]
 \centering
@@ -548,11 +495,9 @@ detection & lack type attributes & (93\% accuracy on test set) \\
 \label{tab:challenges}
 \end{table}
 
-Each challenge left a lesson. The Python/TypeScript split showed that shared data models across boundaries are the first thing to get right. The structured output problem showed that validation with feedback loops beats prompt engineering alone. The theme colour and placeholder issues only appeared when the next pipeline component consumed the output, reinforcing that integration testing against real data is the only reliable way to surface pipeline bugs.
-
 \subsection{Requirements Tracking}
 
-Table~\ref{tab:req-evidence} maps functional requirements to their implementation status with evidence.
+Table~\ref{tab:req-evidence} maps functional requirements to their implementation status.
 
 \begin{table}[H]
 \centering
@@ -595,13 +540,6 @@ FR15 & RAG search & Not met & Stretch goal, deferred \\
 \label{tab:req-evidence}
 \end{table}
 
-13 of 15 functional requirements are fully met (SE10). FR12 (chart generation) is partially met: the system populates existing chart placeholders with data but cannot create new chart types from scratch. FR15 (RAG search) was a `Could have' stretch goal that was dropped to make time for the PowerPoint add-in, which helped users more directly.
+13 of 15 functional requirements are fully met (SE10). FR12 (chart generation) is partial, and FR15 (RAG search) was dropped to make time for the add-in.
 
-\subsection{Scalability Considerations}
-
-The current architecture handles single-user evaluation loads, but two properties make it easier to scale later. The orchestration service runs each pipeline asynchronously: the API returns a job ID immediately and the client polls a \texttt{generations} table for progress updates, so the HTTP connection is not held open during the 30 to 80 second generation. Generated files and preview images are stored in Supabase Storage (backed by S3-compatible object storage) rather than the local filesystem, so the backend is stateless. The main bottleneck at scale would be the sequential GPT-4o API call. A production deployment would need a request queue (Redis or SQS) in front of the orchestrator, allowing multiple generation requests to run in parallel across worker processes.
-
-\subsection{Additions Beyond Original Design}
-
-Two unplanned components, the PowerPoint add-in and the slide preview pipeline, account for roughly a third of total development effort. Both came from testing the planned workflow and finding friction that offset the productivity gains (SE7). The trade-off was dropping RAG search (FR15). The MoSCoW framework made this explicit: the add-in addressed a `Must have' usability gap, while RAG was a `Could have' stretch goal (SE9).
 

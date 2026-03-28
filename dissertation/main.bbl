@@ -347,7 +347,6 @@
       \strng{authornamehash}{30901c504c4e9f9f386b59986264609c}
       \strng{authorfullhash}{30901c504c4e9f9f386b59986264609c}
       \strng{authorfullhashraw}{30901c504c4e9f9f386b59986264609c}
-      \field{extraname}{1}
       \field{sortinit}{B}
       \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
       \field{extradatescope}{labelyear}
@@ -363,41 +362,6 @@
       \range{pages}{12}
       \verb{doi}
       \verb 10.1109/2.59
-      \endverb
-    \endentry
-    \entry{boehm1991}{article}{}{}
-      \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=30901c504c4e9f9f386b59986264609c}{%
-           family={Boehm},
-           familyi={B\bibinitperiod},
-           given={Barry\bibnamedelima W.},
-           giveni={B\bibinitperiod\bibinitdelim W\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{30901c504c4e9f9f386b59986264609c}
-      \strng{fullhash}{30901c504c4e9f9f386b59986264609c}
-      \strng{fullhashraw}{30901c504c4e9f9f386b59986264609c}
-      \strng{bibnamehash}{30901c504c4e9f9f386b59986264609c}
-      \strng{authorbibnamehash}{30901c504c4e9f9f386b59986264609c}
-      \strng{authornamehash}{30901c504c4e9f9f386b59986264609c}
-      \strng{authorfullhash}{30901c504c4e9f9f386b59986264609c}
-      \strng{authorfullhashraw}{30901c504c4e9f9f386b59986264609c}
-      \field{extraname}{2}
-      \field{sortinit}{B}
-      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{IEEE Software}
-      \field{number}{1}
-      \field{title}{Software Risk Management: Principles and Practices}
-      \field{volume}{8}
-      \field{year}{1991}
-      \field{pages}{32\bibrangedash 41}
-      \range{pages}{10}
-      \verb{doi}
-      \verb 10.1109/52.62930
       \endverb
     \endentry
     \entry{brynjolfsson2023}{article}{}{}
@@ -1543,6 +1507,41 @@
       \field{isbn}{978-1118104354}
       \field{title}{Case Study Research in Software Engineering: Guidelines and Examples}
       \field{year}{2012}
+    \endentry
+    \entry{sapiro2011}{book}{}{}
+      \name{author}{1}{}{%
+        {{un=0,uniquepart=base,hash=59fe7bbeb2798d8461a9007b9dd60e55}{%
+           family={Sapiro},
+           familyi={S\bibinitperiod},
+           given={Jason},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+      }
+      \list{publisher}{1}{%
+        {binary.protect.io}%
+      }
+      \strng{namehash}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \strng{fullhash}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \strng{fullhashraw}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \strng{bibnamehash}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \strng{authorbibnamehash}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \strng{authornamehash}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \strng{authorfullhash}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \strng{authorfullhashraw}{59fe7bbeb2798d8461a9007b9dd60e55}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Binary Risk Analysis}
+      \field{year}{2011}
+      \verb{urlraw}
+      \verb https://binary.protect.io/workcard.pdf
+      \endverb
+      \verb{url}
+      \verb https://binary.protect.io/workcard.pdf
+      \endverb
     \endentry
     \entry{chaves2022}{article}{}{}
       \name{author}{2}{}{%

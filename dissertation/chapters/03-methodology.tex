@@ -283,16 +283,20 @@ The project runs for thirteen weeks (K10). Figure~\ref{fig:gantt} shows the sche
     hgrid,
     vgrid={*{12}{draw=gray!30}},
     x unit=1.1cm,
-    y unit chart=0.7cm,
-    y unit title=0.6cm,
+    y unit chart=0.45cm,
+    y unit title=0.55cm,
     title height=1,
-    bar/.style={fill=blue!40, draw=blue!60},
-    bar height=0.6,
-    bar label font=\normalsize,
-    title label font=\normalsize\bfseries,
-    milestone label font=\normalsize\itshape,
+    bar/.style={fill=blue!30, draw=blue!50},
+    group/.style={draw=black, fill=blue!60},
     group left shift=0,
     group right shift=0,
+    group height=0.4,
+    group peaks tip position=0,
+    bar height=0.5,
+    bar label font=\small,
+    group label font=\small\bfseries,
+    title label font=\normalsize\bfseries,
+    milestone label font=\small\itshape,
 ]{1}{13}
 \gantttitle[title label node/.append style={anchor=east, left=-3pt}]{}{0}
 \gantttitle{Jan}{2}
@@ -301,12 +305,46 @@ The project runs for thirteen weeks (K10). Figure~\ref{fig:gantt} shows the sche
 \gantttitle{Apr}{3} \\
 \gantttitle[title label node/.append style={anchor=east, xshift=-2pt}]{Week}{0}
 \gantttitlelist{1,...,13}{1} \\
-\ganttbar{Intro + Methodology}{1}{2} \\
-\ganttbar{Literature Review}{2}{4} \\
-\ganttbar{Research \& Design}{3}{6} \\
-\ganttbar{Implementation}{5}{10} \\
-\ganttbar{Evaluation}{9}{12} \\
-\ganttbar{Finalisation}{12}{13} \\
+%
+% 1. Introduction and Methodology
+\ganttgroup{Introduction \& Methodology}{1}{2} \\
+\ganttbar{Project scope and objectives}{1}{2} \\
+\ganttbar{Methodology comparison}{1}{2} \\
+%
+% 2. Literature Review
+\ganttgroup{Literature Review}{2}{4} \\
+\ganttbar{AI tools in investment banking}{2}{3} \\
+\ganttbar{LLM structured output patterns}{2}{3} \\
+\ganttbar{PowerPoint automation approaches}{3}{4} \\
+%
+% 3. Research and Design
+\ganttgroup{Research \& Design}{3}{6} \\
+\ganttbar{System architecture and API contracts}{3}{4} \\
+\ganttbar{Database schema and data models}{4}{5} \\
+\ganttbar{Technology evaluation (LLMs, APIs, deployment)}{3}{6} \\
+%
+% 4. Implementation
+\ganttgroup{Implementation}{5}{10} \\
+\ganttbar{Express backend and service pipeline}{5}{6} \\
+\ganttbar{Template analyser (JSZip, xml2js)}{5}{7} \\
+\ganttbar{Data retrieval (Yahoo Finance, SEC EDGAR)}{6}{7} \\
+\ganttbar{Content planner (GPT-4o integration)}{6}{8} \\
+\ganttbar{Slide builder (PptxGenJS)}{7}{8} \\
+\ganttbar{Next.js web application}{7}{9} \\
+\ganttbar{PowerPoint add-in (Office.js)}{8}{10} \\
+\ganttbar{Slide preview pipeline (LibreOffice)}{9}{10} \\
+%
+% 5. Evaluation
+\ganttgroup{Evaluation}{9}{11} \\
+\ganttbar{Unit and integration tests (Vitest)}{9}{10} \\
+\ganttbar{E2E tests (Cypress)}{9}{10} \\
+\ganttbar{Generation evaluation runs}{10}{11} \\
+\ganttbar{Usability evaluation with analysts}{10}{11} \\
+%
+% 6. Finalisation
+\ganttgroup{Finalisation}{11}{13} \\
+\ganttbar{Report writing and revisions}{11}{12} \\
+\ganttbar{Proofreading and formatting}{12}{13} \\
 \ganttmilestone{Submission}{13}
 \end{ganttchart}%
 }
@@ -389,46 +427,92 @@ These changes worked out because of the iterative approach. Each two-week cycle 
 
 \subsection{Risk Assessment}
 
-Table~\ref{tab:risks} identifies key risks following \textcite{boehm1991}'s framework. For high-impact risks, simple backup plans apply: if LLM validation failures become frequent, scope is reduced; if template extraction struggles with complex layouts, supported types are narrowed.
+A pitch deck generator for investment banking handles company financials, deal context, and AI-generated content that analysts may present directly to clients. Table~\ref{tab:risks} identifies ten risks across security, reliability, and project delivery.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|l|l|l|l|}
+\small
+\begin{tabular}{|l|p{3.2cm}|p{8.5cm}|}
 \hline
-\textbf{ID} & \textbf{Risk} & \textbf{L} & \textbf{I} & \textbf{Backup Plan} & \textbf{Outcome} \\
+\textbf{ID} & \textbf{Risk} & \textbf{Description} \\
 \hline
-R1 & API rate limits & M & M & Caching, staggered calls & Did not materialise; \\
- & & & & & 24h cache sufficient \\
+R1 & Pitch Book Data Breach & A flaw in Supabase row-level security policies could expose one user's pitch books to another. In investment banking, pitch books often contain deal terms, valuations, and financial projections that are highly confidential. \\
 \hline
-R2 & LLM output & H & H & Schemas, validation, & Materialised: occasional \\
- & inconsistency & & & HITL review & invalid JSON; handled by \\
- & & & & & Zod validation + fallback \\
+R2 & Financial Figure Hallucination & GPT-4o could insert fabricated market caps, revenue figures, or growth rates into slides. An analyst presenting incorrect numbers to a client could damage the firm's credibility and the deal itself. \\
 \hline
-R3 & Template analysis & M & H & Scope to common layouts, & Materialised: custom \\
- & fails on complex layouts & & & graceful fallback & placeholders (30\%); \\
- & & & & & heuristics raised to 93\% \\
+R3 & Malicious Template Upload & The template analyser parses uploaded .pptx files (ZIP archives containing XML) using JSZip and xml2js. A crafted file could attempt zip bomb decompression, path traversal, or oversized XML payloads to crash the server. \\
 \hline
-R4 & External API & L & H & Abstract API layer, & Did not materialise \\
- & deprecation & & & fallback sources & \\
+R4 & Yahoo Finance Endpoint Change & yahoo-finance2 scrapes Yahoo's unofficial endpoints rather than calling a documented API. Yahoo has changed these endpoints before without notice, which would break financial data retrieval mid-generation. \\
 \hline
-R5 & Scope creep & M & M & MoSCoW prioritisation, & Materialised: add-in added; \\
- & & & & regular scope reviews & RAG dropped via MoSCoW \\
+R5 & OpenAI Credential Exposure & The Express backend stores the OpenAI API key as an environment variable on Render. If the deployment is compromised or the key appears in server logs, an attacker could run up API costs under the project's account. \\
 \hline
-R6 & Technical complexity & M & H & Iterative delivery, & Partially: Python-to-TS \\
- & exceeds time & & & defer stretch goals & migration cost 4 days; \\
- & & & & & recovered via faster builds \\
+R6 & Content Plan Schema Failure & GPT-4o occasionally returns malformed JSON or nests the content plan inside an unexpected wrapper object. If the Zod validation and unwrapping logic both fail, the entire generation pipeline stops. \\
 \hline
-R7 & Data accuracy & M & H & Manual verification, & Did not materialise; API \\
- & issues & & & source attribution & passthrough approach \\
- & & & & & eliminated LLM fabrication \\
+R7 & Slide Preview Exposure & LibreOffice converts generated PPTX files to PNG preview images stored in Supabase Storage. If the storage bucket defaults to public access, anyone with a direct URL could view confidential slide content without logging in. \\
 \hline
-R8 & Compliance & L & H & Mandatory human review, & Did not materialise \\
- & violations & & & no PII processing & \\
+R8 & Platform Dependency Outage & The generation pipeline chains Vercel (web), Render (backend), Supabase (database and storage), and OpenAI (LLM). A failure at any point blocks generation, and there is no self-hosted fallback. \\
+\hline
+R9 & Scope Creep Beyond Timeline & The project has a fixed 13-week timeline. Adding unplanned features risks delaying or cutting core deliverables. This materialised when the PowerPoint add-in was added and RAG search was dropped. \\
+\hline
+R10 & Add-in Cross-Origin Session Breakage & The PowerPoint add-in runs inside an Office.js iframe on a different origin from the backend. Authentication depends on \texttt{SameSite=None; Secure} cookies, which behave differently across browser engines and Office versions. A platform update could silently break login. \\
 \hline
 \end{tabular}
-\caption{Risk Assessment with Outcomes. L = Likelihood, I = Impact, M = Medium, H = High.}
+\caption{Risk assessment for the pitch deck generation system.}
 \label{tab:risks}
 \end{table}
+
+\subsection{Severity Evaluation}
+
+Each risk was scored using Binary Risk Analysis (BRA), a structured method introduced by \textcite{sapiro2011}. BRA works by answering ten yes/no questions per risk. Six questions address how likely the threat is to occur (covering attacker capability, existing defences, and frequency of exposure). Four questions address the potential damage (covering internal and external consequences, business value, and recovery cost). The answers feed through a chain of lookup matrices rather than being simply counted. Each pair of answers maps to a 2$\times$2 matrix, and the intermediate results combine through 3$\times$3 matrices until a final Low, Medium, or High classification is produced for both likelihood and impact. A last matrix combines those two into an overall severity rating. The classification follows mechanically from the ten binary answers, so two people evaluating the same risk with the same answers will always get the same result.
+
+Table~\ref{tab:bra-summary} summarises the results. Two risks scored High. Yahoo Finance endpoint changes (R4) scored highest because the library is unofficial, the dependency is always present, and financial data is central to every generation. Platform outages (R8) scored High for similar reasons: the system chains four external services with no self-hosted alternative. Six risks scored Medium, where mitigations lower the likelihood but the consequences are still serious if the threat materialises. Two risks scored Low: malicious template uploads (R3) because file validation is in place and the attack surface is narrow, and credential exposure (R5) because keys are stored server-side and never reach the client.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{ID} & \textbf{Risk} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Overall} \\
+\hline
+R1 & Pitch Book Data Breach & Low & High & Medium \\
+\hline
+R2 & Financial Figure Hallucination & Medium & Medium & Medium \\
+\hline
+R3 & Malicious Template Upload & Low & Low & Low \\
+\hline
+R4 & Yahoo Finance Endpoint Change & High & Medium & High \\
+\hline
+R5 & OpenAI Credential Exposure & Low & Low & Low \\
+\hline
+R6 & Content Plan Schema Failure & Medium & Medium & Medium \\
+\hline
+R7 & Slide Preview Exposure & Low & High & Medium \\
+\hline
+R8 & Platform Dependency Outage & High & High & High \\
+\hline
+R9 & Scope Creep Beyond Timeline & Medium & Medium & Medium \\
+\hline
+R10 & Add-in Session Breakage & Medium & Medium & Medium \\
+\hline
+\end{tabular}
+\caption{BRA severity results. Full worksheet and matrix workings in Appendix~\ref{sec:appendix-bra}.}
+\label{tab:bra-summary}
+\end{table}
+
+\subsection{Mitigation}
+
+For the data breach risk (R1), Supabase Auth handles login and row-level security policies restrict each user to their own records. Every Express endpoint validates the session cookie before touching data.
+
+Financial hallucination (R2) is handled at the architecture level. The data retrieval service passes real numbers from Yahoo Finance and SEC EDGAR directly to GPT-4o as structured input. Zod schemas validate every response, and analysts review before presenting to clients.
+
+For malicious templates (R3), the backend validates uploaded files as genuine ZIP archives, caps slide count, rejects oversized files, and disables external entity resolution in xml2js.
+
+The Yahoo Finance risk (R4) is structural. The data retrieval service wraps yahoo-finance2 behind an abstract interface, so switching to a licensed provider would require changing one file. The 24-hour cache means a temporary endpoint change would not break in-progress work.
+
+For credentials (R5), all API keys sit in Render's environment variable manager and never appear in source code or logs. Schema failures (R6) materialised during development: GPT-4o occasionally wrapped JSON in unexpected envelopes. An unwrapping step now strips known patterns before validation. Slide preview exposure (R7) uses signed URLs with expiry times; the storage bucket is private.
+
+For platform outages (R8), the architecture separates concerns so partial failures degrade gracefully. The dependency on all four platforms is permanent, so this risk stays High.
+
+Scope creep (R9) materialised when the add-in was added in week 7. MoSCoW made the trade-off clear: the add-in was a ``Must'', RAG search was a ``Could''. The add-in session risk (R10) appeared when Safari's ITP policies blocked authentication cookies, fixed by setting \texttt{SameSite=None; Secure} attributes and configuring CORS for the add-in's origin.
 
 \subsection{Ethics and Compliance}
 
@@ -480,4 +564,4 @@ Progress is tracked using a Kanban board (SE8). Each functional requirement maps
 \label{fig:kanban}
 \end{figure}
 
-The architecture separates concerns into independent modules (template analysis, data retrieval, content planning, slide assembly), each usable on its own. All code includes JSDoc-style documentation and the codebase is released under MIT License. Settings live in environment variables and config files, so adapting the system does not need code changes.
+The architecture separates concerns into independent modules, each usable on its own. Settings live in environment variables and config files.

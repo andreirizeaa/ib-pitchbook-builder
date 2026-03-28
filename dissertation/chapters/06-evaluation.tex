@@ -209,15 +209,11 @@ Each generation request makes one GPT-4o API call (roughly 2,000 to 4,000 tokens
 
 \subsubsection{Impact on Junior Analyst Roles}
 
-The system automates formatting work, not analytical work. \textcite{autor2022} show that automation typically displaces specific tasks rather than entire jobs, and that new tasks emerge to replace displaced ones. The concern here is narrower: whether removing formatting also removes a training ground, since junior analysts learn IB conventions partly by building decks manually. The HITL design mitigates this. Analysts still review and edit every slide, so they still engage with template standards, narrative structure, and data placement. The starting point changes from blank to draft, not from draft to final. Whether reviewing a draft teaches conventions as well as building one from scratch is an open question that the four-person usability study cannot answer.
+The system automates formatting, not analysis. \textcite{autor2022} show that automation displaces tasks rather than entire jobs. The concern is whether removing formatting also removes a training ground, since analysts learn conventions partly by building decks manually. The HITL design mitigates this: analysts still review and edit every slide. The starting point changes from blank to draft, not from draft to final.
 
-\subsubsection{Accessibility}
+\subsubsection{Accessibility and Bias}
 
-The add-in taskpane uses standard HTML/React components rendered inside PowerPoint. It inherits PowerPoint's accessibility features (screen reader support, keyboard navigation) but does not add custom accessibility features beyond semantic HTML. The web app uses Next.js defaults, which include basic ARIA labels but no dedicated accessibility testing. A production release should include WCAG 2.1 AA testing.
-
-\subsubsection{Bias in Generated Content}
-
-The LLM may reflect biases in its training data, such as US-centric market assumptions or language that favours certain industries. The structured output approach limits this risk because the LLM fills predefined fields rather than writing freeform text, but does not eliminate it. Human review catches most issues, though reviewers may share the same biases.
+The add-in uses standard HTML/React components and inherits PowerPoint's accessibility features but adds no custom accessibility beyond semantic HTML. A production release should include WCAG 2.1 AA testing. The LLM may reflect training data biases (e.g.\ US-centric market assumptions). The structured output approach limits this since the LLM fills predefined fields, but human review remains the primary safeguard.
 
 \subsection{Recommendations}
 
@@ -250,11 +246,7 @@ Four things would need to happen before production use.
 
 The highest-impact next step is RAG over precedent materials. The current system generates content from scratch for each request. A retrieval-augmented approach would search a library of past PBs for relevant sections and adapt them, which was a stretch goal deferred to make room for the add-in.
 
-The system also needs multi-model evaluation. It currently depends on GPT-4o. Testing against Claude, Gemini, and open-source models (Llama, Mistral) would identify which model produces the best structured output for this task and reduce vendor lock-in.
-
-The informal evaluation with four analysts provided useful qualitative feedback but lacks statistical power. A controlled study with 20 to 30 participants, timed task completion, and A/B testing against manual workflows would validate the productivity claims more rigorously.
-
-Finally, the current architecture handles single-user loads. Production deployment would need request queuing, horizontal scaling of the generation pipeline, and monitoring. The Express backend would likely move behind an API gateway with rate limiting per organisation.
+Multi-model evaluation (Claude, Gemini, open-source models) would reduce vendor lock-in and identify which model produces the best structured output. A controlled study with 20 to 30 participants and timed task completion would validate the productivity claims more rigorously. Production deployment would need request queuing and horizontal scaling.
 
 \subsection{Personal Learning}
 

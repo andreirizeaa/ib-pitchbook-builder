@@ -474,3 +474,156 @@ Screenshots of the PowerPoint taskpane add-in running inside Microsoft PowerPoin
 \caption{Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests.}
 \label{fig:addin-output}
 \end{figure}
+
+\newpage
+
+\section*{Appendix G: Binary Risk Analysis}
+\addcontentsline{toc}{section}{Appendix G: Binary Risk Analysis}
+\label{sec:appendix-bra}
+
+This appendix shows the full Binary Risk Analysis (BRA) workings for the ten risks listed in Section~\ref{sec:methodology}. \textcite{sapiro2011} designed BRA to replace subjective likelihood and impact ratings with a repeatable process. Each risk is scored against ten yes/no questions, and the answers pass through a fixed set of lookup matrices to produce a Low, Medium, or High classification.
+
+\subsection*{Risk Register}
+
+Table~\ref{tab:bra-register} repeats the risk descriptions from the main report for reference.
+
+\begin{longtable}{|l|p{3cm}|p{9cm}|}
+\hline
+\textbf{ID} & \textbf{Risk} & \textbf{Description} \\
+\hline
+R1 & Pitch Book Data Breach & A flaw in Supabase row-level security policies could expose one user's pitch books to another. Pitch books often contain deal terms, valuations, and financial projections that are highly confidential. \\
+\hline
+R2 & Financial Figure Hallucination & GPT-4o could insert fabricated market caps, revenue figures, or growth rates into slides. An analyst presenting incorrect numbers could damage the firm's credibility. \\
+\hline
+R3 & Malicious Template Upload & The template analyser parses .pptx files (ZIP archives with XML) using JSZip and xml2js. A crafted file could attempt zip bomb decompression, path traversal, or oversized XML payloads. \\
+\hline
+R4 & Yahoo Finance Endpoint Change & yahoo-finance2 scrapes unofficial endpoints. Yahoo has changed these before without notice, which would break financial data retrieval mid-generation. \\
+\hline
+R5 & OpenAI Credential Exposure & The Express backend stores the OpenAI API key on Render. If the key leaks through logs or a deployment compromise, an attacker could run up API costs. \\
+\hline
+R6 & Content Plan Schema Failure & GPT-4o occasionally returns malformed JSON or nests output in unexpected wrappers. If Zod validation and unwrapping both fail, generation stops entirely. \\
+\hline
+R7 & Slide Preview Exposure & LibreOffice converts PPTX files to PNG previews in Supabase Storage. If the bucket defaults to public, anyone with a URL could view confidential slides. \\
+\hline
+R8 & Platform Dependency Outage & Generation chains Vercel, Render, Supabase, and OpenAI. A failure at any point blocks the pipeline with no self-hosted fallback. \\
+\hline
+R9 & Scope Creep Beyond Timeline & The fixed 13-week timeline means unplanned features risk delaying core deliverables. \\
+\hline
+R10 & Add-in Session Breakage & The Office.js iframe uses \texttt{SameSite=None; Secure} cookies for authentication. A browser or Office update could silently break login. \\
+\hline
+\caption{Risk register for Binary Risk Analysis.}
+\label{tab:bra-register}
+\end{longtable}
+
+\subsection*{BRA Worksheet}
+
+Each risk was scored against the ten standard BRA questions (listed at the end of this appendix). Questions 1 through 6 feed into the likelihood calculation and questions 7 through 10 feed into the impact calculation. Table~\ref{tab:bra-worksheet} shows the raw answers and the computed results.
+
+\begin{table}[H]
+\centering
+\footnotesize
+\begin{tabular}{|l|c|c|c|c|c|c|c|c|c|c|l|l|l|}
+\hline
+ & \multicolumn{6}{c|}{\textbf{Likelihood}} & \multicolumn{4}{c|}{\textbf{Impact}} & \multicolumn{3}{c|}{\textbf{Result}} \\
+\hline
+\textbf{ID} & \textbf{Q1} & \textbf{Q2} & \textbf{Q3} & \textbf{Q4} & \textbf{Q5} & \textbf{Q6} & \textbf{Q7} & \textbf{Q8} & \textbf{Q9} & \textbf{Q10} & \textbf{L} & \textbf{I} & \textbf{O} \\
+\hline
+R1 & Y & N & N & N & N & N & Y & Y & Y & Y & Low & High & Med \\
+\hline
+R2 & Y & Y & N & N & N & Y & Y & N & Y & N & Med & Med & Med \\
+\hline
+R3 & Y & N & N & N & N & N & Y & N & N & N & Low & Low & Low \\
+\hline
+R4 & Y & Y & N & Y & Y & Y & Y & N & Y & N & High & Med & High \\
+\hline
+R5 & Y & N & N & N & N & N & Y & N & N & N & Low & Low & Low \\
+\hline
+R6 & Y & Y & N & N & N & Y & Y & N & Y & N & Med & Med & Med \\
+\hline
+R7 & Y & N & N & N & N & N & Y & Y & Y & N & Low & High & Med \\
+\hline
+R8 & Y & Y & N & N & Y & Y & Y & Y & Y & N & High & High & High \\
+\hline
+R9 & Y & Y & N & N & Y & N & Y & N & Y & N & Med & Med & Med \\
+\hline
+R10 & Y & Y & N & Y & N & N & Y & N & N & N & Med & Low & Med \\
+\hline
+\end{tabular}
+\caption{BRA worksheet. L = Likelihood, I = Impact, O = Overall. Med = Medium.}
+\label{tab:bra-worksheet}
+\end{table}
+
+\subsection*{How the Matrices Work}
+
+The ten binary answers do not simply get counted. Instead, they pass through a chain of lookup matrices that combine pairs of inputs into intermediate classifications, which then combine again until a final rating emerges.
+
+\subsubsection*{Pair-to-pair mappings (2$\times$2)}
+
+When two binary answers are paired, the result follows a simple rule:
+
+\begin{itemize}
+\item Both No $\rightarrow$ Low
+\item One Yes, one No (either order) $\rightarrow$ Medium
+\item Both Yes $\rightarrow$ High
+\end{itemize}
+
+\subsubsection*{Combining intermediate results (3$\times$3)}
+
+When two intermediate classifications (each Low, Medium, or High) need to be combined, the following matrix applies:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|l|l|l|}
+\hline
+ & \textbf{Low} & \textbf{Medium} & \textbf{High} \\
+\hline
+\textbf{Low} & Low & Medium & High \\
+\hline
+\textbf{Medium} & Medium & Medium & High \\
+\hline
+\textbf{High} & Medium & High & High \\
+\hline
+\end{tabular}
+\caption{3$\times$3 combination matrix used at each stage.}
+\end{table}
+
+\subsubsection*{Likelihood chain (Q1--Q6)}
+
+The six likelihood questions feed through five matrices in sequence:
+
+\begin{enumerate}
+\item \textbf{Threat Scope} (2$\times$2): Q1 + Q2. Classifies the size of the potential attacker pool as small, medium, or large.
+\item \textbf{Protection Level} (2$\times$2): Q3 + Q4. Classifies how complete the existing defences are.
+\item \textbf{Attack Effectiveness} (3$\times$3): Combines Threat Scope with Protection Level to estimate how effective an attack attempt would be.
+\item \textbf{Occurrence Frequency} (2$\times$2): Q5 + Q6. Classifies how often the vulnerability is exposed.
+\item \textbf{Overall Likelihood} (3$\times$3): Combines Attack Effectiveness with Occurrence Frequency to produce the final likelihood rating.
+\end{enumerate}
+
+\subsubsection*{Impact chain (Q7--Q10)}
+
+The four impact questions feed through three matrices:
+
+\begin{enumerate}
+\item \textbf{Harm} (2$\times$2): Q7 + Q8. Classifies the severity of consequences as limited, material, or damaging.
+\item \textbf{Asset Value} (2$\times$2): Q9 + Q10. Classifies how critical the affected asset is to the business.
+\item \textbf{Overall Impact} (3$\times$3): Combines Harm with Asset Value to produce the final impact rating.
+\end{enumerate}
+
+The overall severity for each risk is then produced by one final 3$\times$3 combination of likelihood and impact.
+
+\subsection*{BRA Questions}
+
+The ten questions used to evaluate each risk are reproduced below. Questions 1--6 address likelihood and questions 7--10 address impact.
+
+\begin{enumerate}
+\item Can the threat event be carried out by someone with ordinary technical skills?
+\item Can the threat event be carried out without significant time, money, or specialist equipment?
+\item Is the affected asset currently unprotected against this threat?
+\item Are there known gaps or weaknesses in the existing defences?
+\item Is the vulnerability present at all times (not just under specific conditions)?
+\item Can the threat event happen without any special pre-conditions being met first?
+\item Will there be negative consequences felt within the organisation?
+\item Will there be negative consequences felt outside the organisation (e.g.\ clients, regulators)?
+\item Does the affected asset contribute significant business value?
+\item Would the cost of repairing or replacing the affected asset be significant?
+\end{enumerate}
