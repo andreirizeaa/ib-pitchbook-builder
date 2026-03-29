@@ -1,5 +1,5 @@
 import JSZip from 'jszip';
-import { parseStringPromise, Builder } from 'xml2js';
+import { parseStringPromise } from 'xml2js';
 import type {
   ContentPlan, ContentSlide, SlideData, SlideContent,
 } from '@pitchdeck/shared-types';
@@ -7,36 +7,22 @@ import type {
 /**
  * Template Slide Builder Service
  *
- * Builds presentations by cloning slides from the user's uploaded template
- * and replacing placeholder text. This preserves ALL visual styling:
- * backgrounds, gradients, shapes, fonts, colors, images, effects.
+ * Clones actual slides from the user's uploaded template and replaces
+ * placeholder text using regex on the raw XML (avoids xml2js Builder
+ * which corrupts OOXML namespaces/attributes).
  *
- * Approach:
- * 1. Load the template PPTX as a ZIP
- * 2. Parse slide → layout mapping to understand each slide's type
- * 3. For each content plan slide, clone the best-matching template slide
- * 4. Replace text in placeholders while preserving formatting
- * 5. Update OOXML bookkeeping (presentation.xml, content types, rels)
+ * The template's slides are the best examples of each layout — they
+ * have correct backgrounds, shapes, fonts, positions. We clone them
+ * and swap out the text content.
  */
 
-const xmlBuilder = new Builder({
-  headless: false,
-  renderOpts: { pretty: false },
-  xmldec: { version: '1.0', encoding: 'UTF-8', standalone: true },
-});
-
 interface TemplateSlideInfo {
-  /** e.g. 'ppt/slides/slide1.xml' */
   file: string;
-  /** e.g. 'ppt/slides/_rels/slide1.xml.rels' */
   relsFile: string;
-  /** Layout name from the referenced slideLayout */
   layoutName: string;
-  /** Layout file path */
   layoutFile: string;
-  /** Placeholder types found in this slide */
+  /** Placeholder types found in the slide XML */
   placeholderTypes: string[];
-  /** Slide index in the template (1-based) */
   index: number;
 }
 
@@ -61,9 +47,8 @@ export class TemplateSlideBuilderService {
 
     // ── Phase 2: Clone slides and replace text ──
     const slidesData: SlideData[] = [];
-
-    // Collect new slide entries for OOXML bookkeeping
-    const newSlides: { file: string; relsFile: string; relsContent: string }[] = [];
+    const newSlideFiles: string[] = [];
+    const newRelsFiles: string[] = [];
 
     for (const slidePlan of contentPlan.slides) {
       const templateSlide = this.findBestMatch(slidePlan, templateSlides);
@@ -71,19 +56,26 @@ export class TemplateSlideBuilderService {
       const newSlideFile = `ppt/slides/slide${newIndex}.xml`;
       const newRelsFile = `ppt/slides/_rels/slide${newIndex}.xml.rels`;
 
-      // Read template slide XML and modify it
-      const slideXml = await zip.file(templateSlide.file)?.async('text');
-      if (!slideXml) continue;
+      // Read raw XML of the template slide
+      const rawXml = await zip.file(templateSlide.file)?.async('text');
+      if (!rawXml) continue;
 
-      const { xml: modifiedXml, contents } = await this.populateSlide(slideXml, slidePlan);
+      // Replace text in placeholders using regex on the raw XML
+      const { xml: modifiedXml, contents } = await this.replaceSlideText(rawXml, slidePlan);
       zip.file(newSlideFile, modifiedXml);
 
-      // Copy the rels file (keeps layout reference intact)
+      // Copy the rels file (keeps layout/image references intact)
       const relsXml = await zip.file(templateSlide.relsFile)?.async('text');
-      const relsContent = relsXml || this.buildMinimalRels(templateSlide.layoutFile);
-      zip.file(newRelsFile, relsContent);
+      if (relsXml) {
+        zip.file(newRelsFile, relsXml);
+      } else {
+        // Build minimal rels pointing to the layout
+        const layoutTarget = templateSlide.layoutFile.replace('ppt/', '../');
+        zip.file(newRelsFile, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\r\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="${layoutTarget}"/></Relationships>`);
+      }
 
-      newSlides.push({ file: newSlideFile, relsFile: newRelsFile, relsContent });
+      newSlideFiles.push(newSlideFile);
+      newRelsFiles.push(newRelsFile);
 
       slidesData.push({
         index: slidePlan.index,
@@ -94,12 +86,12 @@ export class TemplateSlideBuilderService {
       });
     }
 
-    // ── Phase 3: Update OOXML bookkeeping ──
-    await this.updatePresentationXml(zip, newSlides);
-    await this.updateContentTypes(zip, newSlides);
+    // ── Phase 3: Update OOXML bookkeeping using regex (no xml2js Builder) ──
+    await this.updatePresentationXmlRegex(zip, newSlideFiles);
+    await this.updateContentTypesRegex(zip, newSlideFiles);
 
-    // Remove old template slides that aren't reused
-    await this.removeOldSlides(zip, templateSlides, newSlides);
+    // Remove old template slides not reused
+    await this.removeOldSlides(zip, templateSlides, newSlideFiles, newRelsFiles);
 
     const buffer = await zip.generateAsync({
       type: 'nodebuffer',
@@ -117,7 +109,6 @@ export class TemplateSlideBuilderService {
   private async parseTemplateStructure(zip: JSZip): Promise<TemplateSlideInfo[]> {
     const slides: TemplateSlideInfo[] = [];
 
-    // Get slide files sorted by number
     const slideFiles = Object.keys(zip.files)
       .filter(f => /^ppt\/slides\/slide\d+\.xml$/.test(f))
       .sort((a, b) => {
@@ -130,10 +121,10 @@ export class TemplateSlideBuilderService {
       const slideNum = parseInt(slideFile.match(/slide(\d+)/)?.[1] || '0');
       const relsFile = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
 
-      // Find which layout this slide references
       let layoutFile = '';
       let layoutName = `Layout ${slideNum}`;
 
+      // Find which layout this slide references
       const relsXml = await zip.file(relsFile)?.async('text');
       if (relsXml) {
         const relsParsed = await parseStringPromise(relsXml, { explicitArray: false, ignoreAttrs: false });
@@ -142,7 +133,6 @@ export class TemplateSlideBuilderService {
 
         for (const rel of (rels || [])) {
           if (rel?.$?.Type?.includes('slideLayout')) {
-            // Target is relative: ../slideLayouts/slideLayout1.xml
             const target = rel.$.Target;
             layoutFile = target.startsWith('../')
               ? `ppt/${target.replace('../', '')}`
@@ -164,8 +154,10 @@ export class TemplateSlideBuilderService {
         } catch { /* use default name */ }
       }
 
-      // Parse slide to find placeholder types
-      const placeholderTypes = await this.extractPlaceholderTypes(zip, slideFile);
+      // Extract placeholder types from the slide
+      const placeholderTypes = this.extractPlaceholderTypesFromXml(
+        await zip.file(slideFile)?.async('text') || ''
+      );
 
       slides.push({
         file: slideFile,
@@ -180,25 +172,18 @@ export class TemplateSlideBuilderService {
     return slides;
   }
 
-  private async extractPlaceholderTypes(zip: JSZip, slideFile: string): Promise<string[]> {
+  /**
+   * Extract placeholder types using regex (no xml2js needed).
+   */
+  private extractPlaceholderTypesFromXml(xml: string): string[] {
     const types: string[] = [];
-    try {
-      const xml = await zip.file(slideFile)?.async('text');
-      if (!xml) return types;
-
-      const parsed = await parseStringPromise(xml, { explicitArray: true, ignoreAttrs: false });
-      const spTree = parsed?.['p:sld']?.['p:cSld']?.[0]?.['p:spTree']?.[0];
-      const shapes = spTree?.['p:sp'] || [];
-
-      for (const sp of shapes) {
-        const ph = sp?.['p:nvSpPr']?.[0]?.['p:nvPr']?.[0]?.['p:ph']?.[0];
-        if (ph?.$?.type) {
-          types.push(ph.$.type);
-        } else if (ph) {
-          types.push('body'); // Default placeholder type
-        }
-      }
-    } catch { /* skip */ }
+    // Match <p:ph .../> or <p:ph ...> elements and extract type attribute
+    const phRegex = /<p:ph[^>]*?(?:\/>|>)/g;
+    let match;
+    while ((match = phRegex.exec(xml)) !== null) {
+      const typeMatch = match[0].match(/type="([^"]+)"/);
+      types.push(typeMatch ? typeMatch[1] : 'body');
+    }
     return types;
   }
 
@@ -209,7 +194,6 @@ export class TemplateSlideBuilderService {
   private findBestMatch(slidePlan: ContentSlide, templateSlides: TemplateSlideInfo[]): TemplateSlideInfo {
     const planLayout = slidePlan.layout.toLowerCase();
 
-    // Score each template slide
     let bestScore = -1;
     let bestSlide = templateSlides[0];
 
@@ -220,20 +204,26 @@ export class TemplateSlideBuilderService {
       // Exact layout name match
       if (layoutLower === planLayout) { score += 100; }
       // Partial matches
-      else if (layoutLower.includes('title') && planLayout.includes('title')) { score += 80; }
+      else if (layoutLower.includes('title') && planLayout.includes('title') && !planLayout.includes('content')) { score += 80; }
       else if (layoutLower.includes('section') && planLayout.includes('section')) { score += 80; }
       else if (layoutLower.includes('two') && planLayout.includes('two')) { score += 70; }
       else if (layoutLower.includes('comparison') && planLayout.includes('compar')) { score += 70; }
+      else if (layoutLower.includes('content') && planLayout.includes('content')) { score += 60; }
+      else if (layoutLower.includes('summary') && planLayout.includes('summary')) { score += 80; }
+      else if (layoutLower.includes('thank') && planLayout.includes('thank')) { score += 80; }
+      else if (layoutLower.includes('timeline') && planLayout.includes('timeline')) { score += 80; }
+      else if (layoutLower.includes('team') && planLayout.includes('team')) { score += 80; }
+      else if (layoutLower.includes('quote') && planLayout.includes('quote')) { score += 80; }
+      // Generic content fallback
       else if (layoutLower.includes('content') && !planLayout.includes('title')) { score += 30; }
-      // Placeholder type matching
-      else {
-        if (ts.placeholderTypes.includes('title') && planLayout !== 'title slide') score += 10;
-        if (ts.placeholderTypes.includes('body')) score += 5;
-      }
+
+      // Placeholder type matching as tiebreaker
+      if (ts.placeholderTypes.includes('title') || ts.placeholderTypes.includes('ctrTitle')) score += 5;
+      if (ts.placeholderTypes.includes('body') || ts.placeholderTypes.includes('obj')) score += 3;
 
       // Prefer slides with more placeholders for content-heavy layouts
-      if (['Content Slide', 'Executive Summary', 'Two Column'].includes(slidePlan.layout)) {
-        score += ts.placeholderTypes.length * 2;
+      if (['Content Slide', 'Executive Summary', 'Two Column', 'Comparison'].includes(slidePlan.layout)) {
+        score += ts.placeholderTypes.length;
       }
 
       if (score > bestScore) {
@@ -247,333 +237,364 @@ export class TemplateSlideBuilderService {
   }
 
   // ──────────────────────────────────────────────
-  //  POPULATE SLIDE — Replace placeholder text
+  //  REPLACE TEXT IN SLIDE (using xml2js parse + rebuild per-shape)
   // ──────────────────────────────────────────────
 
-  private async populateSlide(
-    slideXml: string,
+  /**
+   * Parse the slide XML, identify placeholders, and replace their text content.
+   * We parse with xml2js for reading, then rebuild only the <p:txBody> portions
+   * and splice them back into the original raw XML to avoid corrupting the
+   * overall slide structure.
+   */
+  private async replaceSlideText(
+    rawXml: string,
     slidePlan: ContentSlide,
   ): Promise<{ xml: string; contents: SlideContent[] }> {
     const contents: SlideContent[] = [];
 
-    // Parse with explicitArray: true for consistent array handling
-    const parsed = await parseStringPromise(slideXml, {
+    // Prepare content
+    const headingBlock = (slidePlan.content_blocks || []).find(b => b.type === 'heading');
+    const titleText = headingBlock ? String(headingBlock.content) : slidePlan.title;
+    const bodyBlocks = (slidePlan.content_blocks || []).filter(b => b.type !== 'heading');
+    let bodyIndex = 0;
+
+    // Parse to identify placeholder shapes
+    const parsed = await parseStringPromise(rawXml, {
       explicitArray: true,
       ignoreAttrs: false,
       preserveChildrenOrder: true,
     });
 
     const spTree = parsed?.['p:sld']?.['p:cSld']?.[0]?.['p:spTree']?.[0];
-    if (!spTree) {
-      return { xml: slideXml, contents };
-    }
+    if (!spTree) return { xml: rawXml, contents };
 
     const shapes = spTree?.['p:sp'] || [];
-    let bodyIndex = 0; // Track which body placeholder we're on
 
-    // Prepare content blocks for body placeholders
-    const bodyBlocks = (slidePlan.content_blocks || []).filter(b => b.type !== 'heading');
+    // Build a map of placeholder type → replacement text
+    const replacements: { phType: string; text: string; isBulletList: boolean; items: string[] }[] = [];
 
     for (const sp of shapes) {
       const nvSpPr = sp?.['p:nvSpPr']?.[0];
       const nvPr = nvSpPr?.['p:nvPr']?.[0];
       const ph = nvPr?.['p:ph']?.[0];
-
-      if (!ph) continue; // Not a placeholder
+      if (!ph) continue;
 
       const phType = ph?.$?.type || 'body';
-      const txBody = sp?.['p:txBody']?.[0];
-      if (!txBody) continue;
 
       if (phType === 'title' || phType === 'ctrTitle') {
-        // Replace title text
-        const titleText = this.getBlockContent(slidePlan, 'heading') || slidePlan.title;
-        this.replaceTextInTxBody(txBody, titleText);
-        contents.push({ type: 'text', placeholder: 'title', value: titleText });
+        const trimmed = this.truncate(titleText, 120);
+        replacements.push({ phType, text: trimmed, isBulletList: false, items: [] });
+        contents.push({ type: 'text', placeholder: 'title', value: trimmed });
       } else if (phType === 'subTitle') {
-        // Replace subtitle
-        const paragraphs = this.getAllBlockContent(slidePlan, 'paragraph');
-        const subtitleText = paragraphs[0] || slidePlan.talking_points?.[0] || '';
-        this.replaceTextInTxBody(txBody, subtitleText);
+        const paragraphs = (slidePlan.content_blocks || []).filter(b => b.type === 'paragraph').map(b => String(b.content));
+        const subtitleText = this.truncate(paragraphs[0] || slidePlan.talking_points?.[0] || '', 200);
+        replacements.push({ phType, text: subtitleText, isBulletList: false, items: [] });
         contents.push({ type: 'text', placeholder: 'subtitle', value: subtitleText });
       } else if (phType === 'body' || phType === 'obj') {
-        // Replace body content
         const block = bodyBlocks[bodyIndex];
         bodyIndex++;
 
         if (block?.type === 'bullet_list' && Array.isArray(block.content)) {
-          this.replaceBulletList(txBody, block.content);
-          contents.push({ type: 'list', placeholder: 'body', value: block.content });
-        } else if (block?.type === 'paragraph') {
-          this.replaceTextInTxBody(txBody, String(block.content));
-          contents.push({ type: 'text', placeholder: 'body', value: String(block.content) });
+          // Limit to 7 bullets, each max 150 chars
+          const items = block.content.slice(0, 7).map((item: string) => this.truncate(item, 150));
+          replacements.push({ phType, text: '', isBulletList: true, items });
+          contents.push({ type: 'list', placeholder: 'body', value: items });
         } else if (block?.type === 'table') {
-          // Tables can't go in text placeholders — render as text
-          const tableText = this.tableToText(block.content);
-          this.replaceTextInTxBody(txBody, tableText);
+          const tableText = this.tableToCompactText(block.content);
+          replacements.push({ phType, text: tableText, isBulletList: false, items: [] });
           contents.push({ type: 'text', placeholder: 'body', value: tableText });
         } else if (block?.type === 'metric') {
           const metricText = `${block.content?.label || ''}: ${block.content?.value || ''}`;
-          this.replaceTextInTxBody(txBody, metricText);
+          replacements.push({ phType, text: metricText, isBulletList: false, items: [] });
           contents.push({ type: 'text', placeholder: 'body', value: metricText });
+        } else if (block?.type === 'paragraph') {
+          const trimmed = this.truncate(String(block.content), 500);
+          replacements.push({ phType, text: trimmed, isBulletList: false, items: [] });
+          contents.push({ type: 'text', placeholder: 'body', value: trimmed });
         } else {
-          // Combine remaining content
-          const allText = bodyBlocks
-            .slice(bodyIndex - 1)
-            .map(b => this.blockToText(b))
-            .filter(Boolean)
-            .join('\n\n');
-          if (allText) {
-            this.replaceTextInTxBody(txBody, allText);
-            contents.push({ type: 'text', placeholder: 'body', value: allText });
-          }
-          bodyIndex = bodyBlocks.length; // Don't process remaining
+          // Combine remaining blocks — limit total
+          const allText = this.truncate(
+            bodyBlocks
+              .slice(Math.max(0, bodyIndex - 1))
+              .map(b => this.blockToText(b))
+              .filter(Boolean)
+              .join('\n'),
+            600,
+          );
+          replacements.push({ phType, text: allText, isBulletList: false, items: [] });
+          if (allText) contents.push({ type: 'text', placeholder: 'body', value: allText });
+          bodyIndex = bodyBlocks.length;
         }
       } else if (phType === 'dt') {
-        // Date placeholder
         const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-        this.replaceTextInTxBody(txBody, dateStr);
+        replacements.push({ phType, text: dateStr, isBulletList: false, items: [] });
       } else if (phType === 'ftr') {
-        // Footer — keep or set to confidential
-        this.replaceTextInTxBody(txBody, 'CONFIDENTIAL');
+        replacements.push({ phType, text: 'CONFIDENTIAL', isBulletList: false, items: [] });
       }
-      // sldNum — leave as-is (auto slide number)
+      // sldNum — skip, leave as-is
     }
 
-    // If we have remaining body content and no more placeholders, try to put it
-    // in the last body placeholder (append)
-    // For MVP, we just skip — the content planner should match slide count
+    // Now do the actual text replacement on the raw XML
+    let modifiedXml = rawXml;
+    let replacementIndex = 0;
 
-    const xml = xmlBuilder.buildObject(parsed);
-    return { xml, contents };
+    // Find each <p:sp> block that contains a placeholder and replace its <p:txBody>
+    // We use a regex to find <p:sp> blocks containing <p:ph
+    modifiedXml = modifiedXml.replace(
+      /(<p:sp\b[^>]*>)([\s\S]*?)(<\/p:sp>)/g,
+      (fullMatch, openTag, inner, closeTag) => {
+        // Check if this shape has a placeholder
+        const phMatch = inner.match(/<p:ph[^>]*?\/?>/);
+        if (!phMatch) return fullMatch; // Not a placeholder, leave as-is
+
+        // Determine placeholder type
+        const typeMatch = phMatch[0].match(/type="([^"]+)"/);
+        const phType = typeMatch ? typeMatch[1] : 'body';
+
+        // Find the matching replacement
+        const replacement = replacements[replacementIndex];
+        if (!replacement) return fullMatch;
+
+        // Only consume if the types match (or close enough)
+        if (this.phTypesMatch(phType, replacement.phType)) {
+          replacementIndex++;
+
+          // Replace the <p:txBody>...</p:txBody> with new text content
+          const newTxBody = replacement.isBulletList
+            ? this.buildTxBodyBullets(inner, replacement.items)
+            : this.buildTxBodyText(inner, replacement.text);
+
+          const modifiedInner = inner.replace(
+            /<p:txBody>[\s\S]*?<\/p:txBody>/,
+            newTxBody,
+          );
+
+          return openTag + modifiedInner + closeTag;
+        }
+
+        return fullMatch;
+      },
+    );
+
+    return { xml: modifiedXml, contents };
+  }
+
+  private phTypesMatch(xmlType: string, replacementType: string): boolean {
+    if (xmlType === replacementType) return true;
+    // title and ctrTitle are both "title" replacements
+    if ((xmlType === 'title' || xmlType === 'ctrTitle') && (replacementType === 'title' || replacementType === 'ctrTitle')) return true;
+    // body and obj are interchangeable
+    if ((xmlType === 'body' || xmlType === 'obj') && (replacementType === 'body' || replacementType === 'obj')) return true;
+    return false;
   }
 
   /**
-   * Replace all text in a txBody with a single string, preserving the
-   * formatting of the first run.
+   * Build a new <p:txBody> element preserving the original bodyPr and lstStyle,
+   * but replacing all paragraph content with the given text.
    */
-  private replaceTextInTxBody(txBody: any, text: string) {
-    const paragraphs = txBody['a:p'];
-    if (!paragraphs || paragraphs.length === 0) return;
+  private buildTxBodyText(shapeInner: string, text: string): string {
+    const bodyPrMatch = shapeInner.match(/<a:bodyPr[^>]*?\/>|<a:bodyPr[^>]*?>[\s\S]*?<\/a:bodyPr>/);
+    const lstStyleMatch = shapeInner.match(/<a:lstStyle\s*\/>|<a:lstStyle[^>]*?>[\s\S]*?<\/a:lstStyle>/);
+    const rPrMatch = shapeInner.match(/<a:rPr[^>]*?\/>|<a:rPr[^>]*?>[\s\S]*?<\/a:rPr>/);
+    const rPr = rPrMatch ? rPrMatch[0] : '<a:rPr lang="en-US" dirty="0"/>';
+    const pPrMatch = shapeInner.match(/<a:pPr[^>]*?\/>|<a:pPr[^>]*?>[\s\S]*?<\/a:pPr>/);
 
-    // Get formatting from the first paragraph's first run
-    const firstPara = paragraphs[0];
-    const templateRun = this.getFirstRun(firstPara);
-    const templatePPr = firstPara['a:pPr']?.[0]; // Paragraph properties
+    const bodyPr = this.ensureAutoFit(bodyPrMatch ? bodyPrMatch[0] : '<a:bodyPr/>');
+    const lstStyle = lstStyleMatch ? lstStyleMatch[0] : '<a:lstStyle/>';
+    const pPr = pPrMatch ? pPrMatch[0] : '';
 
-    // Split text by newlines for multi-paragraph content
     const lines = text.split('\n').filter(l => l.trim());
 
-    const newParagraphs = lines.map(line => {
-      const para: any = {};
-
-      // Preserve paragraph properties (alignment, spacing, etc.)
-      if (templatePPr) {
-        para['a:pPr'] = [{ ...templatePPr }];
-      }
-
-      // Create run with preserved formatting
-      const run: any = {};
-      if (templateRun?.['a:rPr']?.[0]) {
-        // Clone run properties (font, size, color, bold, etc.)
-        run['a:rPr'] = [{ ...templateRun['a:rPr'][0] }];
-      }
-      run['a:t'] = [line];
-      para['a:r'] = [run];
-
-      return para;
-    });
-
-    // Add an end paragraph marker if needed
-    if (newParagraphs.length === 0) {
-      newParagraphs.push({ 'a:endParaRPr': [{ $: { lang: 'en-US' } }] });
+    if (lines.length === 0) {
+      return `<p:txBody>${bodyPr}${lstStyle}<a:p>${pPr}<a:endParaRPr lang="en-US"/></a:p></p:txBody>`;
     }
 
-    txBody['a:p'] = newParagraphs;
+    const paragraphs = lines.map(line =>
+      `<a:p>${pPr}<a:r>${rPr}<a:t>${this.escapeXml(line)}</a:t></a:r></a:p>`
+    ).join('');
+
+    return `<p:txBody>${bodyPr}${lstStyle}${paragraphs}</p:txBody>`;
   }
 
   /**
-   * Replace body content with a bullet list, preserving the formatting
-   * of the first paragraph for each bullet.
+   * Build a <p:txBody> with bullet list items, preserving original bodyPr/lstStyle.
    */
-  private replaceBulletList(txBody: any, items: string[]) {
-    const paragraphs = txBody['a:p'];
-    if (!paragraphs || paragraphs.length === 0) return;
+  private buildTxBodyBullets(shapeInner: string, items: string[]): string {
+    const bodyPrMatch = shapeInner.match(/<a:bodyPr[^>]*?\/>|<a:bodyPr[^>]*?>[\s\S]*?<\/a:bodyPr>/);
+    const lstStyleMatch = shapeInner.match(/<a:lstStyle\s*\/>|<a:lstStyle[^>]*?>[\s\S]*?<\/a:lstStyle>/);
+    const rPrMatch = shapeInner.match(/<a:rPr[^>]*?\/>|<a:rPr[^>]*?>[\s\S]*?<\/a:rPr>/);
+    const pPrMatch = shapeInner.match(/<a:pPr[^>]*?\/>|<a:pPr[^>]*?>[\s\S]*?<\/a:pPr>/);
 
-    // Get template formatting from the first paragraph
-    const firstPara = paragraphs[0];
-    const templateRun = this.getFirstRun(firstPara);
-    const templatePPr = firstPara['a:pPr']?.[0];
+    const bodyPr = this.ensureAutoFit(bodyPrMatch ? bodyPrMatch[0] : '<a:bodyPr/>');
+    const lstStyle = lstStyleMatch ? lstStyleMatch[0] : '<a:lstStyle/>';
+    const rPr = rPrMatch ? rPrMatch[0] : '<a:rPr lang="en-US" dirty="0"/>';
+    const pPr = pPrMatch ? pPrMatch[0] : '';
 
-    const newParagraphs = items.map(item => {
-      const para: any = {};
+    const paragraphs = items.map(item =>
+      `<a:p>${pPr}<a:r>${rPr}<a:t>${this.escapeXml(item)}</a:t></a:r></a:p>`
+    ).join('');
 
-      // Preserve paragraph properties (bullet style, indentation, etc.)
-      if (templatePPr) {
-        para['a:pPr'] = [{ ...templatePPr }];
-      }
-
-      // Create run with preserved formatting
-      const run: any = {};
-      if (templateRun?.['a:rPr']?.[0]) {
-        run['a:rPr'] = [{ ...templateRun['a:rPr'][0] }];
-      }
-      run['a:t'] = [item];
-      para['a:r'] = [run];
-
-      return para;
-    });
-
-    txBody['a:p'] = newParagraphs;
+    return `<p:txBody>${bodyPr}${lstStyle}${paragraphs}</p:txBody>`;
   }
 
-  private getFirstRun(para: any): any {
-    const runs = para?.['a:r'];
-    if (runs && runs.length > 0) return runs[0];
-    return null;
+  /**
+   * Ensure <a:bodyPr> has auto-fit enabled so PowerPoint shrinks text to fit.
+   * If it already has normAutofit or spAutoFit, leave it. Otherwise inject normAutofit.
+   */
+  private ensureAutoFit(bodyPr: string): string {
+    // Already has auto-fit
+    if (bodyPr.includes('normAutofit') || bodyPr.includes('spAutoFit')) {
+      return bodyPr;
+    }
+
+    // Self-closing <a:bodyPr .../> → convert to open/close with normAutofit child
+    if (bodyPr.match(/<a:bodyPr[^>]*?\/>/)) {
+      return bodyPr.replace('/>', '><a:normAutofit fontScale="50000" lnSpcReduction="20000"/></a:bodyPr>');
+    }
+
+    // Open/close <a:bodyPr ...>...</a:bodyPr> → inject normAutofit before closing tag
+    return bodyPr.replace('</a:bodyPr>', '<a:normAutofit fontScale="50000" lnSpcReduction="20000"/></a:bodyPr>');
   }
 
   // ──────────────────────────────────────────────
-  //  OOXML BOOKKEEPING
+  //  OOXML BOOKKEEPING (regex-based, no xml2js Builder)
   // ──────────────────────────────────────────────
 
-  private async updatePresentationXml(
+  /**
+   * Update presentation.xml and its .rels file using regex to avoid
+   * xml2js Builder corrupting the XML structure.
+   */
+  private async updatePresentationXmlRegex(
     zip: JSZip,
-    newSlides: { file: string; relsFile: string; relsContent: string }[],
+    newSlideFiles: string[],
   ) {
-    const presXml = await zip.file('ppt/presentation.xml')?.async('text');
-    if (!presXml) return;
-
-    const parsed = await parseStringPromise(presXml, {
-      explicitArray: true,
-      ignoreAttrs: false,
-    });
-
-    const presentation = parsed['p:presentation'];
-    if (!presentation) return;
-
-    // Also update presentation.xml.rels
+    // ── Update presentation.xml.rels ──
     const presRelsFile = 'ppt/_rels/presentation.xml.rels';
-    const presRelsXml = await zip.file(presRelsFile)?.async('text');
+    let presRelsXml = await zip.file(presRelsFile)?.async('text');
     if (!presRelsXml) return;
 
-    const relsParsed = await parseStringPromise(presRelsXml, {
-      explicitArray: true,
-      ignoreAttrs: false,
-    });
-
-    const relationships = relsParsed['Relationships'];
-    let rels = relationships?.['Relationship'] || [];
-
-    // Find existing max rId number
+    // Find max existing rId
     let maxRId = 0;
-    for (const rel of rels) {
-      const match = rel?.$?.Id?.match(/rId(\d+)/);
-      if (match) maxRId = Math.max(maxRId, parseInt(match[1]));
+    const rIdRegex = /Id="rId(\d+)"/g;
+    let match;
+    while ((match = rIdRegex.exec(presRelsXml)) !== null) {
+      maxRId = Math.max(maxRId, parseInt(match[1]));
     }
 
-    // Find existing max slide ID
-    let maxSlideId = 256; // OOXML convention starts around 256
-    const sldIdLst = presentation['p:sldIdLst']?.[0];
-    const existingSldIds = sldIdLst?.['p:sldId'] || [];
-    for (const sld of existingSldIds) {
-      const id = parseInt(sld?.$?.id || '0');
-      if (id > maxSlideId) maxSlideId = id;
-    }
-
-    // Build new slide ID list and relationships
-    const newSldIds: any[] = [];
-    const newRels: any[] = [];
-
-    for (let i = 0; i < newSlides.length; i++) {
-      const rId = `rId${maxRId + i + 1}`;
-      const slideId = maxSlideId + i + 1;
-      const slideTarget = newSlides[i].file.replace('ppt/', '');
-
-      newSldIds.push({
-        $: {
-          id: String(slideId),
-          'r:id': rId,
-        },
-      });
-
-      newRels.push({
-        $: {
-          Id: rId,
-          Type: 'http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide',
-          Target: slideTarget,
-        },
-      });
-    }
-
-    // Replace slide ID list (remove old, add new)
-    if (sldIdLst) {
-      sldIdLst['p:sldId'] = newSldIds;
-    } else {
-      presentation['p:sldIdLst'] = [{ 'p:sldId': newSldIds }];
-    }
-
-    // Remove old slide relationships, add new ones
-    rels = rels.filter((r: any) =>
-      !r?.$?.Type?.includes('/relationships/slide'),
+    // Remove existing slide relationships
+    presRelsXml = presRelsXml.replace(
+      /<Relationship[^>]*Type="[^"]*\/relationships\/slide"[^>]*\/>/g,
+      '',
     );
-    rels.push(...newRels);
-    relationships['Relationship'] = rels;
 
-    // Write back
-    zip.file('ppt/presentation.xml', xmlBuilder.buildObject(parsed));
-    zip.file(presRelsFile, xmlBuilder.buildObject(relsParsed));
+    // Build new slide relationship entries
+    const newRels: string[] = [];
+    const rIdMap: { file: string; rId: string }[] = [];
+
+    for (let i = 0; i < newSlideFiles.length; i++) {
+      const rId = `rId${maxRId + i + 1}`;
+      const target = newSlideFiles[i].replace('ppt/', '');
+      newRels.push(`<Relationship Id="${rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="${target}"/>`);
+      rIdMap.push({ file: newSlideFiles[i], rId });
+    }
+
+    // Insert new rels before closing </Relationships>
+    presRelsXml = presRelsXml.replace(
+      '</Relationships>',
+      newRels.join('') + '</Relationships>',
+    );
+
+    // Clean up empty lines from removed rels
+    presRelsXml = presRelsXml.replace(/\n\s*\n/g, '\n');
+
+    zip.file(presRelsFile, presRelsXml);
+
+    // ── Update presentation.xml ──
+    let presXml = await zip.file('ppt/presentation.xml')?.async('text');
+    if (!presXml) return;
+
+    // Find max existing slide ID
+    let maxSlideId = 256;
+    const sldIdRegex = /id="(\d+)"/g;
+    // Only look inside sldIdLst
+    const sldIdLstMatch = presXml.match(/<p:sldIdLst>([\s\S]*?)<\/p:sldIdLst>/);
+    if (sldIdLstMatch) {
+      while ((match = sldIdRegex.exec(sldIdLstMatch[1])) !== null) {
+        maxSlideId = Math.max(maxSlideId, parseInt(match[1]));
+      }
+    }
+
+    // Build new sldIdLst content
+    const sldIdEntries = rIdMap.map((entry, i) => {
+      const slideId = maxSlideId + i + 1;
+      return `<p:sldId id="${slideId}" r:id="${entry.rId}"/>`;
+    }).join('');
+
+    const newSldIdLst = `<p:sldIdLst>${sldIdEntries}</p:sldIdLst>`;
+
+    // Replace existing sldIdLst or insert before first closing tag after sldMasterIdLst
+    if (presXml.includes('<p:sldIdLst>') || presXml.includes('<p:sldIdLst ')) {
+      presXml = presXml.replace(
+        /<p:sldIdLst[^>]*>[\s\S]*?<\/p:sldIdLst>/,
+        newSldIdLst,
+      );
+    } else if (presXml.includes('</p:sldMasterIdLst>')) {
+      presXml = presXml.replace(
+        '</p:sldMasterIdLst>',
+        `</p:sldMasterIdLst>${newSldIdLst}`,
+      );
+    }
+
+    zip.file('ppt/presentation.xml', presXml);
   }
 
-  private async updateContentTypes(
+  /**
+   * Update [Content_Types].xml using regex.
+   */
+  private async updateContentTypesRegex(
     zip: JSZip,
-    newSlides: { file: string }[],
+    newSlideFiles: string[],
   ) {
-    const ctXml = await zip.file('[Content_Types].xml')?.async('text');
+    let ctXml = await zip.file('[Content_Types].xml')?.async('text');
     if (!ctXml) return;
 
-    const parsed = await parseStringPromise(ctXml, {
-      explicitArray: true,
-      ignoreAttrs: false,
-    });
-
-    const types = parsed['Types'];
-    if (!types) return;
-
-    let overrides = types['Override'] || [];
-
-    // Remove old slide overrides
-    overrides = overrides.filter((o: any) =>
-      !o?.$?.PartName?.match(/^\/ppt\/slides\/slide\d+\.xml$/),
+    // Remove existing slide overrides
+    ctXml = ctXml.replace(
+      /<Override[^>]*PartName="\/ppt\/slides\/slide\d+\.xml"[^>]*\/>/g,
+      '',
     );
 
-    // Add new slide overrides
-    for (const slide of newSlides) {
-      overrides.push({
-        $: {
-          PartName: `/${slide.file}`,
-          ContentType: 'application/vnd.openxmlformats-officedocument.presentationml.slide+xml',
-        },
-      });
-    }
+    // Build new overrides
+    const overrides = newSlideFiles.map(f =>
+      `<Override PartName="/${f}" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`
+    ).join('');
 
-    types['Override'] = overrides;
-    zip.file('[Content_Types].xml', xmlBuilder.buildObject(parsed));
+    // Insert before closing </Types>
+    ctXml = ctXml.replace('</Types>', overrides + '</Types>');
+
+    // Clean up empty lines
+    ctXml = ctXml.replace(/\n\s*\n/g, '\n');
+
+    zip.file('[Content_Types].xml', ctXml);
   }
+
+  // ──────────────────────────────────────────────
+  //  REMOVE OLD SLIDES
+  // ──────────────────────────────────────────────
 
   private async removeOldSlides(
     zip: JSZip,
     templateSlides: TemplateSlideInfo[],
-    newSlides: { file: string; relsFile: string }[],
+    newSlideFiles: string[],
+    newRelsFiles: string[],
   ) {
-    const newFiles = new Set(newSlides.map(s => s.file));
-    const newRelsFiles = new Set(newSlides.map(s => s.relsFile));
+    const keepFiles = new Set([...newSlideFiles, ...newRelsFiles]);
 
     for (const ts of templateSlides) {
-      if (!newFiles.has(ts.file)) {
+      if (!keepFiles.has(ts.file)) {
         zip.remove(ts.file);
       }
-      if (!newRelsFiles.has(ts.relsFile)) {
+      if (!keepFiles.has(ts.relsFile)) {
         zip.remove(ts.relsFile);
       }
     }
@@ -583,21 +604,18 @@ export class TemplateSlideBuilderService {
   //  HELPERS
   // ──────────────────────────────────────────────
 
-  private buildMinimalRels(layoutFile: string): string {
-    const target = layoutFile.replace('ppt/', '../');
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="${target}"/>
-</Relationships>`;
+  private truncate(text: string, maxLen: number): string {
+    if (text.length <= maxLen) return text;
+    return text.slice(0, maxLen - 1) + '\u2026'; // ellipsis
   }
 
-  private getBlockContent(plan: ContentSlide, type: string): string | null {
-    const b = (plan.content_blocks || []).find(b => b.type === type);
-    return b ? String(b.content) : null;
-  }
-
-  private getAllBlockContent(plan: ContentSlide, type: string): string[] {
-    return (plan.content_blocks || []).filter(b => b.type === type).map(b => String(b.content));
+  private escapeXml(text: string): string {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;');
   }
 
   private blockToText(block: any): string {
@@ -611,6 +629,34 @@ export class TemplateSlideBuilderService {
     }
     if (block.type === 'table') return this.tableToText(block.content);
     return String(block.content || '');
+  }
+
+  /**
+   * Convert table to compact text for body placeholders.
+   * Limits rows and column widths to fit in a text placeholder.
+   */
+  private tableToCompactText(tableContent: any): string {
+    if (!tableContent) return '';
+    const { headers, rows } = tableContent;
+    const lines: string[] = [];
+    const maxRows = 8;
+    const maxColWidth = 25;
+
+    const trimCol = (val: string) => {
+      const s = String(val || '').trim();
+      return s.length > maxColWidth ? s.slice(0, maxColWidth - 1) + '\u2026' : s;
+    };
+
+    if (headers) {
+      lines.push(headers.map(trimCol).join('  |  '));
+    }
+    for (const row of (rows || []).slice(0, maxRows)) {
+      lines.push(row.map(trimCol).join('  |  '));
+    }
+    if ((rows || []).length > maxRows) {
+      lines.push(`... and ${rows.length - maxRows} more rows`);
+    }
+    return lines.join('\n');
   }
 
   private tableToText(tableContent: any): string {

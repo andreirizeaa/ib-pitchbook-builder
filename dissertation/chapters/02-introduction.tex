@@ -15,7 +15,7 @@ A typical PB contains an executive summary, company overview, market analysis, v
 
 Analyst tasks split into two buckets: work that needs a trained banker (modelling, valuation, client advisory) and everything else (hunting data, reformatting slides, fixing fonts). Too many hours go into the second bucket. \textcite{radhakrishna2024} found that well-designed knowledge management systems boosted productivity by 20 to 25 percent, with document production a prime candidate for automation.
 
-APQC research estimates a quarter of all working time is lost to duplicated work and information retrieval \parencite{apqc2023}. IB analysts likely fare worse given the document-intensive nature of the work. Banks that automate low-value formatting free their analysts for client relationships and deal analysis (K1). \textcite{dellacqua2023} found that consultants using AI completed 12.2\% more tasks at 40\% higher quality.
+APQC research estimates a quarter of all working time is lost to duplicated work and information retrieval \parencite{apqc2023}. IB analysts likely fare worse given how document-intensive the work is. Banks that automate low-value formatting free their analysts for client relationships and deal analysis (K1). \textcite{dellacqua2023} found that consultants using AI completed 12.2\% more tasks at 40\% higher quality.
 
 \subsection{Problem Analysis}
 
@@ -39,7 +39,7 @@ Current systems either produce generic output that needs heavy cleanup, or they 
 
 Agentic AI architectures offer a better fit \parencite{ibm2024}. Instead of one model doing everything in a single pass, the system breaks tasks into steps and uses the right tool for each one. \textcite{wang2024} surveyed LLM-based agents and found rapid progress. McKinsey \& Company estimates generative AI could deliver \$340 billion annually in banking \parencite{mckinsey2024}.
 
-This project fills that gap (S1). The pipeline extracts layouts, colour palettes, and placeholder positions from a template using JSZip and xml2js for XML-level parsing. It then uses an LLM to plan content and assembles slides matching the original style. The system uses an agentic orchestration pattern with specialised service components rather than a monolithic approach.
+This project fills that gap (S1). The pipeline extracts layouts, colour palettes, and placeholder positions from a template using JSZip and xml2js for XML-level parsing. It then uses an LLM to plan content and assembles slides matching the original style. The system breaks tasks into steps handled by separate services rather than running everything in one pass.
 
 Table~\ref{tab:gap-objectives} maps each identified gap to the objective and success criterion that addresses it, so that no objective exists without a corresponding gap in existing work.
 

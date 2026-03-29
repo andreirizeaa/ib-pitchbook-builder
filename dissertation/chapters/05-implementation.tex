@@ -5,9 +5,7 @@ This section covers what was built, how it works, and where things changed from 
 
 \subsection{Architecture Evolution}
 
-The original design called for a Python backend with FastAPI and a Next.js frontend. Two weeks into implementation, this changed. Every data structure that crossed the API boundary had to be defined twice, and when a field name changed in the template schema, the Python definition would update but the TypeScript interface would not, causing silent runtime failures.
-
-Switching everything to TypeScript solved this (SE3). PptxGenJS replaced python-pptx, JSZip with xml2js replaced python-pptx's template reading, and Express.js replaced FastAPI. The migration took four days but removed a whole category of bugs. The \texttt{shared-types} package now defines every interface once, and the TypeScript compiler catches mismatches at build time across all applications.
+The original design called for a Python backend with FastAPI and a Next.js frontend. Two weeks in, this changed: every data structure crossing the API boundary had to be defined twice, and mismatches caused silent runtime failures. Switching everything to TypeScript (SE3) took four days but removed a whole category of bugs. The \texttt{shared-types} package now defines every interface once, and the compiler catches mismatches at build time.
 
 \subsection{Monorepo Structure}
 
@@ -36,7 +34,7 @@ The codebase uses Turborepo to manage three applications and one shared package 
 \label{tab:monorepo}
 \end{table}
 
-Turborepo handles build orchestration and caching, compiling \texttt{shared-types} first then building the three applications in parallel. Incremental builds skip unchanged packages. Figure~\ref{fig:dashboard} shows the web app dashboard after login.
+Figure~\ref{fig:dashboard} shows the web app dashboard after login.
 
 \begin{figure}[H]
 \centering
@@ -127,7 +125,7 @@ The template analyser went through three iterations, each driven by a specific f
 
 \textbf{Iteration 2: JSZip + xml2js (raw XML parsing).} PowerPoint files are ZIP archives containing Office Open XML documents. JSZip opens the archive, and xml2js parses the XML inside. This gave direct access to every property: colours from \texttt{ppt/theme/theme1.xml}, layouts from \texttt{ppt/slideLayouts/}, and placeholder positions from shape definitions. The approach worked but came with a problem. PowerPoint's OOXML specification stores measurements in English Metric Units (EMU), where one inch equals 914,400 EMU. Colours can be stored as hex values, theme references (\texttt{accent1}), or system colour names. Placeholder types use numeric codes, but custom placeholders have no type attribute at all. Each of these required manual parsing and conversion logic.
 
-\textbf{Iteration 3: adding heuristics and fallbacks.} Testing against real corporate templates exposed gaps in the raw XML approach. Custom placeholders with no type attribute made up roughly 30\% of all placeholders in the test set. The analyser added position-based heuristics: a placeholder in the top 15\% of the slide with large font settings is classified as a title, even without a type code. A wide placeholder in the bottom half with small fonts is treated as body text. This brought classification accuracy to 93\% across test templates. When parsing fails entirely (corrupted file, unusual XML structure), the analyser falls back to professional defaults: a navy and gold colour scheme with standard IB layout patterns.
+\textbf{Iteration 3: heuristics and fallbacks for analysis.} Testing against real corporate templates exposed gaps in the raw XML approach. Custom placeholders with no type attribute made up roughly 30\% of all placeholders in the test set. The analyser added position-based heuristics: a placeholder in the top 15\% of the slide with large font settings is classified as a title, even without a type code. A wide placeholder in the bottom half with small fonts is treated as body text. This brought classification accuracy to 93\% across test templates. When parsing fails entirely (corrupted file, unusual XML structure), the analyser falls back to professional defaults: a navy and gold colour scheme with standard IB layout patterns.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=Template extraction core logic (simplified)]
@@ -155,9 +153,18 @@ async function analyseTemplate(buffer: Buffer): Promise<TemplateSchema> {
 
 Each version failed in a specific, observable way, and the fix was targeted rather than speculative (SE4). The unit tests grew alongside: the third iteration added edge-case tests for missing themes, custom placeholders, and corrupted archives (SE5).
 
+The analyser reads layout information from the slide master. Figure~\ref{fig:template-master} shows the master view for a sample template. Each thumbnail on the left is a slide layout. The master defines where placeholders go, what fonts to use, and what the background looks like. The analyser reads these from the \texttt{ppt/slideLayouts/} directory and records the placeholder types, positions, and styling.
+
+\begin{figure}[H]
+  \centering
+  \screenshot{screenshots/templates/master.png}
+  \caption{Slide master view showing the available layouts for a template. Each layout defines placeholder positions, fonts, and background styling that the generation pipeline inherits.}
+  \label{fig:template-master}
+\end{figure}
+
 \subsubsection{Content Planning with GPT-4o}
 
-The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The system prompt (Listing~\ref{lst:system-prompt}) sets the persona, enforces rules about data accuracy, and specifies the exact JSON structure the model must return. Two prompt engineering decisions matter here. First, the prompt bans generic phrasing (`NEVER write generic phrases like ``leading company in its sector''') because early versions produced boilerplate that no banker would use. Second, it specifies minimum content density per slide type, because GPT-4o defaults to sparse output unless told otherwise.
+The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The system prompt (Listing~\ref{lst:system-prompt}) bans generic phrasing and specifies minimum content density per slide type, because early versions produced boilerplate and sparse output.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=Content planner system prompt excerpt (from pitchbook-content.prompt.ts), label=lst:system-prompt]
@@ -186,11 +193,7 @@ You MUST return JSON in EXACTLY this format:
 { "title": "...", "narrative_arc": "...", "slides": [...] }`;
 \end{lstlisting}
 
-Getting valid structured output was the main challenge (SE1). \textcite{shorten2024} found an average JSON success rate of 82.55\% across LLM benchmarks. GPT-4o occasionally returns JSON with extra fields, missing required properties, or wraps the response in an unexpected outer object. One recurring issue during development was GPT-4o nesting the plan inside a wrapper key (e.g., \texttt{\{"pitch\_book": \{...\}\}} instead of the flat structure the schema expects). The content planner handles this with an unwrapping step that detects single-key wrapper objects and extracts the inner value before validation.
-
-The system validates every response using Zod \parencite{zod2024}, a TypeScript-first schema validation library. Zod parses the LLM output at runtime against the expected schema. If the response fails validation, the content planner falls back to a hardcoded plan that uses the correct slide structure and formatting but with generic placeholder content. This means generation never fails entirely, though the fallback output needs more editing. Across the 12 evaluation runs in Appendix~C, all 12 produced valid JSON that passed Zod validation without needing the fallback.
-
-The prompt also includes retrieved financial data (revenue, market cap, share price) so the LLM places real numbers rather than making them up.
+Getting valid structured output was the main challenge (SE1). \textcite{shorten2024} found an average JSON success rate of 82.55\% across LLM benchmarks. GPT-4o occasionally wraps responses in unexpected envelope objects. The content planner handles this with an unwrapping step before Zod \parencite{zod2024} schema validation. If validation fails, a hardcoded fallback plan keeps generation going. Across 12 evaluation runs, all produced valid JSON without needing the fallback. The prompt includes retrieved financial data so the LLM places real numbers rather than fabricating them.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=Content plan validation with Zod (from pitchbook-content.schema.ts)]
@@ -222,11 +225,27 @@ function parseContentPlan(raw: unknown): ContentPlanOutput {
 
 \subsubsection{Slide Building}
 
-The slide builder takes the content plan and template schema and produces a .pptx file using PptxGenJS (SE10). For each slide in the content plan, it selects the matching layout, creates a new slide, and fills each placeholder with the specified content using the exact formatting from the template schema: font family, size, weight, and colour.
+The system has two slide building paths, selected by whether the user uploaded a template (SE10).
 
-The first version had correct structure but wrong colours. Some were stored as theme references (\texttt{accent1}, \texttt{dk1}) rather than hex values. PptxGenJS has no theme colour system, so passing references through produced default black. The fix was a resolver mapping theme references to hex values, including tinted variants (e.g.\ \texttt{accent1} at 60\% luminance).
+\textbf{Default mode} uses PptxGenJS to generate slides from scratch with a built-in theme selected by pitch book type. Theme colour references (\texttt{accent1}, \texttt{dk1}) are resolved to hex values before applying, since PptxGenJS has no theme colour system.
 
-A separate \texttt{template-slide-builder} clones existing slides from the uploaded template and replaces placeholder text via direct XML manipulation with JSZip, preserving exact formatting for layouts that already exist in the template.
+\textbf{Template mode} clones the template's actual slides and replaces placeholder text using regex on the raw XML. Figure~\ref{fig:template-original} shows a sample template with 14 slides. The builder parses each slide's \texttt{.rels} file to find its layout name, then for each content plan slide, picks the best-matching template slide. It finds each \texttt{<p:sp>} shape containing a \texttt{<p:ph>} (placeholder) element and replaces the \texttt{<p:txBody>} content while preserving the original \texttt{<a:bodyPr>}, \texttt{<a:lstStyle>}, and \texttt{<a:rPr>} (font, size, colour) via regex extraction. The result: generated text comes out in the template's own font, size, and colour.
+
+This approach uses regex on the raw XML rather than xml2js round-tripping, which corrupted OOXML namespace declarations and produced files that Office.js rejected. The builder also injects \texttt{<a:normAutofit>} to auto-shrink overflowing text and truncates content per placeholder type (120 characters for titles, 7 bullets at 150 characters each, 500 for body text).
+
+\begin{figure}[H]
+  \centering
+  \screenshot{screenshots/templates/template.png}
+  \caption{Original template with 14 slides across different layout types, each with a consistent brown and gold visual style.}
+  \label{fig:template-original}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \screenshot{screenshots/templates/result.png}
+  \caption{Generated output for Meta Platforms using the template from Figure~\ref{fig:template-original}. The 11 slides inherit the template's Felix Titling font, brown background, and gold accents. The add-in taskpane (right) shows slides were inserted directly into PowerPoint.}
+  \label{fig:template-result}
+\end{figure}
 
 \subsubsection{Data Retrieval}
 
@@ -239,9 +258,7 @@ The system uses LibreOffice in headless mode to convert .pptx to PDF, then \text
 \subsection{PowerPoint Add-in}
 \label{sec:addin}
 
-The original design assumed users would generate a PB through the web app, download the .pptx file, and edit it in PowerPoint. A walkthrough at the end of week 7 exposed the flaw: fixing one slide required regenerating the full deck, downloading again, and manually copying the corrected slide into the original. The round trip took eight minutes for a one-sentence change. The generation itself took 47 seconds, but the surrounding workflow added enough friction to offset the time saved.
-
-The solution was to bring generation into PowerPoint itself. A taskpane add-in built with Office.js runs alongside the user's active presentation, communicating with the same Express backend.
+A walkthrough in week 7 exposed the flaw in the web-only design: fixing one slide required regenerating the full deck and manually copying it back. The round trip took eight minutes for a one-sentence change. The solution was a taskpane add-in built with Office.js that runs inside PowerPoint, communicating with the same Express backend.
 
 \begin{figure}[H]
 \centering
@@ -293,22 +310,7 @@ The solution was to bring generation into PowerPoint itself. A taskpane add-in b
 \label{fig:addin-taskpane}
 \end{figure}
 
-The \texttt{insertSlidesFromBase64()} API takes a base64-encoded .pptx file and inserts its slides into the active presentation at a specified position. The generation pipeline produces the .pptx as before, but instead of offering a download, the add-in pushes the slides directly into the document the user already has open.
-
-\vspace{0.5em}\filbreak
-\begin{lstlisting}[language=JavaScript, caption=Inserting generated slides into the active presentation (from office-helpers.ts)]
-async function insertSlidesFromBase64(base64: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    PowerPoint.run(async (context) => {
-      context.presentation.insertSlidesFromBase64(base64);
-      await context.sync();
-      resolve();
-    }).catch(reject);
-  });
-}
-\end{lstlisting}
-
-This changed the web app's role to a management interface for browsing pitch books. Both applications share the same Supabase backend (K5).
+The \texttt{insertSlidesFromBase64()} API pushes the generated .pptx directly into the active presentation. The web app became a management interface for browsing pitch books. Both applications share the same backend (K5).
 
 \begin{figure}[H]
 \centering
@@ -320,44 +322,7 @@ This changed the web app's role to a management interface for browsing pitch boo
 \subsection{AI Chat Assistant}
 \label{sec:ai-chat}
 
-The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. The chat runs on GPT-4o-mini, chosen over GPT-4o because the task needs conversational ability rather than structured output. The system prompt includes each slide's title and layout type so the model can reference specific slides.
-
-\vspace{0.5em}\filbreak
-\begin{lstlisting}[language=JavaScript, caption=AI chat service (from ai-chat.service.ts)]
-async chat(params: {
-  pitchBookId: string;
-  message: string;
-  slidesData: any[];
-  history: Array<{ role: string; content: string }>;
-}): Promise<string> {
-  const { message, slidesData, history } = params;
-
-  const systemPrompt = `You are a senior IB presentation editor.
-Current pitch book has ${slidesData.length} slides:
-${slidesData.map((s, i) =>
-  `Slide ${i + 1}: "${s.title}" (${s.layout})`).join('\n')}
-When the user asks for changes, provide specific instructions.`;
-
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o-mini',
-    temperature: 0.4,
-    max_tokens: 4096,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...history.map(msg => ({
-        role: msg.role as 'user' | 'assistant',
-        content: msg.content,
-      })),
-      { role: 'user', content: message },
-    ],
-  });
-
-  return response.choices[0]?.message?.content
-    || 'I could not generate a response. Please try again.';
-}
-\end{lstlisting}
-
-The backend stores messages in a \texttt{chat\_messages} table linked to the pitch book, preserving history across sessions. The chat is advisory: the assistant provides instructions, but the user applies the edits.
+The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. The chat runs on GPT-4o-mini with a system prompt that includes each slide's title and layout type. Messages are stored in a \texttt{chat\_messages} table, preserving history across sessions. The chat is advisory: the assistant provides instructions, but the user applies the edits.
 
 \subsection{Authentication and Session Management}
 

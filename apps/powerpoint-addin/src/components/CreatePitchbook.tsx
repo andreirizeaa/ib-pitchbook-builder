@@ -178,8 +178,7 @@ export function CreatePitchbook({ token, onCreated }: Props) {
           ticker: ticker || undefined,
           pb_type: pbType,
           transaction_type: txType || undefined,
-          color_theme: colorTheme,
-          design_style: designStyle,
+          ...(!templateId ? { color_theme: colorTheme, design_style: designStyle } : {}),
           additional_context: context || undefined,
           template_id: templateId,
         }),
@@ -192,6 +191,9 @@ export function CreatePitchbook({ token, onCreated }: Props) {
       setIsCreating(false);
     }
   };
+
+  // Whether a template is selected (template provides its own styling)
+  const hasTemplate = selectedTemplateId !== '' && selectedTemplateId !== '__upload__';
 
   // Build theme dropdown options with color dots
   const themeOptions = COLOR_THEMES.map(t => ({
@@ -285,24 +287,6 @@ export function CreatePitchbook({ token, onCreated }: Props) {
           placeholder="Select transaction type..."
         />
 
-        {/* Color Theme */}
-        <Dropdown
-          label="Color Theme"
-          options={themeOptions}
-          value={colorTheme}
-          onChange={setColorTheme}
-          placeholder="Select color theme..."
-        />
-
-        {/* Design Style */}
-        <Dropdown
-          label="Design Style"
-          options={DESIGN_STYLES}
-          value={designStyle}
-          onChange={setDesignStyle}
-          placeholder="Select design style..."
-        />
-
         {/* Reference Template */}
         <Dropdown
           label="Reference Template"
@@ -350,6 +334,32 @@ export function CreatePitchbook({ token, onCreated }: Props) {
           className="hidden"
           onChange={handleFileSelected}
         />
+
+        {hasTemplate && (
+          <p className="text-[11px] text-gray-400 -mt-1">
+            Styling will be inherited from the template.
+          </p>
+        )}
+
+        {/* Color Theme & Design Style — only when no template */}
+        {!hasTemplate && (
+          <>
+            <Dropdown
+              label="Color Theme"
+              options={themeOptions}
+              value={colorTheme}
+              onChange={setColorTheme}
+              placeholder="Select color theme..."
+            />
+            <Dropdown
+              label="Design Style"
+              options={DESIGN_STYLES}
+              value={designStyle}
+              onChange={setDesignStyle}
+              placeholder="Select design style..."
+            />
+          </>
+        )}
 
         {/* Additional context */}
         <div>

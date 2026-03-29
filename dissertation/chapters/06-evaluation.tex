@@ -59,11 +59,9 @@ All five criteria are met. Appendix~C contains the full input and result data fo
 \label{fig:gen-times}
 \end{figure}
 
-Across 12 runs, mean generation time was 47.9 seconds (SD = 12.2s, 95\% CI [40.1, 55.7]), well under the five-minute target. The bottleneck is the GPT-4o API call (8 to 15 seconds). Template extraction and slide assembly together take under 5 seconds. The outlier was run 7 (78 seconds), where the content planner failed validation twice before producing valid JSON on the third attempt.
+Mean generation time was 47.9 seconds (SD = 12.2s, 95\% CI [40.1, 55.7]), well under the five-minute target. The bottleneck is the GPT-4o API call (8--15 seconds). Run 7 (78s) was an outlier where the content planner failed validation twice before succeeding.
 
-Template matching was checked automatically (SE5). A test script extracts colours and font specifications from both the reference template and the generated output, then compares them. Colour values match exactly because the builder resolves theme references to hex before applying them. Font families and sizes also match exactly.
-
-Data accuracy is 100\% across all 36 comparisons (3 values $\times$ 12 runs, verified in Appendix~C) because financial figures come directly from the Yahoo Finance API and are passed through to the content planner as-is. The LLM does not generate financial numbers. It receives them in the prompt and places them in the slide text. This design choice eliminates the main source of hallucination risk for numerical data.
+Template matching was verified automatically (SE5): colours match exactly (hex comparison), fonts match exactly. Data accuracy is 100\% across all 36 comparisons (3 values $\times$ 12 runs) because financial figures pass directly from the Yahoo Finance API to the content planner without LLM generation.
 
 \subsection{Test Results}
 
@@ -88,9 +86,7 @@ Cypress E2E & 7 spec files, 28 tests & 100\% & N/A (full user flows) \\
 \label{tab:test-results}
 \end{table}
 
-The service tests have the highest coverage because the core pipeline modules (template analyser, content planner, slide builder) are the most critical and the most testable. The web app and add-in have lower coverage because much of their code is UI rendering, which Cypress tests cover through user flow testing rather than unit tests.
-
-The CI pipeline catches regressions on every push (SE6). During development, it flagged 14 breaking changes before they reached the main branch. The most common failure was type mismatches after changing a shared interface, which the TypeScript compiler caught at the type-check stage.
+Service tests have the highest coverage because the core pipeline modules are the most critical and testable. UI-heavy apps rely on Cypress E2E tests instead. The CI pipeline (SE6) flagged 14 breaking changes before they reached the main branch during development.
 
 \subsection{Comparison with Existing Tools}
 
@@ -123,7 +119,7 @@ Cost per generation & \textasciitilde\$0.03 (GPT-4o API) & \$8 to 16/month & Ana
 \label{tab:comparison}
 \end{table}
 
-Gamma is faster but produces generic slides that need heavy reformatting. Manual creation produces exactly what the analyst wants but takes the longest. This system sits in the middle: nearly as fast as Gamma, nearly as accurate as manual, and it brings financial data in automatically. The real difference is what happens after the first draft. With this system, the output is already in the right template and inside PowerPoint, so the editing loop is shorter.
+Gamma is faster but produces generic slides needing heavy reformatting. This system sits in the middle: nearly as fast as Gamma, nearly as accurate as manual, and the output is already in the right template inside PowerPoint.
 
 \subsection{Objectives Assessment}
 
@@ -159,13 +155,11 @@ The project also delivered two unplanned components (the PowerPoint add-in and s
 
 \subsection{Business Case Validation}
 
-Section~\ref{sec:introduction} estimated that a team of ten analysts saving five hours per week each would recover roughly \pounds 39,000 per year in capacity against annual API costs under \pounds 10,000. The measured results support this estimate but with a revision. Generation takes 47 seconds, and usability participants reported 15 to 25 minutes of editing per deck. At three to five decks per week per analyst, the net saving is roughly 60 to 90 minutes per deck, consistent with the original projection. The API cost assumption (\$0.03 per generation) also held: across 12 evaluation runs the average cost was \$0.028. The payback period of under four months remains realistic at proof-of-concept scale. The main caveat is that these savings assume the 93\% placeholder accuracy and exact colour matching hold across a wider range of corporate templates, which production testing would need to verify (K2).
+Generation takes 47 seconds, and usability participants reported 15--25 minutes of editing per deck. At 3--5 decks per week per analyst, the net saving is roughly 60--90 minutes per deck, consistent with the original \pounds 39,000/year projection from Section~\ref{sec:introduction}. API cost averaged \$0.028 per generation across 12 runs. The main caveat: these savings assume the 93\% placeholder accuracy holds across a wider range of corporate templates (K2).
 
 \subsection{Usability Evaluation}
 
-To complement the automated metrics, an informal usability test was run with four junior analysts at a London-based financial services firm. Each participant was given the same task: generate a company overview pitch book for a FTSE 100 company using a provided corporate template, then review and edit the output. Appendix~D contains the full questionnaire and individual responses.
-
-Table~\ref{tab:usability-results} summarises the quantitative results across a five-point Likert scale (1 = strongly disagree, 5 = strongly agree). Median and interquartile range (IQR) are reported rather than mean, since Likert data is ordinal and the sample is small.
+An informal usability test with four junior analysts at a London-based financial services firm had each participant generate a company overview for a FTSE 100 company using a provided template, then review and edit the output. Appendix~D contains the full questionnaire. Table~\ref{tab:usability-results} summarises results on a five-point Likert scale (median and IQR, since the sample is small).
 
 \begin{table}[H]
 \centering
@@ -226,7 +220,7 @@ Figure~\ref{fig:usability-chart} visualises the median scores across the five st
 \label{fig:usability-chart}
 \end{figure}
 
-The strongest feedback was on time savings. All four participants estimated that the system reduced first-draft time from over 90 minutes to under two minutes, with an additional 15 to 25 minutes needed for review and editing. The weakest score was on add-in intuitiveness, with two participants noting that the taskpane layout was cramped on smaller screens and that the generation status was not visible enough during processing.
+All four participants estimated that first-draft time dropped from over 90 minutes to under two minutes, plus 15--25 minutes for editing. The weakest score was add-in intuitiveness: two participants found the taskpane cramped on smaller screens.
 
 Open-ended responses raised two recurring themes. First, the template matching was the most impressive feature. One participant noted: `The colours and fonts are exactly right. Normally that takes the longest to get consistent across slides.' Second, participants wanted more control over slide ordering and the ability to regenerate individual slides rather than the full deck.
 

@@ -45,13 +45,13 @@ VLM-based & Visual understanding & Handles complex & Approximate values, \\
 
 \textcite{hu2013} introduced PPSGen, one of the first systems to learn slide generation from paper-slide pairs, but it produced rigid, text-heavy output. \textcite{yang2025} proposed Auto-Slides, a multi-agent system closer to this project's pipeline approach, but targeting academic content.
 
-PPTAgent \parencite{zheng2025} comes closest. Its two-stage approach (analyse reference, generate matching slides) preserves the source deck's visual identity. PPTAgent outperforms earlier systems on both content and design quality. The limitation is that it targets general-purpose presentations with no financial data integration or IB narrative conventions. \textcite{liu2024} surveyed 51 professionals and found template consistency was their top priority, validating the template-first direction but reinforcing that domain awareness is the missing piece.
+PPTAgent \parencite{zheng2025} comes closest. Its two-stage approach (analyse reference, generate matching slides) preserves the source deck's visual identity. PPTAgent outperforms earlier systems on both content and design quality. The limitation is that it targets general-purpose presentations with no financial data integration or IB narrative conventions. \textcite{liu2024} surveyed 51 professionals and found template consistency was their top priority, which backs the template-first direction. None of these tools add domain awareness.
 
 Vision-language models offer an alternative path. \textcite{faysse2024} show VLMs can understand document layouts visually. But code-based extraction via xml2js provides exact colour hex values and font sizes, while VLM-based approaches yield approximations. For corporate template matching where a colour being off by a shade flags the document as non-compliant, exact values are non-negotiable. This is why the project uses code-based extraction over visual understanding, building on PPTAgent's template-first approach while adding the IB domain layer that PPTAgent lacks.
 
 \subsubsection{Agentic Architectures and Tool Use}
 
-\textcite{wang2024} propose a framework where agents operate through planning, memory, and action loops. This maps directly to PB generation: the system plans slide structure, remembers template constraints, and acts through tool calls and slide assembly.
+\textcite{wang2024} propose a framework where agents operate through planning, memory, and action loops. This maps to PB generation: the system plans slide structure, remembers template constraints, and acts through tool calls and slide assembly.
 
 \textcite{guo2024} show multi-agent systems add value when sub-tasks require negotiation or parallel reasoning. PB generation is sequential (analyse template, plan content, assemble slides), so a single agent with tool-use capabilities is sufficient. \textcite{qu2025} identify function calling as the primary LLM-tool interface, and \textcite{li2025paradigms} confirm it as the most broadly applicable pattern. In this project, the agent calls PptxGenJS to write slides and uses structured output schemas to maintain format consistency.
 

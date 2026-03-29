@@ -117,10 +117,25 @@ export default function NewPitchBookPage() {
         templateId = uploadData.data?.id;
       }
 
+      const payload: any = {
+        title: form.title,
+        company: form.company,
+        ticker: form.ticker || undefined,
+        pb_type: form.pb_type,
+        transaction_type: form.transaction_type || undefined,
+        additional_context: form.additional_context || undefined,
+        template_id: templateId,
+      };
+      // Only send styling when no template is used
+      if (!templateId) {
+        payload.color_theme = form.color_theme;
+        payload.design_style = form.design_style;
+      }
+
       const res = await apiClient<any>('/api/pitchbooks', {
         method: 'POST',
         token: session?.access_token,
-        body: JSON.stringify({ ...form, template_id: templateId }),
+        body: JSON.stringify(payload),
       });
 
       toast.success('Pitch book generation started!');
@@ -224,143 +239,154 @@ export default function NewPitchBookPage() {
                 </select>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="design_style">Design Style</Label>
-                <select
-                  id="design_style"
-                  data-testid="new-pb-design-style"
-                  value={form.design_style}
-                  onChange={(e) => updateForm('design_style', e.target.value)}
-                  className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                  style={{ color: 'var(--foreground)' }}
-                >
-                  {designStyles.map((style) => (
-                    <option key={style.value} value={style.value}>{style.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="color_theme">Color Theme</Label>
-                <select
-                  id="color_theme"
-                  data-testid="new-pb-color-theme"
-                  value={form.color_theme}
-                  onChange={(e) => updateForm('color_theme', e.target.value)}
-                  className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
-                  style={{ color: 'var(--foreground)' }}
-                >
-                  {colorThemes.map((theme) => (
-                    <option key={theme.value} value={theme.value}>{theme.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
-        {/* Template selection / upload */}
+        {/* Template or Styling */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">Reference Template</CardTitle>
+            <CardTitle className="text-lg">Design</CardTitle>
             <CardDescription>
-              Use one of your existing templates or upload a new .pptx (optional — defaults will be used otherwise).
+              Use a template for styling, or choose a color theme and design style.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Mode toggle */}
-            <div className="flex gap-4">
-              <button
-                type="button"
-                onClick={() => setTemplateMode('existing')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  templateMode === 'existing'
-                    ? 'border-[var(--primary)] bg-[var(--primary)] text-white dark:text-[var(--primary-foreground)]'
-                    : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
-                }`}
-                style={templateMode !== 'existing' ? { color: 'var(--foreground)' } : undefined}
-              >
-                Use existing template
-              </button>
-              <button
-                type="button"
-                onClick={() => setTemplateMode('upload')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
-                  templateMode === 'upload'
-                    ? 'border-[var(--primary)] bg-[var(--primary)] text-white dark:text-[var(--primary-foreground)]'
-                    : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
-                }`}
-                style={templateMode !== 'upload' ? { color: 'var(--foreground)' } : undefined}
-              >
-                Upload new template
-              </button>
+            {/* Template selection */}
+            <div className="space-y-3">
+              <Label>Reference Template</Label>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setTemplateMode('existing')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    templateMode === 'existing'
+                      ? 'border-[var(--primary)] bg-[var(--primary)] text-white dark:text-[var(--primary-foreground)]'
+                      : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
+                  }`}
+                  style={templateMode !== 'existing' ? { color: 'var(--foreground)' } : undefined}
+                >
+                  Use existing template
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTemplateMode('upload')}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    templateMode === 'upload'
+                      ? 'border-[var(--primary)] bg-[var(--primary)] text-white dark:text-[var(--primary-foreground)]'
+                      : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
+                  }`}
+                  style={templateMode !== 'upload' ? { color: 'var(--foreground)' } : undefined}
+                >
+                  Upload new template
+                </button>
+              </div>
+
+              {templateMode === 'existing' ? (
+                <div className="space-y-3">
+                  {isLoadingTemplates ? (
+                    <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Loading templates...
+                    </div>
+                  ) : templates.length === 0 ? (
+                    <p className="text-sm text-gray-500">
+                      You don&apos;t have any templates yet. You can switch to &quot;Upload new template&quot; or create one on the
+                      Templates page.
+                    </p>
+                  ) : (
+                    <div className="grid gap-3">
+                      {templates.map((tmpl) => (
+                        <label
+                          key={tmpl.id}
+                          className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                            selectedTemplateId === tmpl.id
+                              ? 'border-[var(--primary)] bg-[var(--primary)]'
+                              : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="template"
+                              value={tmpl.id}
+                              checked={selectedTemplateId === tmpl.id}
+                              onChange={() => setSelectedTemplateId(tmpl.id)}
+                              className="mt-0.5 accent-white"
+                            />
+                            <div>
+                              <p className="font-medium" style={{ color: selectedTemplateId === tmpl.id ? 'white' : 'var(--foreground)' }}>{tmpl.name}</p>
+                              <p className={`text-xs ${selectedTemplateId === tmpl.id ? 'text-white/80' : 'text-gray-500'}`}>
+                                {new Date(tmpl.created_at).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div>
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col items-center gap-2">
+                      <Upload className="w-8 h-8 text-gray-400" />
+                      <p className="text-sm text-gray-500">
+                        {templateFile ? templateFile.name : 'Click to upload .pptx template'}
+                      </p>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pptx"
+                      className="hidden"
+                      onChange={(e) => setTemplateFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                  <p className="mt-2 text-xs text-gray-400">
+                    The uploaded template will be stored and available under your Templates.
+                  </p>
+                </div>
+              )}
             </div>
 
-            {templateMode === 'existing' ? (
-              <div className="space-y-3">
-                {isLoadingTemplates ? (
-                  <div className="flex items-center justify-center py-8 text-sm text-gray-500">
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Loading templates...
-                  </div>
-                ) : templates.length === 0 ? (
-                  <p className="text-sm text-gray-500">
-                    You don&apos;t have any templates yet. You can switch to &quot;Upload new template&quot; or create one on the
-                    Templates page.
-                  </p>
-                ) : (
-                  <div className="grid gap-3">
-                    {templates.map((tmpl) => (
-                      <label
-                        key={tmpl.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedTemplateId === tmpl.id
-                            ? 'border-[var(--primary)] bg-[var(--primary)]'
-                            : 'border-gray-200 hover:bg-gray-50 dark:hover:bg-[var(--accent)]'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name="template"
-                            value={tmpl.id}
-                            checked={selectedTemplateId === tmpl.id}
-                            onChange={() => setSelectedTemplateId(tmpl.id)}
-                            className="mt-0.5 accent-white"
-                          />
-                          <div>
-                            <p className="font-medium" style={{ color: selectedTemplateId === tmpl.id ? 'white' : 'var(--foreground)' }}>{tmpl.name}</p>
-                            <p className={`text-xs ${selectedTemplateId === tmpl.id ? 'text-white/80' : 'text-gray-500'}`}>
-                              {new Date(tmpl.created_at).toLocaleDateString()}
-                            </p>
-                          </div>
-                        </div>
-                      </label>
+            {/* Show styling options only when no template is selected */}
+            {!selectedTemplateId && !templateFile ? (
+              <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                <div className="space-y-2">
+                  <Label htmlFor="design_style">Design Style</Label>
+                  <select
+                    id="design_style"
+                    data-testid="new-pb-design-style"
+                    value={form.design_style}
+                    onChange={(e) => updateForm('design_style', e.target.value)}
+                    className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                    style={{ color: 'var(--foreground)' }}
+                  >
+                    {designStyles.map((style) => (
+                      <option key={style.value} value={style.value}>{style.label}</option>
                     ))}
-                  </div>
-                )}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="color_theme">Color Theme</Label>
+                  <select
+                    id="color_theme"
+                    data-testid="new-pb-color-theme"
+                    value={form.color_theme}
+                    onChange={(e) => updateForm('color_theme', e.target.value)}
+                    className="w-full h-12 px-3 rounded-md border border-[var(--input)] bg-[var(--background)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--ring)]"
+                    style={{ color: 'var(--foreground)' }}
+                  >
+                    {colorThemes.map((theme) => (
+                      <option key={theme.value} value={theme.value}>{theme.label}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
             ) : (
-              <div>
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col items-center gap-2">
-                    <Upload className="w-8 h-8 text-gray-400" />
-                    <p className="text-sm text-gray-500">
-                      {templateFile ? templateFile.name : 'Click to upload .pptx template'}
-                    </p>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".pptx"
-                    className="hidden"
-                    onChange={(e) => setTemplateFile(e.target.files?.[0] || null)}
-                  />
-                </label>
-                <p className="mt-2 text-xs text-gray-400">
-                  The uploaded template will be stored and available under your Templates.
-                </p>
-              </div>
+              <p className="text-sm text-[var(--muted-foreground)] pt-2 border-t">
+                Styling will be inherited from the selected template.
+              </p>
             )}
           </CardContent>
         </Card>

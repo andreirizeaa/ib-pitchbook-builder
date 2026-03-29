@@ -22,6 +22,7 @@ export function GeneratingView({ token, pitchBookId, onComplete }: Props) {
   const [generation, setGeneration] = useState<any>(null);
   const [error, setError] = useState('');
   const [insertStatus, setInsertStatus] = useState<'idle' | 'inserting' | 'done' | 'error'>('idle');
+  const [pendingPb, setPendingPb] = useState<any>(null);
 
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -42,13 +43,17 @@ export function GeneratingView({ token, pitchBookId, onComplete }: Props) {
               const base64 = await fetchPptxAsBase64(pb.file_url);
               await insertSlidesFromBase64(base64);
               setInsertStatus('done');
+              // Transition to chat after successful insertion
+              setTimeout(() => onComplete(pb), 1200);
             } catch (err: any) {
               console.error('Failed to insert slides:', err);
               setInsertStatus('error');
+              // Store pb so user can proceed manually
+              setPendingPb(pb);
             }
+          } else {
+            onComplete(pb);
           }
-
-          onComplete(pb);
         } else if (res.data.status === 'failed') {
           clearInterval(interval);
           setError(res.data.error || 'Generation failed');
@@ -124,8 +129,18 @@ export function GeneratingView({ token, pitchBookId, onComplete }: Props) {
               </div>
             )}
             {insertStatus === 'error' && (
-              <div className="mt-4 bg-yellow-50 text-yellow-700 text-xs rounded-lg px-3 py-2 text-center">
-                Could not insert slides automatically. You can download from the web app.
+              <div className="mt-4 space-y-2">
+                <div className="bg-yellow-50 text-yellow-700 text-xs rounded-lg px-3 py-2 text-center">
+                  Could not insert slides automatically. You can download from the web app.
+                </div>
+                {pendingPb && (
+                  <button
+                    onClick={() => onComplete(pendingPb)}
+                    className="w-full py-2 bg-blue-600 text-white text-xs font-medium rounded-lg hover:bg-blue-700"
+                  >
+                    Continue to Chat
+                  </button>
+                )}
               </div>
             )}
           </>

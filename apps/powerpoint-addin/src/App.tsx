@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import type { Session } from '@supabase/supabase-js';
-import { Menu, Plus, Layers, LogOut, X, BookOpen } from 'lucide-react';
+import { Menu, Plus, Layers, LogOut, X, BookOpen, Trash2 } from 'lucide-react';
 import { Login } from './components/Login';
 import { PitchbookList } from './components/PitchbookList';
 import { CreatePitchbook } from './components/CreatePitchbook';
@@ -9,6 +9,8 @@ import { GeneratingView } from './components/GeneratingView';
 import { AiChat } from './components/AiChat';
 import { DeckLayouts } from './components/DeckLayouts';
 import { DeckLayoutDetail } from './components/DeckLayoutDetail';
+import { apiClient } from './lib/api';
+import { deleteAllSlides } from './lib/office-helpers';
 
 type View = 'list' | 'create' | 'generating' | 'chat' | 'layouts' | 'layout-detail';
 
@@ -20,6 +22,8 @@ export default function App() {
   const [pitchBook, setPitchBook] = useState<any>(null);
   const [selectedDeckType, setSelectedDeckType] = useState<any>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -74,6 +78,26 @@ export default function App() {
     setView('list');
   };
 
+  const handleDeletePitchbook = async () => {
+    if (!pitchBookId || !session) return;
+    setIsDeleting(true);
+    try {
+      await apiClient<any>(`/api/pitchbooks/${pitchBookId}`, {
+        method: 'DELETE',
+        token: session.access_token,
+      });
+      await deleteAllSlides();
+      setShowDeleteConfirm(false);
+      setPitchBookId(null);
+      setPitchBook(null);
+      setView('list');
+    } catch (err) {
+      console.error('Failed to delete pitch book:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -98,13 +122,24 @@ export default function App() {
           {menuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
         </button>
         <h1 className="text-xs font-bold text-gray-900">AI Pitch Deck</h1>
-        <button
-          onClick={handleNewPitchbook}
-          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          New
-        </button>
+        <div className="flex items-center gap-1.5">
+          {pitchBookId && (view === 'chat' || view === 'generating') && (
+            <button
+              onClick={() => setShowDeleteConfirm(true)}
+              className="inline-flex items-center p-1.5 text-gray-400 rounded-md hover:bg-red-50 hover:text-red-600 transition-colors"
+              title="Delete pitch book"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <button
+            onClick={handleNewPitchbook}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            New
+          </button>
+        </div>
 
         {/* Dropdown menu */}
         {menuOpen && (
@@ -178,6 +213,39 @@ export default function App() {
           />
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl mx-4 w-full max-w-xs p-4">
+            <h3 className="text-sm font-bold text-gray-900 mb-1">Delete Pitch Book?</h3>
+            <p className="text-xs text-gray-500 mb-4">
+              This will permanently delete this pitch book and all its data. This action cannot be undone.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+                className="flex-1 py-2 text-xs font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeletePitchbook}
+                disabled={isDeleting}
+                className="flex-1 py-2 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {isDeleting ? (
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Trash2 className="w-3.5 h-3.5" />
+                )}
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
