@@ -235,11 +235,72 @@ Cost for POC & Free tier sufficient & May incur charges & Server costs \\
 \label{tab:deploy}
 \end{table}
 
-The frontend deploys through Vercel, the backend on Render, and Supabase provides PostgreSQL and authentication.
+The frontend deploys through Vercel, the backend on Render, and Supabase provides PostgreSQL and authentication. Figure~\ref{fig:tech-architecture} shows how the chosen technologies map to the system's components.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, minimum width=2.6cm, minimum height=0.9cm, align=center, font=\small},
+  arr/.style={->, thick},
+  darr/.style={<->, thick},
+  layer/.style={draw, dashed, rounded corners, inner sep=12pt, fill=#1, fill opacity=0.08, text opacity=1},
+  lbl/.style={font=\footnotesize\bfseries, fill=white, inner sep=2pt},
+]
+
+% --- Presentation Layer ---
+\node[layer=blue, minimum width=14cm, minimum height=2.4cm] (pres) at (0, 6) {};
+\node[lbl, anchor=north west] at ([xshift=4pt, yshift=-4pt]pres.north west) {Presentation Layer};
+
+\node[box, fill=blue!15] (web) at (-3.8, 5.8) {Next.js\\(Vercel)};
+\node[box, fill=blue!15] (addin) at (0, 5.8) {Office.js Add-in\\(Sideloaded)};
+\node[box, fill=blue!15] (ppt) at (3.8, 5.8) {PowerPoint\\(Desktop)};
+
+\draw[darr] (addin) -- node[above, font=\scriptsize] {Office.js} (ppt);
+
+% --- API Layer ---
+\node[layer=green, minimum width=14cm, minimum height=2.2cm] (apil) at (0, 3.2) {};
+\node[lbl, anchor=north west] at ([xshift=4pt, yshift=-4pt]apil.north west) {API Layer};
+
+\node[box, fill=green!15] (api) at (-0.8, 3) {Express.js\\(Render)};
+\node[draw, dashed, rounded corners, minimum width=2.4cm, minimum height=0.7cm, fill=gray!10, font=\scriptsize, align=center] (types) at (4.5, 3) {shared-types\\(TypeScript)};
+
+\draw[arr] (web.south) -- ([xshift=-0.4cm]api.north);
+\draw[arr] (addin.south) -- ([xshift=0.4cm]api.north);
+
+% --- Service Layer ---
+\node[layer=orange, minimum width=14cm, minimum height=2.6cm] (svcl) at (0, 0.2) {};
+\node[lbl, anchor=north west] at ([xshift=4pt, yshift=-4pt]svcl.north west) {Service Layer};
+
+\node[box, fill=orange!15] (ta) at (-4.2, 0) {Template\\Analyser\\{\scriptsize JSZip + xml2js}};
+\node[box, fill=orange!15] (cp) at (-1.4, 0) {Content\\Planner\\{\scriptsize GPT-4o + Zod}};
+\node[box, fill=orange!15] (sb) at (1.4, 0) {Slide\\Builder\\{\scriptsize PptxGenJS}};
+\node[box, fill=orange!15] (dr) at (4.2, 0) {Data\\Retrieval\\{\scriptsize Yahoo + EDGAR}};
+
+\draw[arr] (api.south) -- ++(0,-0.25) -| (ta.north);
+\draw[arr] (api.south) -- ++(0,-0.25) -| (cp.north);
+\draw[arr] (api.south) -- ++(0,-0.25) -| (sb.north);
+\draw[arr] (api.south) -- ++(0,-0.25) -| (dr.north);
+
+% --- Data Layer ---
+\node[layer=purple, minimum width=14cm, minimum height=1.8cm] (datal) at (0, -2.6) {};
+\node[lbl, anchor=north west] at ([xshift=4pt, yshift=-4pt]datal.north west) {Data Layer};
+
+\node[box, fill=purple!10] (db) at (-2, -2.8) {PostgreSQL\\{\scriptsize (Supabase)}};
+\node[box, fill=purple!10] (storage) at (2, -2.8) {File Storage\\{\scriptsize (Supabase)}};
+
+% Route api->db down the far left, outside all boxes
+\draw[arr] (api.west) -- ++(-6.5,0) |- (db.west);
+% Route sb->storage straight down
+\draw[arr] (sb.south) -- (storage.north);
+
+\end{tikzpicture}
+\caption{Technology architecture showing how chosen technologies map to system components across four layers. Arrows indicate data flow direction.}
+\label{fig:tech-architecture}
+\end{figure}
 
 \subsection{Reproducibility}
 
-LLM-based systems are harder to reproduce than traditional software since the same prompt can produce different outputs across runs \parencite{runeson2012}. Several measures address this. All npm dependencies are pinned via \texttt{package-lock.json}, and the Node.js version (22.x) is specified in \texttt{.nvmrc}. LLM temperature is set to zero for evaluation runs, and all prompts and responses are logged with timestamps. Each evaluation run is tied to a specific Git commit, so someone replicating the experiment can check out the exact codebase state. The three test templates used for evaluation are committed to the repository under \texttt{fixtures/}. A reproduction requires cloning the repository, running \texttt{npm install}, setting the environment variables listed in the README (OpenAI API key, Supabase credentials), and running the evaluation script. The main source of unpredictable variation is GPT-4o itself: even at temperature zero, OpenAI does not guarantee identical outputs across API calls because of how their servers batch and process requests internally. The Zod validation layer ensures structural consistency regardless of minor output variations.
+All dependencies are pinned via \texttt{package-lock.json}, and the Node.js version (22.x) is specified in \texttt{.nvmrc}. LLM temperature is set to zero for evaluation runs. Each run is tied to a specific Git commit, and test templates are committed under \texttt{fixtures/}. The README documents all required environment variables and setup steps. GPT-4o does not guarantee identical outputs across API calls even at temperature zero \parencite{runeson2012}, so the Zod validation layer ensures structural consistency regardless of minor output variations.
 
 \subsection{Evaluation Methodology}
 
@@ -270,11 +331,11 @@ IB conventions? & of narrative structure & across 3 PB types \\
 \label{tab:gqm}
 \end{table}
 
-These targets were fixed before evaluation began and not adjusted after seeing results, following the pre-registration principle recommended by \textcite{wohlin2012} to avoid post-hoc rationalisation. Outputs are compared against generic tools (Gamma, Beautiful.ai) and estimated manual creation time. Fixed test cases cover different company types, sectors, and PB types to support replication. An informal usability evaluation with junior analysts provides qualitative feedback on the system's practical value. Participants were told their responses would appear anonymously in this report and are identified only as P1 to P4 in the results.
+These targets were fixed before evaluation began and not adjusted after seeing results. This follows the pre-registration principle recommended by \textcite{wohlin2012} to avoid post-hoc rationalisation. Outputs are compared against generic tools (Gamma, Beautiful.ai) and estimated manual creation time. Fixed test cases cover different company types, sectors, and PB types to support replication. An informal usability evaluation with junior analysts provides qualitative feedback on the system's practical value. Participants were told their responses would appear anonymously in this report and are identified only as P1 to P4 in the results.
 
 \subsection{Project Plan}
 
-The project runs for thirteen weeks (K10). Figure~\ref{fig:gantt} shows the schedule, and Table~\ref{tab:milestones} lists milestones. Dates are targets; if a milestone slips, `Could have' requirements are dropped first.
+The project runs for thirteen weeks (K10). Figure~\ref{fig:gantt} shows the schedule, and Table~\ref{tab:milestones} lists milestones. Dates are targets. If a milestone slips, `Could have' requirements are dropped first.
 
 \begin{figure}[H]
 \centering
@@ -508,7 +569,7 @@ For malicious templates (R3), the backend validates uploaded files as genuine ZI
 
 The Yahoo Finance risk (R4) is structural. The data retrieval service wraps yahoo-finance2 behind an abstract interface, so switching to a licensed provider would require changing one file. The 24-hour cache means a temporary endpoint change would not break in-progress work.
 
-For credentials (R5), all API keys sit in Render's environment variable manager and never appear in source code or logs. Schema failures (R6) materialised during development: GPT-4o occasionally wrapped JSON in unexpected envelopes. An unwrapping step now strips known patterns before validation. Slide preview exposure (R7) uses signed URLs with expiry times; the storage bucket is private.
+For credentials (R5), all API keys sit in Render's environment variable manager and never appear in source code or logs. Schema failures (R6) materialised during development. GPT-4o occasionally wrapped JSON in unexpected envelopes, and an unwrapping step now strips known patterns before validation. Slide preview exposure (R7) uses signed URLs with expiry times. The storage bucket is private.
 
 For platform outages (R8), the architecture separates concerns so partial failures degrade gracefully. The dependency on all four platforms is permanent, so this risk stays High.
 
@@ -549,7 +610,7 @@ LLM prompts and responses & Server logs & Per evaluation run & Tied to Git commi
 \label{tab:data-governance}
 \end{table}
 
-The project relies on three external services with licensing constraints worth noting (K10). OpenAI's API usage policy permits commercial and academic use of generated outputs but prohibits using them to train competing models. Yahoo Finance data is accessed through the unofficial \texttt{yahoo-finance2} npm package, which scrapes public endpoints rather than using a licensed API; this works for a POC but would need replacement with a licensed data provider (Bloomberg, Refinitiv) for production use. SEC EDGAR is a public government resource with no licensing restrictions beyond a rate limit of ten requests per second.
+The project relies on three external services with licensing constraints worth noting (K10). OpenAI's API usage policy permits commercial and academic use of generated outputs but prohibits using them to train competing models. Yahoo Finance data is accessed through the unofficial \texttt{yahoo-finance2} npm package, which scrapes public endpoints rather than using a licensed API. This works for a POC but would need replacement with a licensed data provider (Bloomberg, Refinitiv) for production use. SEC EDGAR is a public government resource with no licensing restrictions beyond a rate limit of ten requests per second.
 
 The HITL architecture meets EU AI Act requirements for human oversight \parencite{bis2024}. The system logs generation parameters and data sources to support audit trails.
 

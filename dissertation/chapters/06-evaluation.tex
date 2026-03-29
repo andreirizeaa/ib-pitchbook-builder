@@ -32,7 +32,34 @@ PB type support & At least 3 types & Company overview, market update, & Met \\
 \label{tab:success-criteria}
 \end{table}
 
-All five criteria are met. Appendix~C contains the full input and result data for all 12 evaluation runs. Across 12 runs, mean generation time was 47.9 seconds (SD = 12.2s, 95\% CI [40.1, 55.7]), well under the five-minute target. The bottleneck is the GPT-4o API call (8 to 15 seconds); template extraction and slide assembly together take under 5 seconds. The outlier was run 7 (78 seconds), where the content planner failed validation twice before producing valid JSON on the third attempt.
+All five criteria are met. Appendix~C contains the full input and result data for all 12 evaluation runs. Figure~\ref{fig:gen-times} shows generation time per run.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[yscale=0.065, xscale=0.95]
+  % Y-axis
+  \draw[->] (0,0) -- (0,88) node[above, font=\footnotesize] {Time (s)};
+  \foreach \y in {0,20,40,60,80} {
+    \draw (-0.2,\y) -- (0,\y) node[left, font=\scriptsize, xshift=-2pt] {\y};
+    \draw[gray!30] (0,\y) -- (13.2,\y);
+  }
+  % Mean line
+  \draw[red, dashed, thick] (0,47.9) -- (13.2,47.9);
+  \node[red, font=\scriptsize, right] at (13.3,47.9) {Mean = 47.9s};
+  % Bars: data = 43,51,38,62,47,39,78,44,35,32,45,48
+  \foreach \x/\val in {1/43,2/51,3/38,4/62,5/47,6/39,7/78,8/44,9/35,10/32,11/45,12/48} {
+    \fill[blue!40, draw=blue!70!black] (\x-0.35,0) rectangle (\x+0.35,\val);
+    \node[above, font=\scriptsize] at (\x,\val) {\val};
+    \node[below, font=\scriptsize] at (\x,0) {\x};
+  }
+  % X-axis label
+  \node[font=\footnotesize] at (6.5,-12) {Evaluation Run};
+\end{tikzpicture}
+\caption{Generation time per evaluation run. The dashed line marks the mean (47.9s). Run 7 is the outlier at 78s due to repeated validation failures.}
+\label{fig:gen-times}
+\end{figure}
+
+Across 12 runs, mean generation time was 47.9 seconds (SD = 12.2s, 95\% CI [40.1, 55.7]), well under the five-minute target. The bottleneck is the GPT-4o API call (8 to 15 seconds). Template extraction and slide assembly together take under 5 seconds. The outlier was run 7 (78 seconds), where the content planner failed validation twice before producing valid JSON on the third attempt.
 
 Template matching was checked automatically (SE5). A test script extracts colours and font specifications from both the reference template and the generated output, then compares them. Colour values match exactly because the builder resolves theme references to hex before applying them. Font families and sizes also match exactly.
 
@@ -96,7 +123,7 @@ Cost per generation & \textasciitilde\$0.03 (GPT-4o API) & \$8 to 16/month & Ana
 \label{tab:comparison}
 \end{table}
 
-Gamma is faster but produces generic slides that need heavy reformatting. Manual creation produces exactly what the analyst wants but takes the longest. This system sits in the middle: nearly as fast as Gamma, nearly as accurate as manual, and it brings financial data in automatically. The key difference is what happens after the first draft. With this system, the output is already in the right template and inside PowerPoint, so the editing loop is shorter.
+Gamma is faster but produces generic slides that need heavy reformatting. Manual creation produces exactly what the analyst wants but takes the longest. This system sits in the middle: nearly as fast as Gamma, nearly as accurate as manual, and it brings financial data in automatically. The real difference is what happens after the first draft. With this system, the output is already in the right template and inside PowerPoint, so the editing loop is shorter.
 
 \subsection{Objectives Assessment}
 
@@ -161,13 +188,51 @@ The system would save time in a real work scenario & 4.5 & [4.0, 5.0] \\
 \label{tab:usability-results}
 \end{table}
 
+Figure~\ref{fig:usability-chart} visualises the median scores across the five statements.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[xscale=1.6, yscale=0.8]
+  % X-axis
+  \draw[->] (0,0) -- (5.6,0) node[right, font=\footnotesize] {};
+  \foreach \x in {1,2,3,4,5} {
+    \draw (\x,-0.15) -- (\x,0) node[below, font=\scriptsize, yshift=-3pt] {\x};
+    \draw[gray!30] (\x,0) -- (\x,5.8);
+  }
+  \node[font=\footnotesize] at (2.75,-0.8) {Median Score (Likert 1--5)};
+  % Labels and bars: y positions 1..5
+  % 1: Add-in intuitive = 3.5
+  \fill[blue!40, draw=blue!70!black] (0,0.7) rectangle (3.5,1.3);
+  \node[font=\scriptsize, right] at (3.5,1) {3.5};
+  \node[font=\scriptsize, left, text width=3.5cm, align=right] at (0,1) {Add-in was intuitive};
+  % 2: Data accurate = 4.0
+  \fill[blue!40, draw=blue!70!black] (0,1.7) rectangle (4.0,2.3);
+  \node[font=\scriptsize, right] at (4.0,2) {4.0};
+  \node[font=\scriptsize, left, text width=3.5cm, align=right] at (0,2) {Financial data accurate};
+  % 3: Template match = 4.5
+  \fill[blue!40, draw=blue!70!black] (0,2.7) rectangle (4.5,3.3);
+  \node[font=\scriptsize, right] at (4.5,3) {4.5};
+  \node[font=\scriptsize, left, text width=3.5cm, align=right] at (0,3) {Template style matched};
+  % 4: Would save time = 4.5
+  \fill[blue!40, draw=blue!70!black] (0,3.7) rectangle (4.5,4.3);
+  \node[font=\scriptsize, right] at (4.5,4) {4.5};
+  \node[font=\scriptsize, left, text width=3.5cm, align=right] at (0,4) {Would save time};
+  % 5: Less editing = 5.0
+  \fill[blue!40, draw=blue!70!black] (0,4.7) rectangle (5.0,5.3);
+  \node[font=\scriptsize, right] at (5.0,5) {5.0};
+  \node[font=\scriptsize, left, text width=3.5cm, align=right] at (0,5) {Less editing than scratch};
+\end{tikzpicture}
+\caption{Usability evaluation median scores (n=4). The add-in intuitiveness scored lowest. Time savings and reduced editing scored highest.}
+\label{fig:usability-chart}
+\end{figure}
+
 The strongest feedback was on time savings. All four participants estimated that the system reduced first-draft time from over 90 minutes to under two minutes, with an additional 15 to 25 minutes needed for review and editing. The weakest score was on add-in intuitiveness, with two participants noting that the taskpane layout was cramped on smaller screens and that the generation status was not visible enough during processing.
 
 Open-ended responses raised two recurring themes. First, the template matching was the most impressive feature. One participant noted: `The colours and fonts are exactly right. Normally that takes the longest to get consistent across slides.' Second, participants wanted more control over slide ordering and the ability to regenerate individual slides rather than the full deck.
 
 The sample size is too small for statistical significance. These results suggest a pattern but cannot prove one.
 
-Several threats to validity apply. Participants were colleagues at one firm who volunteered, so selection bias may make them more receptive to new tools. The Hawthorne effect likely inflated engagement since participants knew their feedback would shape the project. Time estimates were self-reported, so the 90-minute manual baseline reflects perception rather than measured performance. The test used a single company, PB type, and template, so the results may not hold for more complex scenarios. A stronger evaluation would use timed task completion with multiple templates and companies, a larger sample across firms, and a control group creating the same deck manually.
+Several threats to validity apply. Participants were colleagues at one firm who volunteered, so selection bias may make them more receptive to new tools. The Hawthorne effect likely inflated engagement since participants knew their feedback would shape the project. Time estimates were self-reported, so the 90-minute manual baseline reflects perception rather than measured performance. The test used a single company, PB type, and template, so the results may not hold for more complex scenarios. A stronger evaluation would use timed task completion with multiple templates and companies. It would also need a larger sample across firms and a control group creating the same deck manually.
 
 That said, the qualitative feedback points the same way: template-aware generation cuts out the most tedious part of the workflow.
 
@@ -181,11 +246,11 @@ Second, the iterative approach to the template analyser (SE4, SE7). Each iterati
 
 Third, passing real financial data through the prompt rather than letting the LLM generate numbers. The 100\% data accuracy result exists because the architecture removes the opportunity for the LLM to get the numbers wrong \parencite{huang2024}.
 
-Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change was a concrete problem; bringing generation into PowerPoint via Office.js was a concrete fix.
+Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change was a concrete problem. Bringing generation into PowerPoint via Office.js was a concrete fix.
 
 \subsection{What Did Not Work}
 
-Two things fell short. First, the content planner's structured output reliability. While all 12 evaluation runs produced valid JSON, development experience showed that GPT-4o occasionally returns output that fails Zod validation, particularly for complex slide types with nested chart and table specifications. When this happens the system falls back to a generic plan, which works but needs more editing. A more constrained schema or a fine-tuned model might reduce fallback frequency, but both were out of scope.
+Two things fell short. First, the content planner's structured output reliability. All 12 evaluation runs produced valid JSON. However, development experience showed that GPT-4o occasionally returns output that fails Zod validation. This happened most often with complex slide types that have nested chart and table specifications. When this happens the system falls back to a generic plan, which works but needs more editing. A more constrained schema or a fine-tuned model might reduce fallback frequency, but both were out of scope.
 
 Second, chart generation. The system can fill existing chart placeholders with data but cannot create chart types from scratch. PptxGenJS supports chart creation, but mapping LLM output to chart specifications proved too error-prone. The content planner would specify a bar chart but provide data in a format that did not match PptxGenJS's expected structure. This was deferred rather than solved.
 
@@ -195,7 +260,7 @@ The system has four main limitations.
 
 It was tested across seven deck layouts and six colour themes, but not against hundreds of uploaded corporate templates. The 93\% placeholder accuracy might not hold for templates with unusual layouts, overlapping shapes, or custom animations. A production system would need a much larger test set.
 
-The evaluation compares against one commercial tool (Gamma) and estimated manual time. A stronger evaluation would include more tools (Beautiful.ai, Tome, SlidesAI) and larger-scale timed user studies. The informal usability evaluation (Section~\ref{sec:evaluation}) provides qualitative evidence but with only four participants, the results suggest a direction but are not statistically significant.
+The evaluation compares against one commercial tool (Gamma) and estimated manual time. A stronger evaluation would include more tools (Beautiful.ai, Tome, SlidesAI) and larger-scale timed user studies. The informal usability evaluation (Section~\ref{sec:evaluation}) provides qualitative evidence, but with only four participants the results suggest a direction rather than proving one.
 
 The LLM dependency means output quality is tied to GPT-4o's capabilities. If OpenAI changes the model's behaviour, the system's output changes too. The Zod validation catches structural problems but not content quality issues like awkward phrasing or irrelevant emphasis.
 
@@ -231,7 +296,7 @@ These recommendations are framed for an IB technology team evaluating whether to
 \hline
 3 & Improve structured output reliability to 99.5\%+ via schema simplification or constrained decoding & 2 to 4 weeks & High \\
 \hline
-4 & Build the add-in first for any new deployment; prototype inside PowerPoint before building a web interface & 3 weeks & Medium \\
+4 & Build the add-in first for any new deployment. Prototype inside PowerPoint before building a web interface & 3 weeks & Medium \\
 \hline
 \end{tabular}
 \caption{Prioritised Recommendations with Effort and Impact Estimates}
@@ -256,7 +321,7 @@ If the project started over, two things would change. First, start with the add-
 
 The iterative approach proved its value in a way that was not expected. Forcing a working prototype each cycle surfaced problems that no amount of upfront design would have found. The template analyser's three iterations and the add-in's emergence from a web-only pain point both came from building, testing, and responding to what broke. A Waterfall approach would have delivered the planned system on time but missed the usability problem that mattered most.
 
-Three lessons generalise beyond this project. First, when building LLM-integrated systems, the LLM is rarely the hard part; the surrounding infrastructure absorbs most of the engineering effort (SE3). Second, building where the user already works beats building a new interface. Third, structured output validation with Zod turns a fuzzy problem (is this output good enough?) into a binary one (does it pass validation?).
+A few lessons carry beyond this project. When building LLM-integrated systems, the LLM is rarely the hard part. The surrounding infrastructure absorbs most of the engineering effort (SE3). Building where the user already works beats building a new interface. And structured output validation with Zod turns a fuzzy problem (is this output good enough?) into a binary one (does it pass validation?).
 
 \subsection{Conclusion}
 
@@ -264,4 +329,4 @@ The project set out to build a proof-of-concept showing that AI-powered document
 
 Two unplanned components, the PowerPoint add-in and the slide preview pipeline, emerged from testing the planned workflow and finding it lacking. The add-in was the most impactful addition to the project. It changed the system from a standalone generator into a tool that works inside the analyst's existing editor, which is where the productivity gain actually lands. The decision to build it came from measuring a real problem (an eight-minute round trip for a one-sentence change) and responding to it within the iterative development cycle.
 
-The system has clear limits. It was tested across seven deck layouts with four users. The LLM occasionally produces output that needs the fallback plan. Chart generation from scratch remains unsolved. These are real gaps, not footnotes. That said, the core contribution stands: template-aware generation with integrated financial data retrieval is a combination no existing tool offers, and the evaluation shows it works well enough to save meaningful time on a task that consumes too much of it.
+The system has clear limits. It was tested across seven deck layouts with four users. The LLM occasionally produces output that needs the fallback plan. Chart generation from scratch remains unsolved. These are real gaps, not footnotes. That said, no existing tool combines template-aware generation with integrated financial data retrieval, and the evaluation shows this approach saves meaningful time on a task that currently consumes too much of it.

@@ -9,7 +9,7 @@ Sources were identified through Google Scholar, ACM Digital Library, and IEEE Xp
 
 Large-scale studies back up LLM productivity gains with real numbers. \textcite{brynjolfsson2023} studied 5,179 customer support agents and found a 14\% average productivity increase, with novice workers gaining up to 34\%. \textcite{noy2023} found professionals completed writing tasks 40\% faster with 18\% higher quality when using ChatGPT. Both studies show uneven benefits: less experienced workers gain most because AI gives them access to patterns that experts have already learned.
 
-\textcite{dellacqua2023} ran a randomised experiment with 758 BCG consultants and found that those using GPT-4 completed 12.2\% more tasks, 25.1\% faster, with 40\% higher quality. Their main finding was the `jagged technological frontier': tasks inside the AI's capability boundary saw large gains, while tasks outside it made consultants perform worse. PB formatting and data retrieval sit inside the frontier; analytical judgement sits outside it, which is why the system produces drafts rather than finished documents. \textcite{peng2023} found that developers with GitHub Copilot completed tasks 55.8\% faster, with less experienced developers benefiting most. The parallel is direct: junior analysts are the less experienced workers who stand to gain the most.
+\textcite{dellacqua2023} ran a randomised experiment with 758 BCG consultants and found that those using GPT-4 completed 12.2\% more tasks, 25.1\% faster, with 40\% higher quality. Their main finding was the `jagged technological frontier': tasks inside the AI's capability boundary saw large gains, while tasks outside it made consultants perform worse. PB formatting and data retrieval sit inside the frontier. Analytical judgement sits outside it, which is why the system produces drafts rather than finished documents. \textcite{peng2023} found that developers with GitHub Copilot completed tasks 55.8\% faster, with less experienced developers benefiting most. The parallel is direct: junior analysts are the less experienced workers who stand to gain the most.
 
 That said, none of these studies addressed template-constrained document generation where outputs must match precise visual specifications. General writing assistance helps with content but does nothing for the mechanical formatting work that consumes analyst time. This project targets that gap.
 
@@ -126,7 +126,7 @@ The architecture separates concerns into independent modules (SE2, SE9). The Tem
 \newpage
 \subsubsection{Data Models}
 
-The system uses two primary data structures that flow between components. Table~\ref{tab:data-models} summarises the key fields.
+The system uses two primary data structures that flow between components. Table~\ref{tab:data-models} lists the fields.
 
 \begin{table}[H]
 \centering
@@ -153,7 +153,7 @@ SlideSpec & layout\_id, placeholders, & Content specification for \\
 
 \textbf{Template Schema} captures extracted template properties including layouts, colour palettes, fonts, and placeholder specifications. Each slide layout maps placeholder indices to content types (title, body, picture, chart, table).
 
-\textbf{Content Plan} specifies the content for each slide: which layout to use, what text goes in each placeholder, and what data to display. The LLM generates this structure; the Slide Builder consumes it.
+\textbf{Content Plan} specifies the content for each slide: which layout to use, what text goes in each placeholder, and what data to display. The LLM generates this structure. The Slide Builder consumes it.
 
 \newpage
 
@@ -360,4 +360,4 @@ Figure~\ref{fig:dataflow} shows how data moves through the system during a gener
 
 \subsubsection{Design Limitations}
 
-The system cannot generate charts from scratch; it can only populate existing chart placeholders. The template analyser handles standard placeholder-based layouts but does not reverse-engineer arbitrary PowerPoint constructions with overlapping elements or custom animations. The content planner has no memory across sessions. The system produces drafts, not finished documents: human review is mandatory (K6, SE1).
+The system cannot generate charts from scratch. It can only populate existing chart placeholders. The template analyser handles standard placeholder-based layouts but does not reverse-engineer arbitrary PowerPoint constructions with overlapping elements or custom animations. The content planner has no memory across sessions. The system produces drafts, not finished documents: human review is mandatory (K6, SE1).

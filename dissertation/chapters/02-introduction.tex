@@ -33,13 +33,13 @@ These problems feed each other. Scattered knowledge wastes search time, unwritte
 
 Automated presentation tools have existed for years. Early versions converted text to slides using layout algorithms, but visual quality was poor \parencite{zheng2025}. Template-based systems fixed the visual problems but made everything rigid. PPTAgent \parencite{zheng2025} takes a different approach: it analyses reference presentations, extracts structural patterns, and applies them to new content. It beat older text-to-slide systems on both content and design quality in testing.
 
-The limitation is that PPTAgent targets general-purpose presentations. IB PBs have financial tables, transaction comparables, and market charts that follow specific visual conventions. Getting the template wrong undermines credibility. Commercial tools like Beautiful.ai, Tome, and Gamma share this flaw: the output is generic, every slide needs rework, and none connect to financial data sources. IB PBs require both domain knowledge and visual precision, and no existing tool handles both.
+The limitation is that PPTAgent targets general-purpose presentations. IB PBs have financial tables, transaction comparables, and market charts that follow specific visual conventions. Getting the template wrong undermines credibility. Commercial tools like Beautiful.ai, Tome, and Gamma share this flaw. The output is generic, every slide needs rework, and none connect to financial data sources. IB PBs require both domain knowledge and visual precision. No existing tool handles both.
 
 Current systems either produce generic output that needs heavy cleanup, or they require large training datasets most banks lack. No existing tool connects slide generation to financial APIs. Data retrieval and document generation remain separate manual steps.
 
 Agentic AI architectures offer a better fit \parencite{ibm2024}. Instead of one model doing everything in a single pass, the system breaks tasks into steps and uses the right tool for each one. \textcite{wang2024} surveyed LLM-based agents and found rapid progress. McKinsey \& Company estimates generative AI could deliver \$340 billion annually in banking \parencite{mckinsey2024}.
 
-This project fills that gap (S1). The pipeline extracts layouts, colour palettes, and placeholder positions from a template using JSZip and xml2js for XML-level parsing, uses an LLM to plan content, then assembles slides matching the original style. The system uses an agentic orchestration pattern with specialised service components rather than a monolithic approach.
+This project fills that gap (S1). The pipeline extracts layouts, colour palettes, and placeholder positions from a template using JSZip and xml2js for XML-level parsing. It then uses an LLM to plan content and assembles slides matching the original style. The system uses an agentic orchestration pattern with specialised service components rather than a monolithic approach.
 
 Table~\ref{tab:gap-objectives} maps each identified gap to the objective and success criterion that addresses it, so that no objective exists without a corresponding gap in existing work.
 
@@ -107,4 +107,4 @@ Success criteria:
     \item Content structure following IB conventions, verified against precedent examples
 \end{itemize}
 
-One principle runs through all of this: HITL design. The system produces drafts for human review, not finished products. AI can handle the mechanical work; the analytical judgement stays with the banker.
+One principle runs through all of this: HITL design. The system produces drafts for human review, not finished products. AI can handle the mechanical work. The analytical judgement stays with the banker.

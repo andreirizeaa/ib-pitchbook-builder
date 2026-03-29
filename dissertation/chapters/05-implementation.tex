@@ -179,7 +179,7 @@ The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-fi
 
 \subsubsection{Slide Preview Generation}
 
-The system uses LibreOffice in headless mode to convert .pptx to PDF, then \texttt{pdftoppm} to render each page as a PNG. Previews are uploaded to Supabase Storage and displayed in the web frontend. Neither this pipeline nor the add-in below were in the original design; both emerged from usability problems found during implementation.
+The system uses LibreOffice in headless mode to convert .pptx to PDF, then \texttt{pdftoppm} to render each page as a PNG. Previews are uploaded to Supabase Storage and displayed in the web frontend. Neither this pipeline nor the add-in below were in the original design. Both emerged from usability problems found during implementation.
 
 \subsection{PowerPoint Add-in}
 \label{sec:addin}
@@ -238,7 +238,7 @@ The solution was to bring generation into PowerPoint itself. A taskpane add-in b
 \label{fig:addin-taskpane}
 \end{figure}
 
-The key API is \texttt{insertSlidesFromBase64()}, which takes a base64-encoded .pptx file and inserts its slides into the active presentation at a specified position. The generation pipeline produces the .pptx as before, but instead of offering a download, the add-in pushes the slides directly into the document the user already has open.
+The \texttt{insertSlidesFromBase64()} API takes a base64-encoded .pptx file and inserts its slides into the active presentation at a specified position. The generation pipeline produces the .pptx as before, but instead of offering a download, the add-in pushes the slides directly into the document the user already has open.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=Inserting generated slides into the active presentation (from office-helpers.ts)]
@@ -306,7 +306,7 @@ The backend stores messages in a \texttt{chat\_messages} table linked to the pit
 
 \subsection{Authentication and Session Management}
 
-Supabase Auth handles user authentication across both applications. The Express backend acts as the single auth source, checking session cookies on every request (SE1). The add-in runs inside an iframe which blocks cross-origin cookies by default, requiring \texttt{SameSite=None; Secure} cookie attributes and explicit CORS configuration.
+Supabase Auth handles user authentication across both applications. The Express backend acts as the single auth source, checking session cookies on every request (SE1). The add-in runs inside an iframe, which blocks cross-origin cookies by default. This required \texttt{SameSite=None; Secure} cookie attributes and explicit CORS configuration.
 
 \subsection{Testing}
 
@@ -412,7 +412,7 @@ Figures~\ref{fig:cypress-specs} to \ref{fig:cypress-failed} show the Cypress tes
 
 \subsubsection{CI/CD Pipeline}
 
-GitHub Actions runs the full test suite on every push (SE6). Unit tests run first; E2E tests only start if unit tests pass.
+GitHub Actions runs the full test suite on every push (SE6). Unit tests run first. E2E tests only start if unit tests pass.
 
 \begin{table}[H]
 \centering
@@ -446,7 +446,7 @@ Mochawesome \parencite{mochawesome2024} merges Cypress results into a single HTM
 \label{fig:github-actions}
 \end{figure}
 
-The web app deploys to Vercel on every push to \texttt{main}, and the backend runs on Render. Figures~\ref{fig:vercel-deploy} and~\ref{fig:render-deploy} show both services live.
+The web app deploys to Vercel on every push to \texttt{main}, and the backend runs on Render. The production web app is accessible at \url{https://ai-pitchdeck-builder-web.vercel.app/}. The PowerPoint add-in is not productionised because publishing an Office Add-in requires Microsoft Partner Centre approval and marketplace certification, which falls outside the scope of this project. During development and evaluation it ran locally via sideloading. Figures~\ref{fig:vercel-deploy} and~\ref{fig:render-deploy} show both services live.
 
 \begin{figure}[H]
 \centering
