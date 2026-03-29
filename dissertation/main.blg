@@ -1,17 +1,17 @@
 [0] Config.pm:328> INFO - This is Biber 2.21
 [0] Config.pm:331> INFO - Logfile is 'main.blg'
-[42] biber-darwin:342> INFO - === Sun Mar 29, 2026, 22:40:25
-[53] Biber.pm:421> INFO - Reading 'main.bcf'
-[111] Biber.pm:1002> INFO - Found 50 citekeys in bib section 0
-[120] Biber.pm:4487> INFO - Processing section 0
-[126] Biber.pm:4678> INFO - Looking for bibtex file 'references.bib' for section 0
-[128] bibtex.pm:1713> INFO - LaTeX decoding ...
-[150] bibtex.pm:1519> INFO - Found BibTeX data source 'references.bib'
-[362] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
-[362] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[362] Biber.pm:4307> INFO - Sorting list 'nyt/global//global/global/global' of type 'entry' with template 'nyt' and locale 'en-US'
-[362] Biber.pm:4313> INFO - No sort tailoring available for locale 'en-US'
-[396] bbl.pm:676> INFO - Writing 'main.bbl' with encoding 'UTF-8'
-[409] bbl.pm:779> INFO - Output to main.bbl
-[410] Biber.pm:132> WARN - I didn't find a database entry for 'tyree2005' (section 0)
-[410] Biber.pm:134> INFO - WARNINGS: 1
+[48] biber-darwin:342> INFO - === Sun Mar 29, 2026, 22:52:23
+[64] Biber.pm:421> INFO - Reading 'main.bcf'
+[119] Biber.pm:1002> INFO - Found 50 citekeys in bib section 0
+[127] Biber.pm:4487> INFO - Processing section 0
+[132] Biber.pm:4678> INFO - Looking for bibtex file 'references.bib' for section 0
+[134] bibtex.pm:1713> INFO - LaTeX decoding ...
+[153] bibtex.pm:1519> INFO - Found BibTeX data source 'references.bib'
+[343] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'variable = shifted' with 'variable = non-ignorable'
+[343] UCollate.pm:68> INFO - Overriding locale 'en-US' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[343] Biber.pm:4307> INFO - Sorting list 'nyt/global//global/global/global' of type 'entry' with template 'nyt' and locale 'en-US'
+[343] Biber.pm:4313> INFO - No sort tailoring available for locale 'en-US'
+[376] bbl.pm:676> INFO - Writing 'main.bbl' with encoding 'UTF-8'
+[390] bbl.pm:779> INFO - Output to main.bbl
+[390] Biber.pm:132> WARN - I didn't find a database entry for 'tyree2005' (section 0)
+[390] Biber.pm:134> INFO - WARNINGS: 1

@@ -164,7 +164,7 @@ The analyser reads layout information from the slide master. Figure~\ref{fig:tem
 
 \subsubsection{Content Planning with GPT-4o}
 
-The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The system prompt (Listing~\ref{lst:system-prompt}) bans generic phrasing and specifies minimum content density per slide type, because early versions produced boilerplate and sparse output.
+The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The system prompt (Code~\ref{lst:system-prompt}) bans generic phrasing and specifies minimum content density per slide type, because early versions produced boilerplate and sparse output.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=Content planner system prompt excerpt (from pitchbook-content.prompt.ts), label=lst:system-prompt]
