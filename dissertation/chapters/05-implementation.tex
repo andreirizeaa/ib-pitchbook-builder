@@ -1,7 +1,7 @@
 \section{Project Implementation and Outcomes}
 \label{sec:implementation}
 
-This section covers what was actually built and why it sometimes diverged from the plan.
+This section covers what was built, how it works, and where things changed from the original plan.
 
 \subsection{Architecture Evolution}
 
@@ -47,7 +47,62 @@ Turborepo handles build orchestration and caching, compiling \texttt{shared-type
 
 \subsection{Orchestration Layer}
 
-The orchestrator runs each stage in sequence (validate, extract template, retrieve data, plan content, build slides, generate previews, store result) and stays thin: each service module handles its own domain. If data retrieval fails, it passes an empty object to the content planner rather than aborting. The orchestrator passes the full template schema to GPT-4o rather than a summary, because early versions with only layout names produced worse output.
+The orchestrator runs each stage in sequence and stays thin: each service module handles its own domain. Figure~\ref{fig:orchestrator} shows the full pipeline. If data retrieval fails, it passes an empty object to the content planner rather than aborting. The orchestrator passes the full template schema to GPT-4o rather than a summary, because early versions with only layout names produced worse output.
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+  step/.style={draw, rounded corners, minimum width=3cm, minimum height=0.8cm, align=center, font=\small, fill=blue!12},
+  fail/.style={draw, rounded corners, minimum width=2.2cm, minimum height=0.6cm, align=center, font=\scriptsize, fill=red!10, dashed},
+  data/.style={draw, rounded corners, minimum width=2.2cm, minimum height=0.6cm, align=center, font=\scriptsize, fill=gray!15},
+  arr/.style={->, thick},
+]
+
+% Steps - vertical flow
+\node[step] (validate) at (0, 0) {Validate Input};
+\node[step] (extract) at (0, -1.5) {Extract Template};
+\node[step] (retrieve) at (0, -3) {Retrieve Data};
+\node[step] (plan) at (0, -4.5) {Plan Content (GPT-4o)};
+\node[step] (build) at (0, -6) {Build Slides};
+\node[step] (preview) at (0, -7.5) {Generate Previews};
+\node[step] (store) at (0, -9) {Store Result};
+
+% Arrows
+\draw[arr] (validate) -- (extract);
+\draw[arr] (extract) -- (retrieve);
+\draw[arr] (retrieve) -- (plan);
+\draw[arr] (plan) -- (build);
+\draw[arr] (build) -- (preview);
+\draw[arr] (preview) -- (store);
+
+% Side outputs
+\node[data] (schema) at (4, -1.5) {Template\\Schema};
+\draw[arr] (extract) -- (schema);
+\draw[arr] (schema) |- (plan);
+
+\node[data] (findata) at (4, -3) {Financial\\Data / \{\}};
+\draw[arr] (retrieve) -- (findata);
+\draw[arr] (findata) |- (plan);
+
+\node[data] (contentplan) at (4, -4.5) {Content\\Plan (JSON)};
+\draw[arr] (plan) -- (contentplan);
+\draw[arr] (contentplan) |- (build);
+
+\node[data] (pptx) at (4, -6) {.pptx File};
+\draw[arr] (build) -- (pptx);
+\draw[arr] (pptx) |- (preview);
+
+% Failure paths
+\node[fail] (faildata) at (-4, -3) {API failure?\\Pass empty \{\}};
+\draw[->, dashed, red!60!black] (retrieve.west) -- (faildata);
+
+\node[fail] (failplan) at (-4, -4.5) {Zod invalid?\\Fallback plan};
+\draw[->, dashed, red!60!black] (plan.west) -- (failplan);
+
+\end{tikzpicture}
+\caption{Orchestration pipeline. Each stage passes its output to the next. Dashed paths show graceful failure handling: data retrieval passes an empty object on API failure, and the content planner falls back to a generic plan if Zod validation fails.}
+\label{fig:orchestrator}
+\end{figure}
 
 \subsection{Deck Layouts and Colour Themes}
 
@@ -131,7 +186,7 @@ You MUST return JSON in EXACTLY this format:
 { "title": "...", "narrative_arc": "...", "slides": [...] }`;
 \end{lstlisting}
 
-Getting valid structured output was the main challenge (SE1). \textcite{lieber2024} found an average JSON success rate of 82.55\% across LLM benchmarks. GPT-4o occasionally returns JSON with extra fields, missing required properties, or wraps the response in an unexpected outer object. One recurring issue during development was GPT-4o nesting the plan inside a wrapper key (e.g., \texttt{\{"pitch\_book": \{...\}\}} instead of the flat structure the schema expects). The content planner handles this with an unwrapping step that detects single-key wrapper objects and extracts the inner value before validation.
+Getting valid structured output was the main challenge (SE1). \textcite{shorten2024} found an average JSON success rate of 82.55\% across LLM benchmarks. GPT-4o occasionally returns JSON with extra fields, missing required properties, or wraps the response in an unexpected outer object. One recurring issue during development was GPT-4o nesting the plan inside a wrapper key (e.g., \texttt{\{"pitch\_book": \{...\}\}} instead of the flat structure the schema expects). The content planner handles this with an unwrapping step that detects single-key wrapper objects and extracts the inner value before validation.
 
 The system validates every response using Zod \parencite{zod2024}, a TypeScript-first schema validation library. Zod parses the LLM output at runtime against the expected schema. If the response fails validation, the content planner falls back to a hardcoded plan that uses the correct slide structure and formatting but with generic placeholder content. This means generation never fails entirely, though the fallback output needs more editing. Across the 12 evaluation runs in Appendix~C, all 12 produced valid JSON that passed Zod validation without needing the fallback.
 
@@ -515,7 +570,7 @@ FR4 & Fetch Yahoo Finance data & Met & yahoo-finance2 integration, caching \\
 \hline
 FR5 & Retrieve SEC filings & Met & EDGAR REST API client \\
 \hline
-FR6 & Web search for news & Partial & SerpAPI integrated, relevance filtering basic \\
+FR6 & Web search for news & Not met & Stub returns Yahoo Finance link, no search API \\
 \hline
 FR7 & Slide-by-slide content specs & Met & GPT-4o content planner with Zod validation \\
 \hline
@@ -540,6 +595,6 @@ FR15 & RAG search & Not met & Stretch goal, deferred \\
 \label{tab:req-evidence}
 \end{table}
 
-13 of 15 functional requirements are fully met (SE10). FR12 (chart generation) is partial, and FR15 (RAG search) was dropped to make time for the add-in.
+12 of 15 functional requirements are fully met (SE10). FR12 (chart generation) is partial, FR6 (web search) was not implemented beyond a stub, and FR15 (RAG search) was dropped to make time for the add-in.
 
 

@@ -1104,44 +1104,6 @@
       \verb 2406.05804
       \endverb
     \endentry
-    \entry{lieber2024}{article}{}{}
-      \true{moreauthor}
-      \true{morelabelname}
-      \name{author}{1}{}{%
-        {{un=0,uniquepart=base,hash=ddb592b244ab18f6796462853f6d896f}{%
-           family={Lieber},
-           familyi={L\bibinitperiod},
-           given={Ori},
-           giveni={O\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{85425d86445c5bad374dfdc321876709}
-      \strng{fullhash}{85425d86445c5bad374dfdc321876709}
-      \strng{fullhashraw}{85425d86445c5bad374dfdc321876709}
-      \strng{bibnamehash}{85425d86445c5bad374dfdc321876709}
-      \strng{authorbibnamehash}{85425d86445c5bad374dfdc321876709}
-      \strng{authornamehash}{85425d86445c5bad374dfdc321876709}
-      \strng{authorfullhash}{85425d86445c5bad374dfdc321876709}
-      \strng{authorfullhashraw}{85425d86445c5bad374dfdc321876709}
-      \field{sortinit}{L}
-      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{arXiv preprint}
-      \field{title}{{StructuredRAG}: {JSON} Response Formatting with Large Language Models}
-      \field{year}{2024}
-      \verb{eprint}
-      \verb 2408.11061
-      \endverb
-      \verb{urlraw}
-      \verb https://arxiv.org/abs/2408.11061
-      \endverb
-      \verb{url}
-      \verb https://arxiv.org/abs/2408.11061
-      \endverb
-    \endentry
     \entry{liu2024}{article}{}{}
       \true{moreauthor}
       \true{morelabelname}
@@ -1543,6 +1505,56 @@
       \verb https://binary.protect.io/workcard.pdf
       \endverb
     \endentry
+    \entry{shorten2024}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=d49d1c5cbce775054678e29a462ca723}{%
+           family={Shorten},
+           familyi={S\bibinitperiod},
+           given={Connor},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3362ea9b06070f855c72337877feb950}{%
+           family={Pierse},
+           familyi={P\bibinitperiod},
+           given={Charles},
+           giveni={C\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=4f7fc23c89b36374d0c3b4298c4e74c2}{%
+           family={Smith},
+           familyi={S\bibinitperiod},
+           given={Thomas\bibnamedelima Benjamin},
+           giveni={T\bibinitperiod\bibinitdelim B\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{6b64315e9254ce28a65ddaf18442aa6a}
+      \strng{fullhash}{e01f4e7baac50a371bcc2f64c131836f}
+      \strng{fullhashraw}{e01f4e7baac50a371bcc2f64c131836f}
+      \strng{bibnamehash}{e01f4e7baac50a371bcc2f64c131836f}
+      \strng{authorbibnamehash}{e01f4e7baac50a371bcc2f64c131836f}
+      \strng{authornamehash}{6b64315e9254ce28a65ddaf18442aa6a}
+      \strng{authorfullhash}{e01f4e7baac50a371bcc2f64c131836f}
+      \strng{authorfullhashraw}{e01f4e7baac50a371bcc2f64c131836f}
+      \field{sortinit}{S}
+      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint}
+      \field{title}{{StructuredRAG}: {JSON} Response Formatting with Large Language Models}
+      \field{year}{2024}
+      \verb{eprint}
+      \verb 2408.11061
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2408.11061
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2408.11061
+      \endverb
+    \endentry
     \entry{chaves2022}{article}{}{}
       \name{author}{2}{}{%
         {{un=0,uniquepart=base,hash=dfd3d9db3c83fe4ac0b5bd8c58395bc9}{%
@@ -1580,7 +1592,7 @@
       \field{pages}{55\bibrangedash 70}
       \range{pages}{16}
       \verb{doi}
-      \verb 10.1504/IJKMS.2022.120180
+      \verb 10.1504/IJKMS.2022.119260
       \endverb
     \endentry
     \entry{sommerville2016}{book}{}{}
@@ -1659,84 +1671,6 @@
       \range{pages}{6}
       \verb{doi}
       \verb 10.18653/v1/P19-1355
-      \endverb
-    \endentry
-    \entry{sun2025}{article}{}{}
-      \name{author}{8}{}{%
-        {{un=0,uniquepart=base,hash=7c8c661fbc2e772952846b98b15fcd45}{%
-           family={Sun},
-           familyi={S\bibinitperiod},
-           given={Fangyu},
-           giveni={F\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=a026ef0e2d2b20b9f33fa2d40bc30567}{%
-           family={Lin},
-           familyi={L\bibinitperiod},
-           given={Zhi},
-           giveni={Z\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=27ab4996fdc25ccf0f92cbb461a49944}{%
-           family={Wang},
-           familyi={W\bibinitperiod},
-           given={Ruiqi},
-           giveni={R\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=0c3a3706a5ed009ff84a4bab7945f7d5}{%
-           family={Ye},
-           familyi={Y\bibinitperiod},
-           given={Jialong},
-           giveni={J\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=accfaf086a407bfb746d7875478d9130}{%
-           family={Zhang},
-           familyi={Z\bibinitperiod},
-           given={Kai},
-           giveni={K\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=9463fa6d353c910b178227fe60ba9463}{%
-           family={Xiao},
-           familyi={X\bibinitperiod},
-           given={Zhenyu},
-           giveni={Z\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=1536a7288dde829cffd6437398a31b01}{%
-           family={Li},
-           familyi={L\bibinitperiod},
-           given={Jifang},
-           giveni={J\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=866fc31d9db55acbc0a55c2b3c929414}{%
-           family={Yin},
-           familyi={Y\bibinitperiod},
-           given={Dawei},
-           giveni={D\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{967bf9732a58dfe0e96520ebe2c1f2c8}
-      \strng{fullhash}{dd385eb108bfb5144f4a1417bb35a2e1}
-      \strng{fullhashraw}{dd385eb108bfb5144f4a1417bb35a2e1}
-      \strng{bibnamehash}{dd385eb108bfb5144f4a1417bb35a2e1}
-      \strng{authorbibnamehash}{dd385eb108bfb5144f4a1417bb35a2e1}
-      \strng{authornamehash}{967bf9732a58dfe0e96520ebe2c1f2c8}
-      \strng{authorfullhash}{dd385eb108bfb5144f4a1417bb35a2e1}
-      \strng{authorfullhashraw}{dd385eb108bfb5144f4a1417bb35a2e1}
-      \field{sortinit}{S}
-      \field{sortinithash}{b164b07b29984b41daf1e85279fbc5ab}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{arXiv preprint}
-      \field{title}{Auto-Slides: An Interactive Multi-Agent System for Creating and Customizing Presentation Slides}
-      \field{year}{2025}
-      \verb{eprint}
-      \verb 2509.11062
-      \endverb
-      \verb{urlraw}
-      \verb https://arxiv.org/abs/2509.11062
-      \endverb
-      \verb{url}
-      \verb https://arxiv.org/abs/2509.11062
       \endverb
     \endentry
     \entry{tyree2005}{article}{}{}
@@ -1948,6 +1882,56 @@
       \range{pages}{18}
       \verb{doi}
       \verb 10.1016/j.future.2022.05.014
+      \endverb
+    \endentry
+    \entry{yang2025}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{3}{}{%
+        {{un=0,uniquepart=base,hash=cc4ba2e71864055765156b6e36f57366}{%
+           family={Yang},
+           familyi={Y\bibinitperiod},
+           given={Yuheng},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=6984931086c33784032e84cb7ed99aa5}{%
+           family={Jiang},
+           familyi={J\bibinitperiod},
+           given={Wenjia},
+           giveni={W\bibinitperiod},
+           givenun=0}}%
+        {{un=1,uniquepart=given,hash=a84866b4900b3fe9a714de1f78dbf282}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Yang},
+           giveni={Y\bibinitperiod},
+           givenun=1}}%
+      }
+      \strng{namehash}{b3c463d72b608924be8a0e0e1faed51d}
+      \strng{fullhash}{60bfbcee34a8ddcc9c0dc5ffc9e139e6}
+      \strng{fullhashraw}{60bfbcee34a8ddcc9c0dc5ffc9e139e6}
+      \strng{bibnamehash}{60bfbcee34a8ddcc9c0dc5ffc9e139e6}
+      \strng{authorbibnamehash}{60bfbcee34a8ddcc9c0dc5ffc9e139e6}
+      \strng{authornamehash}{b3c463d72b608924be8a0e0e1faed51d}
+      \strng{authorfullhash}{60bfbcee34a8ddcc9c0dc5ffc9e139e6}
+      \strng{authorfullhashraw}{60bfbcee34a8ddcc9c0dc5ffc9e139e6}
+      \field{sortinit}{Y}
+      \field{sortinithash}{fd67ad5a9ef0f7456bdd9aab10fe1495}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint}
+      \field{title}{Auto-Slides: An Interactive Multi-Agent System for Creating and Customizing Research Presentations}
+      \field{year}{2025}
+      \verb{eprint}
+      \verb 2509.11062
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2509.11062
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2509.11062
       \endverb
     \endentry
     \entry{zheng2025}{article}{}{}
