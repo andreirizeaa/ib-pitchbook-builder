@@ -86,7 +86,7 @@ Cypress E2E & 7 spec files, 28 tests & 100\% & N/A (full user flows) \\
 \label{tab:test-results}
 \end{table}
 
-Service tests have the highest coverage because the core pipeline modules are the most critical and testable. UI-heavy apps rely on Cypress E2E tests instead. The CI pipeline (SE6) flagged 14 breaking changes before they reached the main branch during development.
+Service tests have the highest coverage because the core pipeline modules are the most critical and testable. UI-heavy apps rely on Cypress E2E tests instead. The CI pipeline (SE6) flagged 14 breaking changes before they reached the main branch during development. Most were type mismatches after changing a shared interface in \texttt{shared-types}, caught at the type-check stage before tests even ran. Two were logic regressions in the template analyser where a new heuristic broke an existing edge case.
 
 \subsection{Comparison with Existing Tools}
 
@@ -256,7 +256,7 @@ It was tested across seven deck layouts and six colour themes, but not against h
 
 The evaluation compares against one commercial tool (Gamma) and estimated manual time. A stronger evaluation would include more tools (Beautiful.ai, Tome, SlidesAI) and larger-scale timed user studies. The informal usability evaluation (Section~\ref{sec:evaluation}) provides qualitative evidence, but with only four participants the results suggest a direction rather than proving one.
 
-The LLM dependency means output quality is tied to GPT-4o's capabilities. If OpenAI changes the model's behaviour, the system's output changes too. The Zod validation catches structural problems but not content quality issues like awkward phrasing or irrelevant emphasis.
+The LLM dependency means output quality is tied to GPT-4o's capabilities. If OpenAI changes the model's behaviour or deprecates the API version, the system's output changes too. The Zod validation catches structural problems (missing fields, wrong types) but not content quality issues like awkward phrasing, irrelevant emphasis, or tone that does not match IB conventions. A future version could add a quality scoring step after generation, but for now the human review loop catches these issues.
 
 The add-in only works on desktop PowerPoint for Windows and Mac. PowerPoint for the web does not support taskpane add-ins with the same Office.js API surface. Mobile PowerPoint is not supported at all.
 
@@ -264,7 +264,7 @@ The add-in only works on desktop PowerPoint for Windows and Mac. PowerPoint for 
 
 \subsubsection{Environmental Impact}
 
-Each generation request makes one GPT-4o API call (roughly 2,000 to 4,000 tokens). \textcite{strubell2019} estimated the carbon cost of training large models, but inference costs are orders of magnitude smaller. At this project's scale the impact is negligible. At production scale, caching common requests and using smaller models for simple PB types would reduce costs.
+Each generation request makes one GPT-4o API call (roughly 2,000 to 4,000 tokens of output). \textcite{strubell2019} estimated the carbon cost of training large models at hundreds of thousands of kilowatt-hours, but inference costs are orders of magnitude smaller. At this project's scale (12 evaluation runs plus development testing) the environmental impact is negligible. At production scale with hundreds of daily generations, caching common company data, batching similar requests, and using GPT-4o-mini for simpler PB types would reduce both cost and energy consumption.
 
 \subsubsection{Impact on Junior Analyst Roles}
 
@@ -297,7 +297,7 @@ These recommendations are framed for an IB technology team evaluating whether to
 \label{tab:recommendations}
 \end{table}
 
-The first recommendation carries the lowest risk. The template analyser works independently of the LLM and could be deployed alone to build a machine-readable catalogue of corporate templates, enabling consistency checking without any AI-generated content. The second is a prerequisite for production: the current unofficial Yahoo Finance API could break without notice, but the service's abstract API layer makes switching to a licensed provider a single-module swap.
+The first recommendation carries the lowest risk. The template analyser works independently of the LLM and could be deployed alone to build a machine-readable catalogue of corporate templates. That would allow consistency checking without any AI-generated content. The second is a prerequisite for production: the current unofficial Yahoo Finance API could break without notice, but the service's abstract API layer makes switching to a licensed provider a single-module swap.
 
 \subsection{Future Work}
 

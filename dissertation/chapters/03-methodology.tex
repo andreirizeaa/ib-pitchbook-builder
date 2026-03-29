@@ -30,11 +30,15 @@ Research integration & Poor & Moderate & Excellent \\
 \label{tab:methodologies}
 \end{table}
 
-The project uses iterative prototyping with two-week cycles, drawing on \textcite{boehm1988}'s spiral model (K3, K4, SE8). Each iteration produces a working prototype with a review at cycle's end (SE7). Git with simplified GitFlow (SE12), GitHub Actions CI enforcing 80\% coverage \parencite{fowler2006} (SE6), and ESLint \parencite{eslint2024} handle version control and quality.
+The project uses iterative prototyping with two-week cycles, drawing on \textcite{boehm1988}'s spiral model (K3, K4, SE8). Waterfall was ruled out because the requirements were expected to change as the LLM integration revealed what was and was not feasible. Scrum adds ceremony (sprint planning, retrospectives, daily standups) designed for teams of five to nine people \parencite{sommerville2016}, which is overhead for a solo developer. Iterative prototyping keeps the feedback loop without the process cost.
+
+Each iteration produces a working prototype with a review at cycle's end (SE7). The review checks whether the prototype meets the iteration's target requirements and whether any assumptions from the design phase turned out to be wrong. This matters because LLM behaviour is hard to predict from documentation alone: structured output reliability, response latency, and content quality all had to be measured against real templates before the design could be finalised.
+
+Git with simplified GitFlow (SE12) handles version control: \texttt{main} is always deployable, \texttt{develop} is the integration branch, and feature branches isolate work in progress. GitHub Actions CI runs lint, type checks, and tests on every push, enforcing 80\% coverage for core service modules \parencite{fowler2006} (SE6). ESLint \parencite{eslint2024} catches code style issues and common errors before tests run. Architecture Decision Records \parencite{tyree2005} document technology choices so future developers can understand why specific trade-offs were made.
 
 \subsection{Requirements Analysis}
 
-Requirements follow MoSCoW prioritisation \parencite{clegg1994} (K9, SE2, SE9).
+Requirements follow MoSCoW prioritisation \parencite{clegg1994} (K9, SE2, SE9). MoSCoW was chosen over simpler high/medium/low schemes because the fixed 13-week timeline made trade-offs inevitable, and MoSCoW gives a clear rule: if time runs short, drop `Could have' items first. This happened in practice when RAG search (FR15, a `Could have') was dropped to make room for the PowerPoint add-in. Requirements were gathered from three sources: the business case analysis in Section~\ref{sec:introduction}, comparable tools reviewed in the literature, and informal conversations with two junior analysts about their workflow pain points \parencite{robertson2012}.
 
 \subsubsection{Business Requirements}
 
@@ -150,7 +154,7 @@ coherence & all three apps & frontend framework & frontend framework \\
 \label{tab:lang-comparison}
 \end{table}
 
-The deciding factor was using one language everywhere. The \texttt{shared-types} package defines data models once and shares them across all three apps. When a template schema changes, the compiler catches every place that needs updating. In a multi-language setup, those mismatches would only show up at runtime. Express.js handles the backend.
+The deciding factor was using one language everywhere. Python has better AI/ML libraries, but the project has three applications (backend, web frontend, PowerPoint add-in) that all share data structures. With TypeScript, the \texttt{shared-types} package defines every interface once. When a template schema field changes, the compiler flags every file that needs updating across all three apps. In a Python backend with a TypeScript frontend, those mismatches only show up at runtime, which is exactly the bug class that triggered the migration described in Section~\ref{sec:implementation}. Express.js handles the backend because it is minimal and well-understood. The focus stays on domain logic rather than framework conventions.
 
 \subsubsection{AI and LLM Integration}
 
@@ -177,7 +181,7 @@ Cost (student budget) & Moderate (tiered pricing) & Moderate & Very affordable \
 \label{tab:llm-comparison}
 \end{table}
 
-GPT-4o was chosen for its structured output reliability. OpenAI's native JSON mode produces well-formed responses more consistently than alternatives, which matters when output feeds directly into a Zod validation pipeline. GPT-4o-mini handles the lighter AI chat feature at lower cost. Swapping models later requires changing only the API call.
+GPT-4o was chosen for its structured output reliability. The content planner needs the LLM to return a JSON object matching a specific Zod schema on every call. \textcite{shorten2024} found an average JSON success rate of 82.55\% across LLMs, but OpenAI's native JSON mode produces well-formed responses more consistently than Claude or Gemini for schema-constrained tasks. This matters because every failed response triggers a fallback plan that needs more manual editing. GPT-4o-mini handles the lighter AI chat feature at lower cost, where structured output is not required. The content planner enforces structure through Zod validation regardless of which model sits behind it, so swapping models later requires changing only the API call.
 
 \subsubsection{Data Sources and APIs}
 
@@ -205,7 +209,7 @@ Web Search & Current news, market & Cost per query & SerpAPI or similar \\
 
 \subsubsection{Frontend and Deployment}
 
-Next.js handles the web frontend for PB creation and management.
+Next.js handles the web frontend. It was chosen over a plain React SPA because Vercel deploys Next.js applications with zero configuration, and its file-based routing reduces boilerplate for the six pages the app needs (dashboard, pitch book list, creation form, viewer, templates, settings).
 
 \begin{table}[H]
 \centering
@@ -294,7 +298,7 @@ Dependencies are pinned via \texttt{package-lock.json}, LLM temperature is set t
 
 \subsection{Evaluation Methodology}
 
-The evaluation follows the Goal-Question-Metric (GQM) approach \parencite{basili1994}, keeping every metric tied to a specific project goal. The goal: determine whether the system produces usable first drafts faster than manual creation while matching template formatting.
+The evaluation follows the Goal-Question-Metric (GQM) approach \parencite{basili1994}. Every metric is tied to a specific project goal. The goal: determine whether the system produces usable first drafts faster than manual creation while matching template formatting.
 
 \begin{table}[H]
 \centering
@@ -319,7 +323,7 @@ IB conventions? & of narrative structure & across 3 PB types \\
 \label{tab:gqm}
 \end{table}
 
-Targets were fixed before evaluation began \parencite{wohlin2012}. Outputs are compared against generic tools (Gamma, Beautiful.ai) and estimated manual creation time. An informal usability evaluation with four junior analysts (P1--P4) provides qualitative feedback.
+Targets were fixed before evaluation began and not adjusted after seeing results, following the pre-registration principle from \textcite{wohlin2012} to avoid post-hoc rationalisation. Outputs are compared against Gamma (a commercial AI presentation tool) and estimated manual creation time to give context beyond the system's own metrics. An informal usability evaluation with four junior analysts (P1--P4) at a London financial services firm provides qualitative feedback. Participants were told their responses would appear anonymously and are identified only as P1 to P4. The sample is too small for statistical significance, but combined with the quantitative metrics it gives a directional signal about practical value.
 
 \subsection{Project Plan}
 
@@ -464,7 +468,13 @@ Evaluation complete & 11 Apr & 14 Apr & Delayed by 3 days \\
 \label{tab:plan-vs-reality}
 \end{table}
 
-Three things changed. The Python-to-TypeScript migration happened in week 3 after silent type mismatches across the API boundary caused runtime failures. The migration took four days but removed a whole category of bugs. The PowerPoint add-in was not in the original scope. Usability testing in week 7 revealed that the web-only download workflow created enough friction to offset the productivity gains. The add-in took three weeks to build but changed the system from a standalone generator into an assistant inside PowerPoint. Dropping RAG search (FR15, a `Could have') made room for it. The iterative approach made these changes possible: each cycle had a working prototype, so scope changes could be assessed against a running system (SE7, SE8).
+Three things changed from the plan, and each change was managed using MoSCoW priorities and the iterative cycle structure.
+
+The Python-to-TypeScript migration happened in week 3. The original plan assumed a Python backend, but silent type mismatches across the API boundary caused runtime failures that only appeared when the frontend called the backend with real data. The migration took four days but removed a whole category of bugs. It paid back quickly because later changes were caught by the compiler instead of crashing at runtime. This is consistent with \textcite{boehm1988}'s observation that early prototypes surface risks that no amount of upfront design can predict.
+
+The PowerPoint add-in was not in the original scope. Usability testing of the web-only workflow in week 7 revealed that downloading a .pptx, opening it in PowerPoint, making a one-sentence change, and re-uploading took eight minutes. That friction offset the productivity gains the system was supposed to deliver. The add-in took three weeks to build but changed the system from a standalone generator into an assistant inside the analyst's existing editor.
+
+Dropping RAG search (FR15, a `Could have') made room for the add-in. The MoSCoW prioritisation made this decision clear: the add-in addressed a real usability problem, while RAG was a stretch goal with unclear value at this stage. The Kanban board was reorganised at the end of week 7 to reflect this trade-off. The iterative approach made all three changes possible. Each cycle had a working prototype, so scope changes could be assessed against a running system rather than a plan on paper (SE7, SE8).
 
 \subsection{Risk Assessment}
 
@@ -539,11 +549,17 @@ R10 & Add-in Session Breakage & Medium & Medium & Medium \\
 
 \subsection{Mitigation}
 
-R1 (data breach): Supabase row-level security restricts each user to their own records. R2 (hallucination): the data retrieval service passes real numbers directly to GPT-4o, and Zod validates every response. R3 (malicious templates): the backend validates ZIP structure, caps slide count, and disables external entity resolution. R4 (Yahoo Finance): the data retrieval service wraps yahoo-finance2 behind an abstract interface, so switching providers requires changing one file. R5 (credentials): keys sit in Render's environment variable manager, never in source code. R6 (schema failure): an unwrapping step strips known JSON envelope patterns before Zod validation. R7 (preview exposure): signed URLs with expiry times; the storage bucket is private. R8 (platform outage): the architecture degrades gracefully on partial failures, but the dependency on four external services is permanent. R9 (scope creep): materialised when the add-in replaced RAG search. R10 (session breakage): fixed by setting \texttt{SameSite=None; Secure} cookies and configuring CORS for the add-in's origin.
+The two High-severity risks have different mitigation profiles. R4 (Yahoo Finance) can be mitigated architecturally: the data retrieval service wraps yahoo-finance2 behind an abstract interface, so switching to Bloomberg or Refinitiv requires changing one file. The 24-hour cache means a temporary endpoint change would not break in-progress work. R8 (platform outage) cannot be fully mitigated because the system depends on four external services (Vercel, Render, Supabase, OpenAI) with no self-hosted fallback. The architecture degrades gracefully on partial failures, but this risk stays High permanently.
+
+For the Medium risks: R1 (data breach) is mitigated by Supabase row-level security restricting each user to their own records. R2 (hallucination) is mitigated by passing real financial numbers from the API directly to GPT-4o rather than letting the LLM generate them, combined with Zod validation on every response. R6 (schema failure) is handled by an unwrapping step that strips known JSON envelope patterns before validation. R9 (scope creep) materialised when the add-in replaced RAG search, managed through MoSCoW prioritisation. R10 (session breakage) was fixed by setting \texttt{SameSite=None; Secure} cookies and configuring CORS.
+
+The two Low risks have effective mitigations already in place. R3 (malicious templates): the backend validates ZIP structure, caps slide count, and disables XML external entity resolution. R5 (credentials): API keys sit in Render's environment variable manager and never appear in source code or logs. R7 (preview exposure): signed URLs with expiry times protect stored previews, and the storage bucket is private.
 
 \subsection{Ethics and Compliance}
 
-AI in financial services raises concerns around transparency, accountability, and human control \parencite{jobin2019}. The system addresses this through HITL design: generated content is marked as AI-assisted, and professional review is mandatory before distribution. Table~\ref{tab:data-governance} summarises data governance. These practices follow GDPR's data minimisation principle \parencite{bis2024}.
+AI in financial services raises concerns around transparency, accountability, and human control \parencite{jobin2019}. \textcite{bis2024} identify three regulatory priorities for AI in banking: explainability of outputs, human oversight of decisions, and data governance. The system addresses all three. Generated content is marked as AI-assisted, and professional review is mandatory before distribution. The analyst sees exactly which data sources were used (Yahoo Finance, SEC EDGAR) and can verify numbers against the source APIs. The system never sends output directly to clients. This aligns with the EU AI Act's requirements for human oversight in financial services \parencite{bis2024}.
+
+Table~\ref{tab:data-governance} summarises data governance. No personal financial data is processed. The system handles company-level public data (share prices, revenue, market cap) and user-generated content (pitch book titles, company names). These practices follow GDPR's data minimisation principle: the system stores only what is needed for generation and audit, with clear deletion triggers for each data type.
 
 \begin{table}[H]
 \centering
@@ -576,7 +592,7 @@ OpenAI permits academic use of generated outputs. Yahoo Finance data comes throu
 
 \subsection{Project Tracking}
 
-Progress is tracked using a Kanban board (SE8, SE10). Figure~\ref{fig:kanban} shows the board near the end of the project.
+Progress is tracked using a Kanban board with four columns: To Do, In Progress, Testing, and Done (SE8, SE10). Each functional requirement maps to at least one card. Cards move through columns within two-week iteration cycles, and the board is reviewed at each cycle's end to decide what enters the next iteration. Figure~\ref{fig:kanban} shows the board near the end of the project.
 
 \begin{figure}[H]
 \centering

@@ -1,7 +1,7 @@
 \section{Project Implementation and Outcomes}
 \label{sec:implementation}
 
-This section covers what was built, how it works, and where things changed from the original plan.
+This section covers what was built and how it works. Where things changed from the original plan, the text explains why.
 
 \subsection{Architecture Evolution}
 
@@ -249,11 +249,15 @@ This approach uses regex on the raw XML rather than xml2js round-tripping, which
 
 \subsubsection{Data Retrieval}
 
-The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-finance2}) and SEC EDGAR (K5), caching responses for 24 hours. If an API call fails, the service returns graceful null values so generation proceeds with reduced data rather than failing entirely.
+The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-finance2}) and SEC EDGAR (K5). Yahoo Finance provides market cap, trailing revenue, share price, and historical financials. SEC EDGAR provides recent 10-K and 10-Q filing summaries for US-listed companies. Responses are cached for 24 hours to avoid hitting rate limits and to speed up repeated generations for the same company. The cache uses an in-memory store rather than a database because the data changes daily and stale cache entries are acceptable for a first draft.
+
+If an API call fails, the service returns graceful null values rather than aborting. The content planner receives an empty data object and generates slides without financial figures, producing a structural draft that the analyst fills in manually. This design means a Yahoo Finance outage degrades output quality but never blocks generation entirely. The abstract interface behind both data sources (Section~\ref{sec:methodology}) means switching to a licensed provider like Bloomberg or Refinitiv would require changing one module without touching the rest of the pipeline.
 
 \subsubsection{Slide Preview Generation}
 
-The system uses LibreOffice in headless mode to convert .pptx to PDF, then \texttt{pdftoppm} to render each page as a PNG. Previews are uploaded to Supabase Storage and displayed in the web frontend. Neither this pipeline nor the add-in below were in the original design. Both emerged from usability problems found during implementation.
+The system uses LibreOffice in headless mode to convert .pptx to PDF, then \texttt{pdftoppm} to render each page as a PNG at 150 DPI. Previews are uploaded to Supabase Storage with signed URLs and displayed in the web frontend's slide viewer. The pipeline runs asynchronously after slide assembly completes, so the .pptx file is available immediately while previews generate in the background.
+
+Neither this pipeline nor the add-in below were in the original design. Both emerged from usability problems found during implementation. The web app originally showed only a download link for the generated file. Without visual previews, users had to open the file in PowerPoint to see what was generated, which added friction and made the web interface feel disconnected from the output. Adding preview images turned the web app into a useful management interface even after the add-in became the primary generation tool.
 
 \subsection{PowerPoint Add-in}
 \label{sec:addin}
@@ -322,11 +326,11 @@ The \texttt{insertSlidesFromBase64()} API pushes the generated .pptx directly in
 \subsection{AI Chat Assistant}
 \label{sec:ai-chat}
 
-The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. The chat runs on GPT-4o-mini with a system prompt that includes each slide's title and layout type. Messages are stored in a \texttt{chat\_messages} table, preserving history across sessions. The chat is advisory: the assistant provides instructions, but the user applies the edits.
+The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. The chat runs on GPT-4o-mini with a system prompt that includes each slide's title and layout type. Messages are stored in a \texttt{chat\_messages} table, preserving history across sessions. The chat is advisory: the assistant provides instructions, but the user applies the edits. Office.js can modify slides programmatically, so automatic application is technically possible. The advisory boundary was drawn deliberately to keep the analyst in control of every change, consistent with the HITL design principle from Section~\ref{sec:introduction}.
 
 \subsection{Authentication and Session Management}
 
-Supabase Auth handles user authentication across both applications. The Express backend acts as the single auth source, checking session cookies on every request (SE1). The add-in runs inside an iframe, which blocks cross-origin cookies by default. This required \texttt{SameSite=None; Secure} cookie attributes and explicit CORS configuration.
+Supabase Auth handles user authentication across both applications. The Express backend acts as the single auth source, checking session cookies on every request (SE1). The add-in runs inside an Office.js iframe whose WebView enforces stricter cross-origin rules than a standard browser tab. Cookies are blocked by default, and Safari's Intelligent Tracking Prevention actively strips third-party cookies. This required \texttt{SameSite=None; Secure} cookie attributes and explicit CORS configuration, which was one of the harder debugging problems in the project because failures were silent (the cookie was simply absent).
 
 \subsection{Testing}
 
