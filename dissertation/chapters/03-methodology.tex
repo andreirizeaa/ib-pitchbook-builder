@@ -9,7 +9,7 @@ Table~\ref{tab:methodologies} compares methodologies against criteria relevant t
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Criteria} & \textbf{Waterfall} & \textbf{Scrum} & \textbf{Iterative Prototyping} \\
+\rowcolor{gray!20} \textbf{Criteria} & \textbf{Waterfall} & \textbf{Scrum} & \textbf{Iterative Prototyping} \\
 \hline
 Requirements stability & Requires fixed & Accommodates & Works well when \\
  & requirements upfront & changing requirements & requirements change \\
@@ -57,7 +57,7 @@ Table~\ref{tab:func-req} lists functional requirements by component.
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{ID} & \textbf{Component} & \textbf{Requirement} & \textbf{Priority} \\
+\rowcolor{gray!20} \textbf{ID} & \textbf{Component} & \textbf{Requirement} & \textbf{Priority} \\
 \hline
 FR1 & Template Analyser & Extract slide layouts from reference .pptx files & Must \\
 \hline
@@ -100,7 +100,7 @@ FR15 & RAG Search & Query precedent material repository & Could \\
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{ID} & \textbf{Category} & \textbf{Requirement} & \textbf{Acceptance Criterion} \\
+\rowcolor{gray!20} \textbf{ID} & \textbf{Category} & \textbf{Requirement} & \textbf{Acceptance Criterion} \\
 \hline
 NFR1 & Performance & System generates complete PB draft & Within 5 minutes of input submission \\
 \hline
@@ -133,7 +133,7 @@ Table~\ref{tab:lang-comparison} compares language options (K8, SE12).
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Criteria} & \textbf{TypeScript/Node.js} & \textbf{Python} & \textbf{Java} \\
+\rowcolor{gray!20} \textbf{Criteria} & \textbf{TypeScript/Node.js} & \textbf{Python} & \textbf{Java} \\
 \hline
 Benefits & Type safety, same language & Best AI/ML libraries, & Strong typing, \\
  & frontend and backend, & mature PowerPoint & enterprise support \\
@@ -164,7 +164,7 @@ Table~\ref{tab:llm-comparison} compares the LLM options considered.
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Criteria} & \textbf{GPT-4/GPT-4o} & \textbf{Claude 3.5} & \textbf{Gemini 2.0 Flash} \\
+\rowcolor{gray!20} \textbf{Criteria} & \textbf{GPT-4/GPT-4o} & \textbf{Claude 3.5} & \textbf{Gemini 2.0 Flash} \\
 \hline
 Benefits & Best structured output, & Largest context window & Massive context (1M \\
  & mature SDK, native JSON & (200K), strong reasoning & tokens), fast inference \\
@@ -191,7 +191,7 @@ Table~\ref{tab:data-sources} summarises data sources.
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Source} & \textbf{Benefits} & \textbf{Risks} & \textbf{Access} \\
+\rowcolor{gray!20} \textbf{Source} & \textbf{Benefits} & \textbf{Risks} & \textbf{Access} \\
 \hline
 Yahoo Finance & Free, comprehensive & Unofficial API may & yahoo-finance2 \\
  & financial data & change without notice & npm package \\
@@ -215,7 +215,7 @@ Next.js handles the web frontend. It was chosen over a plain React SPA because V
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Criteria} & \textbf{Vercel + Render} & \textbf{AWS} & \textbf{Self-hosted} \\
+\rowcolor{gray!20} \textbf{Criteria} & \textbf{Vercel + Render} & \textbf{AWS} & \textbf{Self-hosted} \\
 \hline
 Benefits & Zero config, auto deploy, & Full control, & Complete control, \\
  & free tiers for POC & scalable & no vendor lock-in \\
@@ -304,7 +304,7 @@ The evaluation follows the Goal-Question-Metric (GQM) approach \parencite{basili
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Question} & \textbf{Metric} & \textbf{Target} \\
+\rowcolor{gray!20} \textbf{Question} & \textbf{Metric} & \textbf{Target} \\
 \hline
 How fast does the system & Generation time per & Under 300 seconds \\
 generate a deck? & 10-slide deck & for a complete draft \\
@@ -409,7 +409,7 @@ The project runs for thirteen weeks (K10). Figure~\ref{fig:gantt} shows the sche
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Phase} & \textbf{Date} & \textbf{Milestone} & \textbf{Deliverables} \\
+\rowcolor{gray!20} \textbf{Phase} & \textbf{Date} & \textbf{Milestone} & \textbf{Deliverables} \\
 \hline
 1 & 19 Jan & Project Initiation & Repository setup, dev environment configured \\
 \hline
@@ -444,7 +444,7 @@ The original plan did not survive contact with implementation. Table~\ref{tab:pl
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Milestone} & \textbf{Planned Date} & \textbf{Actual Date} & \textbf{Notes} \\
+\rowcolor{gray!20} \textbf{Milestone} & \textbf{Planned Date} & \textbf{Actual Date} & \textbf{Notes} \\
 \hline
 Core components functional & 14 Mar & 7 Mar & Ahead of schedule due to \\
  & & & TypeScript migration in week 3 \\
@@ -485,7 +485,7 @@ Table~\ref{tab:risks} identifies ten risks across security, reliability, and pro
 \small
 \begin{tabular}{|l|p{3.2cm}|p{8.5cm}|}
 \hline
-\textbf{ID} & \textbf{Risk} & \textbf{Description} \\
+\rowcolor{gray!20} \textbf{ID} & \textbf{Risk} & \textbf{Description} \\
 \hline
 R1 & Pitch Book Data Breach & A flaw in Supabase row-level security policies could expose one user's pitch books to another. In investment banking, pitch books often contain deal terms, valuations, and financial projections that are highly confidential. \\
 \hline
@@ -520,7 +520,7 @@ Each risk was scored using Binary Risk Analysis (BRA) \parencite{sapiro2011}. BR
 \centering
 \begin{tabular}{|l|l|l|l|l|}
 \hline
-\textbf{ID} & \textbf{Risk} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Overall} \\
+\rowcolor{gray!20} \textbf{ID} & \textbf{Risk} & \textbf{Likelihood} & \textbf{Impact} & \textbf{Overall} \\
 \hline
 R1 & Pitch Book Data Breach & Low & High & Medium \\
 \hline
@@ -565,7 +565,7 @@ Table~\ref{tab:data-governance} summarises data governance. No personal financia
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{Data Type} & \textbf{Storage} & \textbf{Retention} & \textbf{Deletion Trigger} \\
+\rowcolor{gray!20} \textbf{Data Type} & \textbf{Storage} & \textbf{Retention} & \textbf{Deletion Trigger} \\
 \hline
 User email and password hash & Supabase Auth & Indefinite & Account deletion \\
 \hline

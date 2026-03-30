@@ -15,7 +15,7 @@ The codebase uses Turborepo to manage three applications and one shared package 
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Package} & \textbf{Technology} & \textbf{Purpose} \\
+\rowcolor{gray!20} \textbf{Package} & \textbf{Technology} & \textbf{Purpose} \\
 \hline
 \texttt{apps/service} & Express.js, TypeScript & Backend API: orchestration, template \\
  & & analysis, content planning, slide building \\
@@ -344,7 +344,7 @@ Vitest \parencite{vitest2024} runs all unit and integration tests. It was chosen
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{App} & \textbf{Test File} & \textbf{What it Tests} \\
+\rowcolor{gray!20} \textbf{App} & \textbf{Test File} & \textbf{What it Tests} \\
 \hline
 \texttt{apps/service} & \texttt{template-analyser.test.ts} & Colour, font, and layout extraction \\
  & & from known .pptx fixtures \\
@@ -390,7 +390,7 @@ Cypress \parencite{cypress2024} was chosen over Playwright for its low setup tim
 \centering
 \begin{tabular}{|l|l|}
 \hline
-\textbf{Spec File} & \textbf{What it Tests} \\
+\rowcolor{gray!20} \textbf{Spec File} & \textbf{What it Tests} \\
 \hline
 \texttt{auth.cy.ts} & Login, logout, session persistence \\
 \hline
@@ -442,7 +442,7 @@ GitHub Actions runs the full test suite on every push (SE6). Unit tests run firs
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Stage} & \textbf{Tool} & \textbf{What it Checks} \\
+\rowcolor{gray!20} \textbf{Stage} & \textbf{Tool} & \textbf{What it Checks} \\
 \hline
 Lint & ESLint + Prettier & Code style, unused imports \\
 \hline
@@ -494,7 +494,7 @@ Table~\ref{tab:challenges} summarises the main technical challenges encountered 
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Challenge} & \textbf{Impact} & \textbf{Resolution} \\
+\rowcolor{gray!20} \textbf{Challenge} & \textbf{Impact} & \textbf{Resolution} \\
 \hline
 Python/TypeScript split & Silent type mismatches & Consolidated to TypeScript \\
 codebase & across API boundary & monorepo with shared-types \\
@@ -527,7 +527,7 @@ Table~\ref{tab:req-evidence} maps functional requirements to their implementatio
 \centering
 \begin{tabular}{|l|l|l|l|}
 \hline
-\textbf{ID} & \textbf{Requirement} & \textbf{Status} & \textbf{Evidence} \\
+\rowcolor{gray!20} \textbf{ID} & \textbf{Requirement} & \textbf{Status} & \textbf{Evidence} \\
 \hline
 FR1 & Extract slide layouts & Met & Template analyser module, unit tests \\
 \hline

@@ -15,33 +15,36 @@ That said, none of these studies addressed template-constrained document generat
 
 \subsubsection{Automated Presentation Generation}
 
-Table~\ref{tab:pres-taxonomy} breaks down the main approaches to presentation generation, measured against IB requirements. Every existing approach fails on at least one dimension that IB documents require.
+IB pitch books need template fidelity, financial data integration, domain-specific narrative structure, and exact colour and font matching. Missing any one of these means the output needs heavy manual rework, which defeats the purpose of automation. Table~\ref{tab:pres-taxonomy} breaks down the main approaches and the studies behind each.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|l|l|}
+\small
+\begin{tabular}{|l|l|l|l|l|}
 \hline
-\textbf{Approach} & \textbf{Mechanism} & \textbf{Strengths} & \textbf{Limitations for IB} \\
+\rowcolor{gray!20} \textbf{Approach} & \textbf{Studies} & \textbf{Mechanism} & \textbf{Strengths} & \textbf{IB Limitations} \\
 \hline
-Rule-based layout & Algorithmic text-to- & Fast, deterministic & Poor visual quality, \\
- & slide conversion & & no domain awareness \\
+Rule-based & PPSGen & Algorithmic text- & Fast, & Poor visual quality, \\
+layout & \parencite{hu2013} & to-slide conversion & deterministic & no domain awareness \\
 \hline
-Rigid templates & Fixed layouts with & High visual fidelity & Cannot adapt to \\
- & manual content & & varying content lengths \\
+Rigid & Commercial tools & Fixed layouts with & High visual & Cannot adapt to \\
+templates & (Gamma, Tome) & manual content & fidelity & varying content \\
 \hline
-LLM-based (PPTAgent) & Reference analysis & Preserves source & Domain-generic, \\
- & + edit-based generation & style, good content & no financial data \\
+LLM-based & PPTAgent & Reference analysis & Preserves source & Domain-generic, \\
+ & \parencite{zheng2025} & + edit generation & style, good content & no financial data \\
 \hline
-Multi-agent semantic & Template-constrained & Maintains document & Text documents only, \\
-(Di Genio) & multi-agent pipeline & structure & not PowerPoint \\
+Multi-agent & Auto-Slides & Template-constrained & Maintains document & Academic focus, \\
+ & \parencite{yang2025} & multi-agent pipeline & structure & not PowerPoint \\
 \hline
-VLM-based & Visual understanding & Handles complex & Approximate values, \\
- & of layouts & visual elements & not exact matching \\
+VLM-based & ColPali & Visual understanding & Handles complex & Approximate values, \\
+ & \parencite{faysse2024} & of layouts & visual elements & not exact matching \\
 \hline
 \end{tabular}
 \caption{Presentation Generation Approaches Compared}
 \label{tab:pres-taxonomy}
 \end{table}
+
+The two most critical limitations are the lack of financial data integration and the inability to match exact template specifications. Rule-based and rigid template approaches cannot adapt to varying content lengths, so a company overview with three years of revenue data and one with five years would need different manual adjustments. LLM-based approaches like PPTAgent produce good general content but know nothing about IB narrative conventions (executive summary, then business overview, then financials, then valuation) and cannot connect to data sources like Yahoo Finance or SEC EDGAR. VLM-based approaches get close to visual understanding but return approximate colour values rather than exact hex codes, which fails corporate brand compliance checks.
 
 \textcite{hu2013} introduced PPSGen, one of the first systems to learn slide generation from paper-slide pairs, but it produced rigid, text-heavy output. \textcite{yang2025} proposed Auto-Slides, a multi-agent system closer to this project's pipeline approach, but targeting academic content.
 
@@ -121,7 +124,9 @@ Figure~\ref{fig:architecture} shows the high-level system architecture. The desi
 \label{fig:architecture}
 \end{figure}
 
-The architecture separates concerns into independent modules (SE2, SE9). The Template Analyser extracts layout patterns without generating content. The Content Planner uses an LLM to structure the narrative without touching PowerPoint files. The Slide Builder assembles files from specifications without making content decisions. This separation has two practical benefits. First, each component can be tested in isolation: the template analyser can be tested against real .pptx files without needing an LLM call, and the slide builder can be tested against fixed content plans without waiting for GPT-4o. Second, components can be reused independently. The template analyser, for example, could serve as a standalone tool for cataloguing corporate templates without any AI generation, which is the first recommendation in Section~\ref{sec:evaluation}.
+The architecture addresses the four limitations identified in the literature review. The Template Analyser solves the exact-matching problem by extracting colour hex codes, font specifications, and placeholder positions directly from the .pptx XML rather than using visual approximation. The Data Retrieval service solves the data integration gap by pulling real financials from Yahoo Finance and SEC EDGAR and passing them into the LLM prompt. The Content Planner adds IB domain awareness by following pitch book narrative conventions (executive summary, business overview, financials, valuation) through a structured system prompt. The Slide Builder closes the structure-content gap by generating slides that respect both the template constraints and the content plan in a single pass.
+
+These components are separated into independent modules (SE2, SE9). Each can be tested in isolation: the template analyser against real .pptx files without an LLM call, the slide builder against fixed content plans without GPT-4o. Components can also be reused independently. The template analyser could serve as a standalone tool for cataloguing corporate templates, which is the first recommendation in Section~\ref{sec:evaluation}.
 
 Data Retrieval from Yahoo Finance and SEC EDGAR was originally a stretch goal. It was implemented because usability testing showed that analysts wanted real financial data in the first draft rather than placeholders they would have to fill manually. The pipeline architecture made this simple to add: the data retrieval module plugs in between validation and content planning without changing any other component. \textcite{wang2024}'s agent framework supports this pattern, where tools are added to an agent's action space without redesigning the planning loop.
 
@@ -134,7 +139,7 @@ The system uses two primary data structures that flow between components. Table~
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Model} & \textbf{Key Fields} & \textbf{Purpose} \\
+\rowcolor{gray!20} \textbf{Model} & \textbf{Key Fields} & \textbf{Purpose} \\
 \hline
 TemplateSchema & layouts[], colours, fonts, & Stores extracted template properties \\
  & placeholders[] & for content planning and slide assembly \\
@@ -292,7 +297,7 @@ Table~\ref{tab:tradeoffs} summarises the four main design trade-offs.
 \centering
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{Decision} & \textbf{Chosen Option} & \textbf{Rationale} \\
+\rowcolor{gray!20} \textbf{Decision} & \textbf{Chosen Option} & \textbf{Rationale} \\
 \hline
 Single vs multi-agent & Single agent with tools & PB generation is sequential; \\
  & & multi-agent overhead not justified \\
@@ -313,7 +318,7 @@ generation & & users poll for completion \\
 
 \subsubsection{Data Flow}
 
-Figure~\ref{fig:dataflow} shows how data moves through the system during a generation request.
+Figure~\ref{fig:dataflow} shows how data moves through the system during a generation request. There is no direct data flow from template extraction to content planning. All data passes through the Template Schema, which is the sole output of the extraction stage and the sole template input to the planning stage. The schema acts as a contract between the two components: the extractor writes it, and the planner reads it. This means the content planner never touches the raw .pptx file. It only sees the structured schema, which makes the planner independent of PowerPoint's XML format. The slide builder also receives the template schema (not shown separately to keep the diagram simple) so it can apply exact colours and fonts during assembly.
 
 \begin{figure}[H]
 \centering
@@ -326,7 +331,7 @@ Figure~\ref{fig:dataflow} shows how data moves through the system during a gener
 % Main pipeline down the centre
 \node[box] (iv) {Input Validation};
 \node[box, below=of iv] (te) {Template Extraction};
-\node[box, below=of te] (cpl) {Content Planning};
+\node[box, below=2.5cm of te] (cpl) {Content Planning};
 \node[box, below=of cpl] (sa) {Slide Assembly};
 \node[data, below=1.5cm of sa] (out) {Generated .pptx};
 
@@ -334,9 +339,9 @@ Figure~\ref{fig:dataflow} shows how data moves through the system during a gener
 \node[data, above=1.2cm of iv, xshift=-2.5cm] (t) {.pptx Template};
 \node[data, above=1.2cm of iv, xshift=2.5cm] (u) {User Parameters};
 
-% Side data stores - simple left-side placement
-\node[data, left=3cm of te, yshift=-1.1cm] (ts) {Template\\Schema};
-\node[data, left=3cm of cpl, yshift=-1.1cm] (cp) {Content\\Plan};
+% Side data stores
+\node[data, right=2.5cm of te, yshift=-1.25cm] (ts) {Template\\Schema (JSON)};
+\node[data, left=3cm of cpl, yshift=-1.1cm] (cp) {Content\\Plan (JSON)};
 
 % Input arrows into validation
 \draw[arr] (t.south) -- ([xshift=-0.8cm]iv.north);
@@ -344,19 +349,18 @@ Figure~\ref{fig:dataflow} shows how data moves through the system during a gener
 
 % Main flow
 \draw[arr] (iv) -- (te);
-\draw[arr] (te) -- (cpl);
 \draw[arr] (cpl) -- (sa);
 \draw[arr] (sa) -- (out);
 
 % Template Schema: extraction produces, planning consumes
-\draw[arr] (te.south west) -- (ts.north east);
-\draw[arr] (ts.south east) -- (cpl.north west);
+\draw[arr] (te.east) -- (ts.north west);
+\draw[arr] (ts.south west) -- (cpl.north east);
 
 % Content Plan: planning produces, assembly consumes
 \draw[arr] (cpl.south west) -- (cp.north east);
 \draw[arr] (cp.south east) -- (sa.north west);
 \end{tikzpicture}
-\caption{Data flow through the generation pipeline}
+\caption{Data flow through the generation pipeline. All template data passes through the Template Schema; there is no direct link from extraction to planning.}
 \label{fig:dataflow}
 \end{figure}
 

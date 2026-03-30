@@ -21,6 +21,7 @@
 \usepackage[font=footnotesize,labelfont=normalfont,position=below]{caption}
 \captionsetup[lstlisting]{font=footnotesize,labelfont=normalfont,position=below}
 \usepackage{subcaption}
+\usepackage{fancyhdr}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
 
@@ -65,6 +66,13 @@
 \setcounter{tocdepth}{3}
 
 \renewcommand{\lstlistingname}{Code}
+
+% Page numbers bottom-right
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[R]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{\fancyhf{}\fancyfoot[R]{\thepage}\renewcommand{\headrulewidth}{0pt}}
 
 \begin{document}
 

@@ -1673,6 +1673,46 @@
       \verb 10.18653/v1/P19-1355
       \endverb
     \endentry
+    \entry{tyree2005}{article}{}{}
+      \name{author}{2}{}{%
+        {{un=0,uniquepart=base,hash=db7774263d479b9dc19d84712943cf34}{%
+           family={Tyree},
+           familyi={T\bibinitperiod},
+           given={Jeff},
+           giveni={J\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c587197411f5fe56726d5120458e179b}{%
+           family={Akerman},
+           familyi={A\bibinitperiod},
+           given={Art},
+           giveni={A\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{b3fd149b4828e787814ea520f9477439}
+      \strng{fullhash}{b3fd149b4828e787814ea520f9477439}
+      \strng{fullhashraw}{b3fd149b4828e787814ea520f9477439}
+      \strng{bibnamehash}{b3fd149b4828e787814ea520f9477439}
+      \strng{authorbibnamehash}{b3fd149b4828e787814ea520f9477439}
+      \strng{authornamehash}{b3fd149b4828e787814ea520f9477439}
+      \strng{authorfullhash}{b3fd149b4828e787814ea520f9477439}
+      \strng{authorfullhashraw}{b3fd149b4828e787814ea520f9477439}
+      \field{sortinit}{T}
+      \field{sortinithash}{9af77f0292593c26bde9a56e688eaee9}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{IEEE Software}
+      \field{number}{2}
+      \field{title}{Architecture Decisions: Demystifying Architecture}
+      \field{volume}{22}
+      \field{year}{2005}
+      \field{pages}{19\bibrangedash 27}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1109/MS.2005.27
+      \endverb
+    \endentry
     \entry{vitest2024}{online}{}{}
       \name{author}{1}{}{%
         {{un=0,uniquepart=base,hash=6da565cea96f9754ba94dfa0bba95ca2}{%
@@ -1933,7 +1973,6 @@
       \endverb
     \endentry
   \enddatalist
-  \missing{tyree2005}
 \endrefsection
 \endinput
 
