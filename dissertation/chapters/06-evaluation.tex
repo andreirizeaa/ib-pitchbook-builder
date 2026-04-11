@@ -59,7 +59,7 @@ All five criteria are met. Appendix~C contains the full input and result data fo
 \label{fig:gen-times}
 \end{figure}
 
-Mean generation time was 47.9 seconds (SD = 12.2s, 95\% CI [40.1, 55.7]), well under the five-minute target. The bottleneck is the GPT-4o API call (8--15 seconds). Run 7 (78s) was an outlier where the content planner failed validation twice before succeeding.
+Mean generation time was 47.9 seconds (SD = 12.2s, 95\% CI [40.1, 55.7]), well under the five-minute target. The bottleneck is the GPT-4o API call (8 to 15 seconds). Run 7 (78s) was an outlier where the content planner failed validation twice before succeeding.
 
 Template matching was verified automatically (SE5): colours match exactly (hex comparison), fonts match exactly. Data accuracy is 100\% across all 36 comparisons (3 values $\times$ 12 runs) because financial figures pass directly from the Yahoo Finance API to the content planner without LLM generation.
 
@@ -119,7 +119,7 @@ Cost per generation & \textasciitilde\$0.03 (GPT-4o API) & \$8 to 16/month & Ana
 \label{tab:comparison}
 \end{table}
 
-Gamma is faster but produces generic slides needing heavy reformatting. This system sits in the middle: nearly as fast as Gamma, nearly as accurate as manual, and the output is already in the right template inside PowerPoint.
+Gamma is faster at producing a first draft, but the output uses generic templates with no option to match a corporate visual identity. An analyst using Gamma would spend significant time reformatting every slide to match the bank's colours, fonts, and layout conventions, which is the exact problem this project targets. Manual creation produces perfect template matching by definition, but at the cost of 90 to 120 minutes of work that is mostly mechanical. This system sits between the two. It is nearly as fast as Gamma, nearly as accurate as manual, and the output is already in the correct template inside PowerPoint. The add-in workflow also removes the export step that Gamma requires, since generated slides appear directly in the active presentation.
 
 \subsection{Objectives Assessment}
 
@@ -155,7 +155,7 @@ The project also delivered two unplanned components (the PowerPoint add-in and s
 
 \subsection{Business Case Validation}
 
-Generation takes 47 seconds, and usability participants reported 15--25 minutes of editing per deck. At 3--5 decks per week per analyst, the net saving is roughly 60--90 minutes per deck, consistent with the original \pounds 39,000/year projection from Section~\ref{sec:introduction}. API cost averaged \$0.028 per generation across 12 runs. The main caveat: these savings assume the 93\% placeholder accuracy holds across a wider range of corporate templates (K2).
+Generation takes 47 seconds, and usability participants reported 15 to 25 minutes of editing per deck. At 3 to 5 decks per week per analyst, the net saving is roughly 60 to 90 minutes per deck, consistent with the original \pounds 39,000/year projection from Section~\ref{sec:introduction}. API cost averaged \$0.028 per generation across 12 runs. The main caveat: these savings assume the 93\% placeholder accuracy holds across a wider range of corporate templates (K2).
 
 \subsection{Usability Evaluation}
 
@@ -193,7 +193,7 @@ Figure~\ref{fig:usability-chart} visualises the median scores across the five st
     \draw (\x,-0.15) -- (\x,0) node[below, font=\scriptsize, yshift=-3pt] {\x};
     \draw[gray!30] (\x,0) -- (\x,5.8);
   }
-  \node[font=\footnotesize] at (2.75,-0.8) {Median Score (Likert 1--5)};
+  \node[font=\footnotesize] at (2.75,-0.8) {Median Score (Likert 1 to 5)};
   % Labels and bars: y positions 1..5
   % 1: Add-in intuitive = 3.5
   \fill[blue!40, draw=blue!70!black] (0,0.7) rectangle (3.5,1.3);
@@ -220,7 +220,7 @@ Figure~\ref{fig:usability-chart} visualises the median scores across the five st
 \label{fig:usability-chart}
 \end{figure}
 
-All four participants estimated that first-draft time dropped from over 90 minutes to under two minutes, plus 15--25 minutes for editing. The weakest score was add-in intuitiveness: two participants found the taskpane cramped on smaller screens.
+All four participants estimated that first-draft time dropped from over 90 minutes to under two minutes, plus 15 to 25 minutes for editing. The weakest score was add-in intuitiveness: two participants found the taskpane cramped on smaller screens.
 
 Open-ended responses raised two recurring themes. First, the template matching was the most impressive feature. One participant noted: `The colours and fonts are exactly right. Normally that takes the longest to get consistent across slides.' Second, participants wanted more control over slide ordering and the ability to regenerate individual slides rather than the full deck.
 
@@ -234,19 +234,31 @@ That said, the qualitative feedback points the same way: template-aware generati
 
 Four things worked well.
 
-First, the TypeScript consolidation (SE3). One language across all three apps caught type mismatches at compile time. When the add-in was added in week 7, shared code meant it took days rather than weeks to build.
+First, the TypeScript consolidation (SE3). One language across all four packages (backend, web app, add-in, shared types) caught type mismatches at compile time rather than at runtime. When the add-in was added in week 7, the shared-types package meant the new application inherited every interface, enum, and validation schema immediately. Building the add-in took three weeks rather than the six or more it would have taken with a separate type system.
 
-Second, the iterative approach to the template analyser (SE4, SE7). Each iteration failed in a specific, testable way, and the failures guided the solution, following \textcite{boehm1988}'s spiral model.
+Second, the iterative approach to the template analyser (SE4, SE7). Each iteration failed in a specific, testable way, and the failures guided the next version. The first iteration showed that PptxGenJS cannot read templates. The second showed that raw XML parsing misses custom placeholders. The third added heuristics that brought accuracy to 93\%. Each failure narrowed the problem rather than expanding it, which is exactly what \textcite{boehm1988}'s spiral model predicts when prototypes are tested against real inputs early.
 
-Third, passing real financial data through the prompt rather than letting the LLM generate numbers. The 100\% data accuracy result exists because the architecture removes the opportunity for the LLM to get the numbers wrong \parencite{huang2024}.
+Third, passing real financial data through the prompt rather than letting the LLM generate numbers. The 100\% data accuracy result exists because the architecture removes the opportunity for the LLM to get numbers wrong \parencite{huang2024}. This was a deliberate design choice. The LLM is good at structuring narrative and selecting which data points to emphasise. It is not reliable at recalling exact financial figures. Separating those two tasks played to each component's strength.
 
-Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change was a concrete problem. Bringing generation into PowerPoint via Office.js was a concrete fix.
+Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change was a concrete, measurable problem. Bringing generation into PowerPoint via Office.js was a concrete fix. The usability evaluation confirmed this. The highest-scoring statement (median 5.0) was that the system required less editing than starting from scratch, and the add-in workflow was the feature P4 singled out as the most useful.
 
 \subsection{What Did Not Work}
 
 Two things fell short. First, the content planner's structured output reliability. All 12 evaluation runs produced valid JSON. However, development experience showed that GPT-4o occasionally returns output that fails Zod validation. This happened most often with complex slide types that have nested chart and table specifications. When this happens the system falls back to a generic plan, which works but needs more editing. A more constrained schema or a fine-tuned model might reduce fallback frequency, but both were out of scope.
 
 Second, chart generation. The system can fill existing chart placeholders with data but cannot create chart types from scratch. PptxGenJS supports chart creation, but mapping LLM output to chart specifications proved too error-prone. The content planner would specify a bar chart but provide data in a format that did not match PptxGenJS's expected structure. This was deferred rather than solved.
+
+\subsection{Unmet Requirements and Next Iteration}
+
+Three functional requirements from Section~\ref{sec:methodology} were not fully delivered: FR6 (web search for company news), FR12 (chart generation from scratch), and FR15 (RAG search over precedent materials). None of these were impossible to build. They were deprioritised because the project timeline forced a choice between features that added polish and features that solved a real usability problem.
+
+FR15 (RAG search) was the clearest trade-off. It was a `Could have' requirement that was dropped when the PowerPoint add-in emerged as a higher priority. RAG search would let analysts query a library of past pitch books to find relevant sections and reuse them. The value is real, but it depends on having a document library worth searching. For a proof-of-concept with no existing corpus, the add-in delivered more immediate value. RAG is the first candidate for a second iteration because the web app already provides the browsing interface it would need.
+
+FR6 (web search) was not implemented beyond a stub that returns a link to Yahoo Finance. Adding a search API (SerpAPI or similar) would take one to two days of integration work. It was deprioritised because the data retrieval service already pulls structured financial data from Yahoo Finance and SEC EDGAR, which covers the most critical use case. Unstructured news search adds context but does not change the core generation quality. A future iteration would add this as a data source feeding into the content planner prompt.
+
+FR12 (chart generation) is partial rather than missing. The system populates existing chart placeholders with data from the content plan. What it cannot do is create new chart types (bar, line, waterfall) from scratch when the template does not already include them. The mapping between LLM-generated chart specifications and PptxGenJS's chart API proved unreliable during development: field names, data array structures, and axis configurations varied too much between runs. Solving this requires either constraining the LLM output more tightly or building a chart-specific translation layer. Both are feasible in a next iteration with dedicated testing against multiple chart types.
+
+The common thread is scope management, not technical impossibility. Each unmet requirement has a clear implementation path. They were deferred because the 13-week timeline required prioritising features that addressed the biggest user pain point, which turned out to be the editing workflow rather than additional data sources or chart rendering.
 
 \subsection{Limitations}
 
@@ -309,13 +321,15 @@ Multi-model evaluation (Claude, Gemini, open-source models) would reduce vendor 
 
 \subsection{Personal Learning}
 
-The most useful lesson was that the interesting problems were not where expected. The GPT-4o integration took three days. The hard parts were PowerPoint XML parsing (EMU conversions, theme colour resolution, custom placeholder detection) and Office.js cookie handling inside iframes. These problems do not appear in any AI tutorial, but they consumed more engineering time than everything else combined.
+The most useful lesson was that the interesting problems were not where I expected. The GPT-4o integration took three days. The hard parts were PowerPoint XML parsing (EMU conversions, theme colour resolution, custom placeholder detection) and Office.js cookie handling inside iframes. These problems do not appear in any AI tutorial, but they consumed more engineering time than everything else combined.
 
-If the project started over, two things would change. First, start with the add-in instead of the web app. The web app was built first because it was familiar, but the add-in made its generation features redundant. Three weeks of web development were partially wasted. Second, design the content plan schema to be flatter. The nested structure (slides containing content blocks with varying types) caused most validation failures during development. A flatter schema would have reduced the need for the fallback plan.
+If I started the project over, two things would change. First, I would start with the add-in instead of the web app. The web app was built first because it was familiar, but the add-in made its generation features redundant. Three weeks of web development were partially wasted. Second, I would design the content plan schema to be flatter. The nested structure (slides containing content blocks with varying types) caused most validation failures during development. A flatter schema would have reduced the need for the fallback plan.
 
-The iterative approach proved its value in a way that was not expected. Forcing a working prototype each cycle surfaced problems that no amount of upfront design would have found. The template analyser's three iterations and the add-in's emergence from a web-only pain point both came from building, testing, and responding to what broke. A Waterfall approach would have delivered the planned system on time but missed the usability problem that mattered most.
+The iterative approach proved its value in a way I did not expect. Forcing a working prototype each cycle surfaced problems that no amount of upfront design would have found. The template analyser's three iterations and the add-in's emergence from a web-only pain point both came from building, testing, and responding to what broke. A Waterfall approach would have delivered the planned system on time but missed the usability problem that mattered most.
 
 A few lessons carry beyond this project. When building LLM-integrated systems, the LLM is rarely the hard part. The surrounding infrastructure absorbs most of the engineering effort (SE3). Building where the user already works beats building a new interface. And structured output validation with Zod turns a fuzzy problem (is this output good enough?) into a binary one (does it pass validation?).
+
+On a personal level, the project changed how I approach technical decisions. Early on, my instinct was to plan everything upfront and follow that plan. The Python-to-TypeScript migration and the add-in pivot both broke that instinct in a productive way. The lesson was not that planning is pointless but that plans should be held loosely. The prototype tells you what the plan missed. This is a mindset shift that applies well beyond this project, and it aligns with what \textcite{boehm1988} argued decades ago about the value of early risk exposure through prototyping.
 
 \subsection{Conclusion}
 
@@ -323,4 +337,6 @@ The project set out to build a proof-of-concept showing that AI-powered document
 
 Two unplanned components, the PowerPoint add-in and the slide preview pipeline, emerged from testing the planned workflow and finding it lacking. The add-in was the most impactful addition to the project. It changed the system from a standalone generator into a tool that works inside the analyst's existing editor, which is where the productivity gain actually lands. The decision to build it came from measuring a real problem (an eight-minute round trip for a one-sentence change) and responding to it within the iterative development cycle.
 
-The system has clear limits. It was tested across seven deck layouts with four users. The LLM occasionally produces output that needs the fallback plan. Chart generation from scratch remains unsolved. These are real gaps, not footnotes. That said, no existing tool combines template-aware generation with integrated financial data retrieval, and the evaluation shows this approach saves meaningful time on a task that currently consumes too much of it.
+The system has clear limits. It was tested across seven deck layouts with four users. The LLM occasionally produces output that needs the fallback plan. Chart generation from scratch remains unsolved. These are real gaps, not footnotes. A production deployment would need a wider template test set, a licensed data provider, and a larger user study before the results here could generalise with confidence.
+
+That said, no existing tool combines template-aware generation with integrated financial data retrieval. The evaluation shows this approach saves meaningful time on a task that currently consumes too much of it. The broader takeaway is that AI tools in professional workflows succeed when they respect the user's existing environment rather than replacing it. The add-in works because it meets analysts inside PowerPoint. The data pipeline works because it removes the opportunity for hallucinated numbers. The template matching works because it reads exact values from the source file rather than approximating them. Each of these choices was driven by a specific failure in an earlier version, which is the strongest argument for iterative development in projects where the hard problems are not obvious upfront.

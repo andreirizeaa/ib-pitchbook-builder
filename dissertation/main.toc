@@ -6,36 +6,36 @@
 \contentsline {subsection}{\numberline {1.4}Business Case}{10}{subsection.1.4}%
 \contentsline {subsection}{\numberline {1.5}Aims and Objectives}{10}{subsection.1.5}%
 \contentsline {subsection}{\numberline {1.6}Scope and Success Criteria}{11}{subsection.1.6}%
-\contentsline {section}{\numberline {2}Methodology and Project Plan}{12}{section.2}%
-\contentsline {subsection}{\numberline {2.1}Development Methodology}{12}{subsection.2.1}%
-\contentsline {subsection}{\numberline {2.2}Requirements Analysis}{12}{subsection.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.1}Business Requirements}{13}{subsubsection.2.2.1}%
-\contentsline {subsubsection}{\numberline {2.2.2}Functional Requirements}{13}{subsubsection.2.2.2}%
-\contentsline {subsubsection}{\numberline {2.2.3}Non-Functional Requirements}{14}{subsubsection.2.2.3}%
-\contentsline {subsection}{\numberline {2.3}Technology Stack}{14}{subsection.2.3}%
-\contentsline {subsubsection}{\numberline {2.3.1}Programming Language and Framework}{14}{subsubsection.2.3.1}%
-\contentsline {subsubsection}{\numberline {2.3.2}AI and LLM Integration}{14}{subsubsection.2.3.2}%
-\contentsline {subsubsection}{\numberline {2.3.3}Data Sources and APIs}{15}{subsubsection.2.3.3}%
-\contentsline {subsubsection}{\numberline {2.3.4}Frontend and Deployment}{15}{subsubsection.2.3.4}%
-\contentsline {subsection}{\numberline {2.4}Reproducibility}{16}{subsection.2.4}%
-\contentsline {subsection}{\numberline {2.5}Evaluation Methodology}{16}{subsection.2.5}%
-\contentsline {subsection}{\numberline {2.6}Project Plan}{17}{subsection.2.6}%
-\contentsline {subsection}{\numberline {2.7}Plan Execution and Adaptations}{18}{subsection.2.7}%
-\contentsline {subsection}{\numberline {2.8}Risk Assessment}{19}{subsection.2.8}%
-\contentsline {subsection}{\numberline {2.9}Severity Evaluation}{21}{subsection.2.9}%
-\contentsline {subsection}{\numberline {2.10}Mitigation}{21}{subsection.2.10}%
-\contentsline {subsection}{\numberline {2.11}Ethics and Compliance}{22}{subsection.2.11}%
-\contentsline {subsection}{\numberline {2.12}Project Tracking}{22}{subsection.2.12}%
-\contentsline {section}{\numberline {3}Preliminary Research and Design Documentation}{24}{section.3}%
-\contentsline {subsection}{\numberline {3.1}Literature Review}{24}{subsection.3.1}%
-\contentsline {subsubsection}{\numberline {3.1.1}LLM Productivity}{24}{subsubsection.3.1.1}%
-\contentsline {subsubsection}{\numberline {3.1.2}Automated Presentation Generation}{24}{subsubsection.3.1.2}%
-\contentsline {subsubsection}{\numberline {3.1.3}Agentic Architectures and Tool Use}{25}{subsubsection.3.1.3}%
-\contentsline {subsubsection}{\numberline {3.1.4}Structured Output Reliability}{26}{subsubsection.3.1.4}%
-\contentsline {subsubsection}{\numberline {3.1.5}Hallucination and Human Oversight}{26}{subsubsection.3.1.5}%
-\contentsline {subsubsection}{\numberline {3.1.6}Research Gaps}{27}{subsubsection.3.1.6}%
-\contentsline {subsection}{\numberline {3.2}System Design}{27}{subsection.3.2}%
-\contentsline {subsubsection}{\numberline {3.2.1}Architecture Overview}{27}{subsubsection.3.2.1}%
+\contentsline {section}{\numberline {2}Methodology and Project Plan}{13}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Development Methodology}{13}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Requirements Analysis}{13}{subsection.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.1}Business Requirements}{14}{subsubsection.2.2.1}%
+\contentsline {subsubsection}{\numberline {2.2.2}Functional Requirements}{14}{subsubsection.2.2.2}%
+\contentsline {subsubsection}{\numberline {2.2.3}Non-Functional Requirements}{15}{subsubsection.2.2.3}%
+\contentsline {subsection}{\numberline {2.3}Technology Stack}{15}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Programming Language and Framework}{15}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}AI and LLM Integration}{15}{subsubsection.2.3.2}%
+\contentsline {subsubsection}{\numberline {2.3.3}Data Sources and APIs}{16}{subsubsection.2.3.3}%
+\contentsline {subsubsection}{\numberline {2.3.4}Frontend and Deployment}{16}{subsubsection.2.3.4}%
+\contentsline {subsection}{\numberline {2.4}Reproducibility}{17}{subsection.2.4}%
+\contentsline {subsection}{\numberline {2.5}Evaluation Methodology}{17}{subsection.2.5}%
+\contentsline {subsection}{\numberline {2.6}Project Plan}{18}{subsection.2.6}%
+\contentsline {subsection}{\numberline {2.7}Plan Execution and Adaptations}{19}{subsection.2.7}%
+\contentsline {subsection}{\numberline {2.8}Risk Assessment}{20}{subsection.2.8}%
+\contentsline {subsection}{\numberline {2.9}Severity Evaluation}{22}{subsection.2.9}%
+\contentsline {subsection}{\numberline {2.10}Mitigation}{22}{subsection.2.10}%
+\contentsline {subsection}{\numberline {2.11}Ethics and Compliance}{23}{subsection.2.11}%
+\contentsline {subsection}{\numberline {2.12}Project Tracking}{23}{subsection.2.12}%
+\contentsline {section}{\numberline {3}Preliminary Research and Design Documentation}{25}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Literature Review}{25}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}LLM Productivity}{25}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Automated Presentation Generation}{25}{subsubsection.3.1.2}%
+\contentsline {subsubsection}{\numberline {3.1.3}Agentic Architectures and Tool Use}{26}{subsubsection.3.1.3}%
+\contentsline {subsubsection}{\numberline {3.1.4}Structured Output Reliability}{27}{subsubsection.3.1.4}%
+\contentsline {subsubsection}{\numberline {3.1.5}Hallucination and Human Oversight}{27}{subsubsection.3.1.5}%
+\contentsline {subsubsection}{\numberline {3.1.6}Research Gaps}{28}{subsubsection.3.1.6}%
+\contentsline {subsection}{\numberline {3.2}System Design}{28}{subsection.3.2}%
+\contentsline {subsubsection}{\numberline {3.2.1}Architecture Overview}{28}{subsubsection.3.2.1}%
 \contentsline {subsubsection}{\numberline {3.2.2}Data Models}{30}{subsubsection.3.2.2}%
 \contentsline {subsubsection}{\numberline {3.2.3}Component Specifications}{31}{subsubsection.3.2.3}%
 \contentsline {subsubsection}{\numberline {3.2.4}API Design}{32}{subsubsection.3.2.4}%
@@ -53,38 +53,40 @@
 \contentsline {subsubsection}{\numberline {4.5.3}Slide Building}{43}{subsubsection.4.5.3}%
 \contentsline {subsubsection}{\numberline {4.5.4}Data Retrieval}{45}{subsubsection.4.5.4}%
 \contentsline {subsubsection}{\numberline {4.5.5}Slide Preview Generation}{45}{subsubsection.4.5.5}%
-\contentsline {subsection}{\numberline {4.6}PowerPoint Add-in}{45}{subsection.4.6}%
-\contentsline {subsection}{\numberline {4.7}AI Chat Assistant}{47}{subsection.4.7}%
-\contentsline {subsection}{\numberline {4.8}Authentication and Session Management}{47}{subsection.4.8}%
-\contentsline {subsection}{\numberline {4.9}Testing}{47}{subsection.4.9}%
-\contentsline {subsubsection}{\numberline {4.9.1}Unit and Integration Tests}{48}{subsubsection.4.9.1}%
-\contentsline {subsubsection}{\numberline {4.9.2}E2E Tests}{49}{subsubsection.4.9.2}%
-\contentsline {subsubsection}{\numberline {4.9.3}CI/CD Pipeline}{50}{subsubsection.4.9.3}%
-\contentsline {subsection}{\numberline {4.10}Challenges and Resolutions}{52}{subsection.4.10}%
-\contentsline {subsection}{\numberline {4.11}Requirements Tracking}{53}{subsection.4.11}%
-\contentsline {section}{\numberline {5}Evaluation and Conclusions}{54}{section.5}%
-\contentsline {subsection}{\numberline {5.1}Results Against Success Criteria}{54}{subsection.5.1}%
-\contentsline {subsection}{\numberline {5.2}Test Results}{55}{subsection.5.2}%
-\contentsline {subsection}{\numberline {5.3}Comparison with Existing Tools}{55}{subsection.5.3}%
-\contentsline {subsection}{\numberline {5.4}Objectives Assessment}{56}{subsection.5.4}%
-\contentsline {subsection}{\numberline {5.5}Business Case Validation}{56}{subsection.5.5}%
-\contentsline {subsection}{\numberline {5.6}Usability Evaluation}{56}{subsection.5.6}%
-\contentsline {subsection}{\numberline {5.7}What Worked}{57}{subsection.5.7}%
-\contentsline {subsection}{\numberline {5.8}What Did Not Work}{58}{subsection.5.8}%
-\contentsline {subsection}{\numberline {5.9}Limitations}{58}{subsection.5.9}%
-\contentsline {subsection}{\numberline {5.10}ESG and DEI Considerations}{58}{subsection.5.10}%
-\contentsline {subsubsection}{\numberline {5.10.1}Environmental Impact}{58}{subsubsection.5.10.1}%
-\contentsline {subsubsection}{\numberline {5.10.2}Impact on Junior Analyst Roles}{59}{subsubsection.5.10.2}%
-\contentsline {subsubsection}{\numberline {5.10.3}Accessibility and Bias}{59}{subsubsection.5.10.3}%
-\contentsline {subsection}{\numberline {5.11}Recommendations}{59}{subsection.5.11}%
-\contentsline {subsection}{\numberline {5.12}Future Work}{60}{subsection.5.12}%
-\contentsline {subsection}{\numberline {5.13}Personal Learning}{60}{subsection.5.13}%
-\contentsline {subsection}{\numberline {5.14}Conclusion}{60}{subsection.5.14}%
-\contentsline {section}{References}{62}{section*.59}%
-\contentsline {section}{Appendix A: KSB Mapping}{65}{section*.60}%
-\contentsline {section}{Appendix B: Architecture Decision Records}{70}{section*.84}%
-\contentsline {section}{Appendix C: Evaluation Run Data}{72}{section*.89}%
-\contentsline {section}{Appendix D: Usability Evaluation Questionnaire and Responses}{74}{section*.90}%
-\contentsline {section}{Appendix E: Web Application Screenshots}{76}{section*.93}%
-\contentsline {section}{Appendix F: PowerPoint Add-in Screenshots}{84}{section*.112}%
-\contentsline {section}{Appendix G: Binary Risk Analysis}{87}{section*.117}%
+\contentsline {subsection}{\numberline {4.6}From Web-Only to Add-in: The Product Pivot}{45}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}PowerPoint Add-in}{46}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}AI Chat Assistant}{48}{subsection.4.8}%
+\contentsline {subsection}{\numberline {4.9}Authentication and Session Management}{48}{subsection.4.9}%
+\contentsline {subsection}{\numberline {4.10}Testing}{49}{subsection.4.10}%
+\contentsline {subsubsection}{\numberline {4.10.1}Unit and Integration Tests}{49}{subsubsection.4.10.1}%
+\contentsline {subsubsection}{\numberline {4.10.2}E2E Tests}{50}{subsubsection.4.10.2}%
+\contentsline {subsubsection}{\numberline {4.10.3}CI/CD Pipeline}{52}{subsubsection.4.10.3}%
+\contentsline {subsection}{\numberline {4.11}Challenges and Resolutions}{54}{subsection.4.11}%
+\contentsline {subsection}{\numberline {4.12}Requirements Tracking}{54}{subsection.4.12}%
+\contentsline {section}{\numberline {5}Evaluation and Conclusions}{56}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Results Against Success Criteria}{56}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Test Results}{57}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Comparison with Existing Tools}{57}{subsection.5.3}%
+\contentsline {subsection}{\numberline {5.4}Objectives Assessment}{58}{subsection.5.4}%
+\contentsline {subsection}{\numberline {5.5}Business Case Validation}{58}{subsection.5.5}%
+\contentsline {subsection}{\numberline {5.6}Usability Evaluation}{58}{subsection.5.6}%
+\contentsline {subsection}{\numberline {5.7}What Worked}{60}{subsection.5.7}%
+\contentsline {subsection}{\numberline {5.8}What Did Not Work}{60}{subsection.5.8}%
+\contentsline {subsection}{\numberline {5.9}Unmet Requirements and Next Iteration}{60}{subsection.5.9}%
+\contentsline {subsection}{\numberline {5.10}Limitations}{61}{subsection.5.10}%
+\contentsline {subsection}{\numberline {5.11}ESG and DEI Considerations}{62}{subsection.5.11}%
+\contentsline {subsubsection}{\numberline {5.11.1}Environmental Impact}{62}{subsubsection.5.11.1}%
+\contentsline {subsubsection}{\numberline {5.11.2}Impact on Junior Analyst Roles}{62}{subsubsection.5.11.2}%
+\contentsline {subsubsection}{\numberline {5.11.3}Accessibility and Bias}{62}{subsubsection.5.11.3}%
+\contentsline {subsection}{\numberline {5.12}Recommendations}{62}{subsection.5.12}%
+\contentsline {subsection}{\numberline {5.13}Future Work}{63}{subsection.5.13}%
+\contentsline {subsection}{\numberline {5.14}Personal Learning}{63}{subsection.5.14}%
+\contentsline {subsection}{\numberline {5.15}Conclusion}{64}{subsection.5.15}%
+\contentsline {section}{References}{66}{section*.59}%
+\contentsline {section}{Appendix A: KSB Mapping}{69}{section*.60}%
+\contentsline {section}{Appendix B: Architecture Decision Records}{74}{section*.84}%
+\contentsline {section}{Appendix C: Evaluation Run Data}{76}{section*.89}%
+\contentsline {section}{Appendix D: Usability Evaluation Questionnaire and Responses}{78}{section*.90}%
+\contentsline {section}{Appendix E: Web Application Screenshots}{80}{section*.93}%
+\contentsline {section}{Appendix F: PowerPoint Add-in Screenshots}{88}{section*.112}%
+\contentsline {section}{Appendix G: Binary Risk Analysis}{91}{section*.117}%

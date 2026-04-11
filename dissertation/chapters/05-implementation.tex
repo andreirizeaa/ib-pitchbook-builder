@@ -23,8 +23,8 @@ The codebase uses Turborepo to manage three applications and one shared package 
 \texttt{apps/web} & Next.js, React, TypeScript & Web frontend: PB management, \\
  & & slide preview, generation trigger \\
 \hline
-\texttt{apps/powerpoint-addin} & Vite, React, Office.js & PowerPoint taskpane: in-editor \\
- & & generation and AI-assisted editing \\
+\texttt{apps/powerpoint-addin} & Vite, React, TypeScript, & PowerPoint taskpane: in-editor \\
+ & Office.js & generation and AI-assisted editing \\
 \hline
 \texttt{packages/shared-types} & TypeScript & Shared interfaces, enums, and \\
  & & type definitions across all apps \\
@@ -123,7 +123,7 @@ The template analyser went through three iterations, each driven by a specific f
 
 \textbf{Iteration 1: PptxGenJS only.} The first attempt used PptxGenJS for both reading and writing slides. PptxGenJS can create slides from scratch but has no API for reading existing .pptx files. The only option was to generate new slides and hope the styling matched. It did not. Colours were wrong, placeholder positions were guessed rather than measured, and the output looked nothing like the input template. This approach was scrapped after two days.
 
-\textbf{Iteration 2: JSZip + xml2js (raw XML parsing).} PowerPoint files are ZIP archives containing Office Open XML documents. JSZip opens the archive, and xml2js parses the XML inside. This gave direct access to every property: colours from \texttt{ppt/theme/theme1.xml}, layouts from \texttt{ppt/slideLayouts/}, and placeholder positions from shape definitions. The approach worked but came with a problem. PowerPoint's OOXML specification stores measurements in English Metric Units (EMU), where one inch equals 914,400 EMU. Colours can be stored as hex values, theme references (\texttt{accent1}), or system colour names. Placeholder types use numeric codes, but custom placeholders have no type attribute at all. Each of these required manual parsing and conversion logic.
+\textbf{Iteration 2: JSZip + xml2js (raw XML parsing).} PowerPoint files are ZIP archives containing Office Open XML documents. XML (Extensible Markup Language) is a text-based format that stores data in nested tags, similar to HTML but with custom tag names defined by the application. A .pptx file contains dozens of XML files that describe every slide, shape, colour, and font in the presentation. JSZip opens the archive, and xml2js parses the XML inside. This gave direct access to every property: colours from \texttt{ppt/theme/theme1.xml}, layouts from \texttt{ppt/slideLayouts/}, and placeholder positions from shape definitions. The approach worked but came with a problem. PowerPoint's OOXML specification stores measurements in English Metric Units (EMU), where one inch equals 914,400 EMU. Colours can be stored as hex values, theme references (\texttt{accent1}), or system colour names. Placeholder types use numeric codes, but custom placeholders have no type attribute at all. Each of these required manual parsing and conversion logic.
 
 \textbf{Iteration 3: heuristics and fallbacks for analysis.} Testing against real corporate templates exposed gaps in the raw XML approach. Custom placeholders with no type attribute made up roughly 30\% of all placeholders in the test set. The analyser added position-based heuristics: a placeholder in the top 15\% of the slide with large font settings is classified as a title, even without a type code. A wide placeholder in the bottom half with small fonts is treated as body text. This brought classification accuracy to 93\% across test templates. When parsing fails entirely (corrupted file, unusual XML structure), the analyser falls back to professional defaults: a navy and gold colour scheme with standard IB layout patterns.
 
@@ -164,7 +164,7 @@ The analyser reads layout information from the slide master. Figure~\ref{fig:tem
 
 \subsubsection{Content Planning with GPT-4o}
 
-The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. The system prompt (Code~\ref{lst:system-prompt}) bans generic phrasing and specifies minimum content density per slide type, because early versions produced boilerplate and sparse output.
+The content planner sends user parameters and the extracted template schema to GPT-4o, requesting a structured content plan. Getting the prompt right took several iterations. The first version produced slides full of generic phrases like ``strong market position'' and ``leading industry player'' with no company-specific detail. Adding a rule banning generic phrasing helped, but the slides were still sparse, with two or three short bullet points per slide. The final system prompt (Code~\ref{lst:system-prompt}) sets minimum content density per slide type and provides examples of good versus bad output. It also instructs the model to write as a senior Managing Director rather than a generic assistant, which consistently produced more specific, data-driven language.
 
 \vspace{0.5em}\filbreak
 \begin{lstlisting}[language=JavaScript, caption=Content planner system prompt excerpt (from pitchbook-content.prompt.ts), label=lst:system-prompt]
@@ -249,7 +249,7 @@ This approach uses regex on the raw XML rather than xml2js round-tripping, which
 
 \subsubsection{Data Retrieval}
 
-The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-finance2}) and SEC EDGAR (K5). Yahoo Finance provides market cap, trailing revenue, share price, and historical financials. SEC EDGAR provides recent 10-K and 10-Q filing summaries for US-listed companies. Responses are cached for 24 hours to avoid hitting rate limits and to speed up repeated generations for the same company. The cache uses an in-memory store rather than a database because the data changes daily and stale cache entries are acceptable for a first draft.
+The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-finance2}) and SEC EDGAR (K5). Yahoo Finance provides market cap, trailing revenue, share price, historical income statements, balance sheet data, and cash flow summaries. SEC EDGAR provides recent 10-K (annual), 10-Q (quarterly), and 8-K (material event) filing summaries for US-listed companies. All of this data is injected directly into the GPT-4o prompt so the model places real numbers rather than generating its own. This is the architectural decision behind the 100\% data accuracy result in Section~\ref{sec:evaluation}. The LLM never estimates financial figures because it never needs to. Responses are cached for 24 hours to avoid hitting rate limits and to speed up repeated generations for the same company. The cache uses an in-memory store rather than a database because the data changes daily and stale cache entries are acceptable for a first draft.
 
 If an API call fails, the service returns graceful null values rather than aborting. The content planner receives an empty data object and generates slides without financial figures, producing a structural draft that the analyst fills in manually. This design means a Yahoo Finance outage degrades output quality but never blocks generation entirely. The abstract interface behind both data sources (Section~\ref{sec:methodology}) means switching to a licensed provider like Bloomberg or Refinitiv would require changing one module without touching the rest of the pipeline.
 
@@ -259,10 +259,25 @@ The system uses LibreOffice in headless mode to convert .pptx to PDF, then \text
 
 Neither this pipeline nor the add-in below were in the original design. Both emerged from usability problems found during implementation. The web app originally showed only a download link for the generated file. Without visual previews, users had to open the file in PowerPoint to see what was generated, which added friction and made the web interface feel disconnected from the output. Adding preview images turned the web app into a useful management interface even after the add-in became the primary generation tool.
 
+\subsection{From Web-Only to Add-in: The Product Pivot}
+\label{sec:pivot}
+
+The original plan was a web-only application where the user would fill in a form and receive a .pptx download. That design assumed the generated deck would be close enough to final that a download-and-open step was acceptable. It was not.
+
+Pitch books are never finished after the first draft. Analysts reword bullet points, swap slide ordering, adjust font sizes, reposition charts, and tweak colours to match the managing director's preferences. Every deck goes through multiple rounds of revision. A web-only tool that produces a download link ignores this reality.
+
+Two options existed for supporting editing. The first was building a slide editor into the web app, which would mean recreating a subset of PowerPoint in the browser. Text editing alone needs drag-to-reposition, resize handles, font pickers, and layer ordering. Tools like Google Slides and Canva have entire teams working on their browser editors. Attempting this in a 13-week project would have consumed the remaining timeline and produced a worse experience than PowerPoint itself. A natural language interface for spatial editing (``move the title left'', ``change the chart colours'') would be equally frustrating. Telling a chatbot to nudge elements until they look right takes longer than dragging them with a mouse.
+
+The better path was to work inside PowerPoint rather than against it. PowerPoint already handles slide editing well, and it supports add-ins, which are small web applications that run in a taskpane and communicate with the active presentation via Office.js. The system's value is not in replacing that editor but in removing the blank-page problem.
+
+This led to the v2 architecture. The add-in handles generation and insertion directly into the active presentation. The analyst stays in PowerPoint for the full workflow. The web app shifted to a management layer for storing pitch books, displaying previews, tracking history, and hosting the AI chat. Future features like RAG search (FR15, deferred) would also sit in the web app, since browsing a document library does not belong in a PowerPoint taskpane.
+
+The pivot validated the iterative methodology. A waterfall approach would have delivered the planned web-only system and missed the usability problem entirely. The working prototype in week 7 made the friction visible and measurable, and the modular architecture meant the add-in could reuse the same backend and shared types without duplicating pipeline logic (SE7, SE8).
+
 \subsection{PowerPoint Add-in}
 \label{sec:addin}
 
-A walkthrough in week 7 exposed the flaw in the web-only design: fixing one slide required regenerating the full deck and manually copying it back. The round trip took eight minutes for a one-sentence change. The solution was a taskpane add-in built with Office.js that runs inside PowerPoint, communicating with the same Express backend.
+The add-in is a taskpane built with Office.js that runs inside PowerPoint, communicating with the same Express backend as the web app.
 
 \begin{figure}[H]
 \centering
@@ -303,9 +318,11 @@ A walkthrough in week 7 exposed the flaw in the web-only design: fixing one slid
 % Web to DB
 \draw[darr] (web) -- (db);
 \end{tikzpicture}
-\caption{System architecture with PowerPoint Add-in. The add-in and web app share the same backend and database. Generated slides are pushed directly into the active presentation via Office.js.}
+\caption{System architecture with PowerPoint Add-in. The add-in and web app share the same backend and database. A pitch book generated in either interface is stored centrally and accessible from both.}
 \label{fig:addin-architecture}
 \end{figure}
+
+Because both the web app and the add-in connect to the same Express backend and Supabase database, a pitch book generated in either interface appears in both. An analyst can start a generation from the web app's creation form, and the resulting deck will be available in the add-in's pitch book list when they open PowerPoint. The reverse also works. This means the two interfaces are not separate tools but two views of the same data, each suited to a different task.
 
 \begin{figure}[H]
 \centering
@@ -326,7 +343,9 @@ The \texttt{insertSlidesFromBase64()} API pushes the generated .pptx directly in
 \subsection{AI Chat Assistant}
 \label{sec:ai-chat}
 
-The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. The chat runs on GPT-4o-mini with a system prompt that includes each slide's title and layout type. Messages are stored in a \texttt{chat\_messages} table, preserving history across sessions. The chat is advisory: the assistant provides instructions, but the user applies the edits. Office.js can modify slides programmatically, so automatic application is technically possible. The advisory boundary was drawn deliberately to keep the analyst in control of every change, consistent with the HITL design principle from Section~\ref{sec:introduction}.
+The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. An analyst might type ``make the executive summary more focused on the data centre segment'' or ``add a bullet about the recent acquisition''. The chat runs on GPT-4o-mini, which is cheaper and faster than GPT-4o. Structured output is not required here since the model returns natural language advice rather than JSON. The system prompt includes each slide's title and layout type so the model can reference specific slides in its response. Messages are stored in a \texttt{chat\_messages} table, preserving history across sessions.
+
+The chat is advisory. The assistant provides instructions and suggested text, but the user applies the edits. Office.js can modify slides programmatically, so automatic application is technically possible. The advisory boundary was drawn deliberately to keep the analyst in control of every change. In a regulated industry where every word on a client-facing slide carries professional liability, automatic edits without human approval would introduce risk that outweighs the convenience. This is consistent with the HITL design principle from Section~\ref{sec:introduction}.
 
 \subsection{Authentication and Session Management}
 

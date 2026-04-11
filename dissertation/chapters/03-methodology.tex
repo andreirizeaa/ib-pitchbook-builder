@@ -32,9 +32,9 @@ Research integration & Poor & Moderate & Excellent \\
 
 The project uses iterative prototyping with two-week cycles, drawing on \textcite{boehm1988}'s spiral model (K3, K4, SE8). Waterfall was ruled out because the requirements were expected to change as the LLM integration revealed what was and was not feasible. Scrum adds ceremony (sprint planning, retrospectives, daily standups) designed for teams of five to nine people \parencite{sommerville2016}, which is overhead for a solo developer. Iterative prototyping keeps the feedback loop without the process cost.
 
-Each iteration produces a working prototype with a review at cycle's end (SE7). The review checks whether the prototype meets the iteration's target requirements and whether any assumptions from the design phase turned out to be wrong. This matters because LLM behaviour is hard to predict from documentation alone: structured output reliability, response latency, and content quality all had to be measured against real templates before the design could be finalised.
+Each iteration produces a working prototype with a review at cycle's end (SE7). The review checks whether the prototype meets the iteration's target requirements and whether any assumptions from the design phase turned out to be wrong. This matters because LLM behaviour is hard to predict from documentation alone. For example, the assumption that GPT-4o would always return well-formed JSON turned out to be wrong. Structured output reliability, response latency, and content quality all had to be measured against real templates before the design could be finalised. Without a working prototype at each cycle, these problems would have surfaced much later when fixing them would have been more expensive.
 
-Git with simplified GitFlow (SE12) handles version control: \texttt{main} is always deployable, \texttt{develop} is the integration branch, and feature branches isolate work in progress. GitHub Actions CI runs lint, type checks, and tests on every push, enforcing 80\% coverage for core service modules \parencite{fowler2006} (SE6). ESLint \parencite{eslint2024} catches code style issues and common errors before tests run. Architecture Decision Records \parencite{tyree2005} document technology choices so future developers can understand why specific trade-offs were made.
+Git with trunk-based development (SE12) handles version control: \texttt{main} is always deployable, and feature branches isolate work in progress before merging back. There is no long-lived integration branch. This keeps the workflow simple for a solo developer and avoids merge conflicts that accumulate with parallel branches. GitHub Actions CI runs lint, type checks, and tests on every push, enforcing 80\% coverage for core service modules \parencite{fowler2006} (SE6). ESLint \parencite{eslint2024} catches code style issues and common errors before tests run. Architecture Decision Records \parencite{tyree2005} document technology choices so future developers can understand why specific trade-offs were made.
 
 \subsection{Requirements Analysis}
 
@@ -294,7 +294,7 @@ The frontend deploys through Vercel, the backend on Render, and Supabase provide
 
 \subsection{Reproducibility}
 
-Dependencies are pinned via \texttt{package-lock.json}, LLM temperature is set to zero for evaluation runs, and each run is tied to a specific Git commit. GPT-4o does not guarantee identical outputs at temperature zero \parencite{runeson2012}, so Zod validation ensures structural consistency.
+Dependencies are pinned via \texttt{package-lock.json}, LLM temperature is set to zero for evaluation runs, and each run is tied to a specific Git commit. Temperature is a parameter that controls how random an LLM's output is: zero means the model picks the most likely token at each step, producing the most deterministic output possible. Even at temperature zero, GPT-4o does not guarantee identical outputs across calls \parencite{runeson2012}, so Zod validation ensures structural consistency regardless of minor output variation.
 
 \subsection{Evaluation Methodology}
 
@@ -438,7 +438,7 @@ The project runs for thirteen weeks (K10). Figure~\ref{fig:gantt} shows the sche
 
 \subsection{Plan Execution and Adaptations}
 
-The original plan did not survive contact with implementation. Table~\ref{tab:plan-vs-reality} compares planned milestones against actual outcomes.
+Several things changed once implementation started. Table~\ref{tab:plan-vs-reality} compares planned milestones against actual outcomes.
 
 \begin{table}[H]
 \centering
@@ -472,7 +472,7 @@ Three things changed from the plan, and each change was managed using MoSCoW pri
 
 The Python-to-TypeScript migration happened in week 3. The original plan assumed a Python backend, but silent type mismatches across the API boundary caused runtime failures that only appeared when the frontend called the backend with real data. The migration took four days but removed a whole category of bugs. It paid back quickly because later changes were caught by the compiler instead of crashing at runtime. This is consistent with \textcite{boehm1988}'s observation that early prototypes surface risks that no amount of upfront design can predict.
 
-The PowerPoint add-in was not in the original scope. Usability testing of the web-only workflow in week 7 revealed that downloading a .pptx, opening it in PowerPoint, making a one-sentence change, and re-uploading took eight minutes. That friction offset the productivity gains the system was supposed to deliver. The add-in took three weeks to build but changed the system from a standalone generator into an assistant inside the analyst's existing editor.
+The PowerPoint add-in was not in the original scope. Testing the web-only workflow in week 7 revealed that generated decks always need physical editing: repositioning elements, adjusting font sizes, reordering slides, tweaking colours. Building a slide editor into the web app would have meant recreating a subset of PowerPoint in the browser, which would produce a worse experience than the real thing. PowerPoint already handles all of this well, and it supports add-ins: small web applications that run inside a taskpane and communicate with the active presentation directly via Office.js. The add-in took three weeks to build but changed the system from a standalone generator into an assistant inside the analyst's existing editor, with full access to native PowerPoint editing tools.
 
 Dropping RAG search (FR15, a `Could have') made room for the add-in. The MoSCoW prioritisation made this decision clear: the add-in addressed a real usability problem, while RAG was a stretch goal with unclear value at this stage. The Kanban board was reorganised at the end of week 7 to reflect this trade-off. The iterative approach made all three changes possible. Each cycle had a working prototype, so scope changes could be assessed against a running system rather than a plan on paper (SE7, SE8).
 
@@ -543,7 +543,7 @@ R9 & Scope Creep Beyond Timeline & Medium & Medium & Medium \\
 R10 & Add-in Session Breakage & Medium & Medium & Medium \\
 \hline
 \end{tabular}
-\caption{BRA severity results. Full worksheet and matrix workings in Appendix~\ref{sec:appendix-bra}.}
+\caption{BRA severity results. Full worksheet and matrix workings in Appendix~G.}
 \label{tab:bra-summary}
 \end{table}
 
