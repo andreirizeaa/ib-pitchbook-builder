@@ -288,13 +288,200 @@ The full API is documented with an OpenAPI 3.0 specification and served through 
 \label{fig:swagger}
 \end{figure}
 
+\subsubsection{User Interface Design}
+
+Three wireframes document the planned screens for the v1 web application, produced before implementation to establish layout conventions and the main user flows. The viewer screen (Figure~\ref{fig:wf-viewer-v1}) later exposed the central usability problem: without an in-browser editor, the web app had no way to support the iterative editing that pitch books require. This drove the add-in pivot described in Section~\ref{sec:pivot}.
+
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % Outer frame
+  \draw[thick,rounded corners=2pt] (0,0) rectangle (14,9.2);
+  % Browser chrome
+  \fill[gray!25] (0,8.7) rectangle (14,9.2);
+  \draw[gray!50] (0,8.7) -- (14,8.7);
+  \fill[gray!60] (0.25,8.88) circle (0.1);
+  \fill[gray!60] (0.55,8.88) circle (0.1);
+  \fill[gray!60] (0.85,8.88) circle (0.1);
+  \fill[white,rounded corners=1pt] (2.0,8.77) rectangle (9.5,9.03);
+  \draw[gray!50,rounded corners=1pt] (2.0,8.77) rectangle (9.5,9.03);
+  \node[font=\tiny,text=gray] at (5.75,8.9) {app.pitchdeck.ai/dashboard};
+  % App nav bar
+  \fill[gray!10] (0,8.0) rectangle (14,8.7);
+  \draw[gray!40] (0,8.0) -- (14,8.0);
+  \node[font=\small\bfseries,anchor=west] at (0.3,8.35) {PitchDeck AI};
+  \node[font=\scriptsize,anchor=east,text=gray] at (13.7,8.35) {user@firm.com};
+  % Sidebar
+  \fill[gray!8] (0,0) rectangle (2.6,8.0);
+  \draw[gray!40] (2.6,0) -- (2.6,8.0);
+  % Sidebar items — Dashboard active
+  \fill[gray!20,rounded corners=1pt] (0.15,7.35) rectangle (2.45,7.72);
+  \node[font=\footnotesize\bfseries,anchor=west] at (0.35,7.535) {Dashboard};
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,7.0) {Pitch Books};
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,6.5) {Templates};
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,6.0) {Settings};
+  % Page title + new button
+  \node[font=\normalsize\bfseries,anchor=west] at (2.9,7.7) {Dashboard};
+  \fill[gray!65,rounded corners=2pt] (10.4,7.35) rectangle (13.5,7.72);
+  \node[font=\footnotesize,text=white] at (11.95,7.535) {+ New Pitch Book};
+  % Stat tiles
+  \draw[gray!45,fill=gray!5,rounded corners=2pt] (2.9,6.65) rectangle (5.4,7.2);
+  \node[font=\small\bfseries] at (4.15,7.0) {12};
+  \node[font=\tiny,text=gray] at (4.15,6.8) {Pitch Books};
+  \draw[gray!45,fill=gray!5,rounded corners=2pt] (5.6,6.65) rectangle (8.1,7.2);
+  \node[font=\small\bfseries] at (6.85,7.0) {3};
+  \node[font=\tiny,text=gray] at (6.85,6.8) {Templates};
+  % Recent PBs label
+  \node[font=\footnotesize\bfseries,anchor=west] at (2.9,6.35) {Recent Pitch Books};
+  % Card 1
+  \draw[gray!45,fill=white,rounded corners=2pt] (2.9,5.0) rectangle (6.1,6.15);
+  \node[font=\footnotesize\bfseries,anchor=west] at (3.1,5.85) {Apple Inc};
+  \node[font=\tiny,anchor=west,text=gray] at (3.1,5.6) {Company Overview};
+  \fill[gray!50,rounded corners=1pt] (3.1,5.1) rectangle (4.7,5.35);
+  \node[font=\tiny,text=white] at (3.9,5.225) {Completed};
+  % Card 2
+  \draw[gray!45,fill=white,rounded corners=2pt] (6.3,5.0) rectangle (9.5,6.15);
+  \node[font=\footnotesize\bfseries,anchor=west] at (6.5,5.85) {Microsoft};
+  \node[font=\tiny,anchor=west,text=gray] at (6.5,5.6) {Market Update};
+  \fill[gray!50,rounded corners=1pt] (6.5,5.1) rectangle (8.1,5.35);
+  \node[font=\tiny,text=white] at (7.3,5.225) {Completed};
+  % Card 3
+  \draw[gray!45,fill=white,rounded corners=2pt] (9.7,5.0) rectangle (12.9,6.15);
+  \node[font=\footnotesize\bfseries,anchor=west] at (9.9,5.85) {Tesla};
+  \node[font=\tiny,anchor=west,text=gray] at (9.9,5.6) {Transaction Summary};
+  \fill[gray!50,rounded corners=1pt] (9.9,5.1) rectangle (11.2,5.35);
+  \node[font=\tiny,text=white] at (10.55,5.225) {Draft};
+  % Empty lower area
+  \draw[dashed,gray!30] (2.9,0.3) rectangle (13.6,4.7);
+  \node[font=\scriptsize,text=gray!50] at (8.25,2.5) {(further content)};
+\end{tikzpicture}%
+}
+\caption{Wireframe: Dashboard. Sidebar navigation with four sections; main area shows aggregate stats and recent pitch books as cards.}
+\label{fig:wf-dashboard}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % Outer frame
+  \draw[thick,rounded corners=2pt] (0,0) rectangle (14,9.2);
+  % Browser chrome
+  \fill[gray!25] (0,8.7) rectangle (14,9.2);
+  \draw[gray!50] (0,8.7) -- (14,8.7);
+  \fill[gray!60] (0.25,8.88) circle (0.1);
+  \fill[gray!60] (0.55,8.88) circle (0.1);
+  \fill[gray!60] (0.85,8.88) circle (0.1);
+  \fill[white,rounded corners=1pt] (2.0,8.77) rectangle (9.5,9.03);
+  \draw[gray!50,rounded corners=1pt] (2.0,8.77) rectangle (9.5,9.03);
+  \node[font=\tiny,text=gray] at (5.75,8.9) {app.pitchdeck.ai/new};
+  % App nav bar
+  \fill[gray!10] (0,8.0) rectangle (14,8.7);
+  \draw[gray!40] (0,8.0) -- (14,8.0);
+  \node[font=\small\bfseries,anchor=west] at (0.3,8.35) {PitchDeck AI};
+  \node[font=\scriptsize,anchor=east,text=gray] at (13.7,8.35) {user@firm.com};
+  % Sidebar
+  \fill[gray!8] (0,0) rectangle (2.6,8.0);
+  \draw[gray!40] (2.6,0) -- (2.6,8.0);
+  % Sidebar items — Pitch Books active
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,7.535) {Dashboard};
+  \fill[gray!20,rounded corners=1pt] (0.15,6.85) rectangle (2.45,7.22);
+  \node[font=\footnotesize\bfseries,anchor=west] at (0.35,7.035) {Pitch Books};
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,6.5) {Templates};
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,6.0) {Settings};
+  % Page title
+  \node[font=\normalsize\bfseries,anchor=west] at (2.9,7.7) {New Pitch Book};
+  % Form fields
+  % Company Name
+  \node[font=\footnotesize,anchor=west] at (2.9,7.15) {Company Name};
+  \draw[gray!50,fill=white,rounded corners=1pt] (2.9,6.65) rectangle (9.5,7.05);
+  \node[font=\footnotesize,anchor=west,text=gray!50] at (3.1,6.85) {e.g. Apple Inc};
+  % Ticker
+  \node[font=\footnotesize,anchor=west] at (2.9,6.35) {Ticker (optional)};
+  \draw[gray!50,fill=white,rounded corners=1pt] (2.9,5.85) rectangle (6.0,6.25);
+  \node[font=\footnotesize,anchor=west,text=gray!50] at (3.1,6.05) {e.g. AAPL};
+  % PB Type
+  \node[font=\footnotesize,anchor=west] at (2.9,5.55) {Pitch Book Type};
+  \draw[gray!50,fill=white,rounded corners=1pt] (2.9,5.05) rectangle (9.5,5.45);
+  \node[font=\footnotesize,anchor=west,text=gray!60] at (3.1,5.25) {Company Overview};
+  \node[font=\footnotesize,anchor=east,text=gray!60] at (9.4,5.25) {[v]};
+  % Template upload
+  \node[font=\footnotesize,anchor=west] at (2.9,4.75) {Reference Template (optional)};
+  \draw[gray!50,fill=gray!4,rounded corners=1pt,dashed] (2.9,4.1) rectangle (9.5,4.65);
+  \node[font=\footnotesize,text=gray!60] at (6.2,4.375) {Upload .pptx file};
+  % Additional context
+  \node[font=\footnotesize,anchor=west] at (2.9,3.8) {Additional Context};
+  \draw[gray!50,fill=white,rounded corners=1pt] (2.9,2.85) rectangle (9.5,3.7);
+  \node[font=\footnotesize,anchor=west,text=gray!50] at (3.1,3.275) {Optional instructions for the AI\ldots};
+  % Generate button
+  \fill[gray!65,rounded corners=2pt] (6.5,2.2) rectangle (9.5,2.7);
+  \node[font=\footnotesize,text=white] at (8.0,2.45) {Generate Pitch Book};
+\end{tikzpicture}%
+}
+\caption{Wireframe: New Pitch Book form. Company name, ticker, PB type, optional template upload, and a free-text context field. The Generate button triggers the backend pipeline.}
+\label{fig:wf-create}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\resizebox{\linewidth}{!}{%
+\begin{tikzpicture}[x=1cm,y=1cm]
+  % Outer frame
+  \draw[thick,rounded corners=2pt] (0,0) rectangle (14,9.2);
+  % Browser chrome
+  \fill[gray!25] (0,8.7) rectangle (14,9.2);
+  \draw[gray!50] (0,8.7) -- (14,8.7);
+  \fill[gray!60] (0.25,8.88) circle (0.1);
+  \fill[gray!60] (0.55,8.88) circle (0.1);
+  \fill[gray!60] (0.85,8.88) circle (0.1);
+  \fill[white,rounded corners=1pt] (2.0,8.77) rectangle (9.5,9.03);
+  \draw[gray!50,rounded corners=1pt] (2.0,8.77) rectangle (9.5,9.03);
+  \node[font=\tiny,text=gray] at (5.75,8.9) {app.pitchdeck.ai/pitchbooks/123};
+  % App nav bar
+  \fill[gray!10] (0,8.0) rectangle (14,8.7);
+  \draw[gray!40] (0,8.0) -- (14,8.0);
+  \node[font=\small\bfseries,anchor=west] at (0.3,8.35) {PitchDeck AI};
+  \node[font=\scriptsize,anchor=east,text=gray] at (13.7,8.35) {user@firm.com};
+  % Sidebar
+  \fill[gray!8] (0,0) rectangle (2.6,8.0);
+  \draw[gray!40] (2.6,0) -- (2.6,8.0);
+  % Sidebar items — Pitch Books active
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,7.535) {Dashboard};
+  \fill[gray!20,rounded corners=1pt] (0.15,6.85) rectangle (2.45,7.22);
+  \node[font=\footnotesize\bfseries,anchor=west] at (0.35,7.035) {Pitch Books};
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,6.5) {Templates};
+  \node[font=\footnotesize,anchor=west,text=gray!80] at (0.35,6.0) {Settings};
+  % Breadcrumb
+  \node[font=\tiny,anchor=west,text=gray] at (2.9,7.75) {Pitch Books / Apple Inc / Company Overview};
+  % Title + back
+  \node[font=\normalsize\bfseries,anchor=west] at (2.9,7.35) {Apple Inc - Company Overview};
+  \draw[gray!50,rounded corners=1pt] (11.0,7.1) rectangle (13.5,7.55);
+  \node[font=\footnotesize,text=gray] at (12.25,7.325) {Back};
+  % No-preview box
+  \draw[dashed,gray!45,fill=gray!5,rounded corners=2pt] (3.0,2.6) rectangle (13.5,6.8);
+  \node[font=\normalsize,text=gray!55] at (8.25,5.5) {No preview available};
+  \node[font=\footnotesize,text=gray!45] at (8.25,5.0) {The pitch book has been generated.};
+  \node[font=\footnotesize,text=gray!45] at (8.25,4.6) {Download the file to view and edit in PowerPoint.};
+  % Download button (prominent)
+  \fill[gray!65,rounded corners=3pt] (6.5,3.3) rectangle (10.0,3.9);
+  \node[font=\small,text=white] at (8.25,3.6) {Download .pptx};
+  % Limitation note
+  \draw[dashed,gray!55] (3.0,1.85) rectangle (13.5,2.35);
+  \node[font=\footnotesize,text=gray!70] at (8.25,2.1) {Note: every edit requires opening the file in PowerPoint, then returning here.};
+\end{tikzpicture}%
+}
+\caption{Wireframe: Pitch Book Viewer (v1, web-only). No in-browser preview or editor, just a download link. This screen made the editing friction visible: every change required a round trip through PowerPoint, which led to the add-in design.}
+\label{fig:wf-viewer-v1}
+\end{figure}
+
 \subsubsection{Design Trade-offs}
 
 Table~\ref{tab:tradeoffs} summarises the four main design trade-offs.
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|p{5.5cm}|}
+\begin{tabular}{|p{3.5cm}|p{4.0cm}|p{5.5cm}|}
 \hline
 \rowcolor{gray!20} \textbf{Decision} & \textbf{Chosen Option} & \textbf{Rationale} \\
 \hline

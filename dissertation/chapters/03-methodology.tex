@@ -294,7 +294,7 @@ The frontend deploys through Vercel, the backend on Render, and Supabase provide
 
 \subsection{Reproducibility}
 
-Dependencies are pinned via \texttt{package-lock.json}, LLM temperature is set to zero for evaluation runs, and each run is tied to a specific Git commit. Temperature is a parameter that controls how random an LLM's output is: zero means the model picks the most likely token at each step, producing the most deterministic output possible. Even at temperature zero, GPT-4o does not guarantee identical outputs across calls \parencite{runeson2012}, so Zod validation ensures structural consistency regardless of minor output variation.
+Dependencies are pinned via \texttt{package-lock.json}, the OpenAI model version is pinned to \texttt{gpt-4o-2024-11-20}, LLM temperature is set to zero for evaluation runs, and each run is tied to a specific Git commit. Temperature is a parameter that controls how random an LLM's output is: zero means the model picks the most likely token at each step, producing the most deterministic output possible. Even at temperature zero, GPT-4o does not guarantee identical outputs across calls \parencite{runeson2012}, so Zod validation ensures structural consistency regardless of minor output variation.
 
 \subsection{Evaluation Methodology}
 
@@ -323,7 +323,7 @@ IB conventions? & of narrative structure & across 3 PB types \\
 \label{tab:gqm}
 \end{table}
 
-Targets were fixed before evaluation began and not adjusted after seeing results, following the pre-registration principle from \textcite{wohlin2012} to avoid post-hoc rationalisation. Outputs are compared against Gamma (a commercial AI presentation tool) and estimated manual creation time to give context beyond the system's own metrics. An informal usability evaluation with four junior analysts (P1--P4) at a London financial services firm provides qualitative feedback. Participants were told their responses would appear anonymously and are identified only as P1 to P4. The sample is too small for statistical significance, but combined with the quantitative metrics it gives a directional signal about practical value.
+Targets were fixed before evaluation began and not adjusted after seeing results, following the pre-registration principle from \textcite{wohlin2012} to avoid post-hoc rationalisation. The 12 evaluation runs covered four companies (two FTSE 100, two S\&P 500) across three PB types, using three distinct corporate templates. Outputs are compared against Gamma (a commercial AI presentation tool) and estimated manual creation time to give context beyond the system's own metrics. An informal usability evaluation with four junior analysts (P1--P4) at a London financial services firm provides qualitative feedback. Each participant gave verbal informed consent before the session, was told the study's purpose, and was informed that responses would be used anonymously in an academic report. Participants are identified only as P1 to P4. The sample is too small for statistical significance, but combined with the quantitative metrics it gives a directional signal about practical value.
 
 \subsection{Project Plan}
 
@@ -557,7 +557,7 @@ The two Low risks have effective mitigations already in place. R3 (malicious tem
 
 \subsection{Ethics and Compliance}
 
-AI in financial services raises concerns around transparency, accountability, and human control \parencite{jobin2019}. \textcite{bis2024} identify three regulatory priorities for AI in banking: explainability of outputs, human oversight of decisions, and data governance. The system addresses all three. Generated content is marked as AI-assisted, and professional review is mandatory before distribution. The analyst sees exactly which data sources were used (Yahoo Finance, SEC EDGAR) and can verify numbers against the source APIs. The system never sends output directly to clients. This aligns with the EU AI Act's requirements for human oversight in financial services \parencite{bis2024}.
+AI in financial services raises concerns around transparency, accountability, and human control \parencite{jobin2019}. \textcite{bis2024} identify three regulatory priorities for AI in banking: explainability of outputs, human oversight of decisions, and data governance. The system addresses all three. Generated content is marked as AI-assisted, and professional review is mandatory before distribution. The analyst sees exactly which data sources were used (Yahoo Finance, SEC EDGAR) and can verify numbers against the source APIs. The system never sends output directly to clients. This meets the EU AI Act's requirements for human oversight in financial services \parencite{bis2024}.
 
 Table~\ref{tab:data-governance} summarises data governance. No personal financial data is processed. The system handles company-level public data (share prices, revenue, market cap) and user-generated content (pitch book titles, company names). These practices follow GDPR's data minimisation principle: the system stores only what is needed for generation and audit, with clear deletion triggers for each data type.
 

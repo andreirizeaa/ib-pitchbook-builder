@@ -3,7 +3,7 @@
 
 Knowledge workers spend a fifth of their time just searching for information \parencite{mckinsey2012}. Investment banking (IB) is more affected than most. Document preparation consumes half to three-quarters of a junior banker's week, and pitch books (PBs) account for a large portion of that time \parencite{cfi2025,wso2024}. When Goldman Sachs surveyed its first-year analysts in 2021, the average was 98 hours a week, with document preparation a major driver of burnout \parencite{bbc2021}. Yet most PBs look nearly identical. Change the company name and update the numbers, and you could reuse last month's deck. That repetition makes them good targets for automation (K1, K7).
 
-IB firms advise companies on mergers, acquisitions, capital raising, and other financial transactions. PBs are the primary vehicle for communicating analysis to clients and internal stakeholders. Getting these documents right matters, but getting them done quickly matters too.
+IB firms advise companies on mergers, acquisitions, capital raising, and other financial transactions. PBs are how firms communicate analysis to clients and internal stakeholders. Getting these documents right matters, but getting them done quickly matters too.
 
 Firms have tried internal document libraries, formatting specialists, and automation tools. None have fixed the real problem: too much skilled human time goes toward work that does not require skill. \textcite{chaves2022} found that knowledge sharing in banking suffers from structural barriers and inadequate digital tools, with company knowledge locked in individual documents rather than shared systems.
 
@@ -78,7 +78,7 @@ The aim is to design, build, and test a proof-of-concept (POC) showing how AI-po
 
 On the business side, the goal is a workflow where an analyst provides minimal input and receives a solid first draft. Formatting time drops, but humans stay in control of the analysis. Target users are junior analysts.
 
-On the learning side, the project explores connecting LLM orchestration with programmatic document generation. Human-in-the-loop (HITL) design is central, since AI tools in regulated industries need to support professional judgement.
+On the learning side, the project is designed to evidence apprenticeship KSBs across software engineering practice, business case analysis, and the strategic application of emerging technology. These goals satisfy the IOT635 assessment requirement to demonstrate both technical competency and business insight (K1, K2, K3, K8, K9, S1). HITL design is central throughout, since AI tools in regulated industries need to support professional judgement rather than replace it.
 
 Five objectives structure the work:
 
@@ -96,7 +96,14 @@ The POC takes user input (company, transaction type, dates, reference template, 
 
 Design choices: agentic orchestration with specialised TypeScript services, code-based template extraction with JSZip/xml2js rather than vision models, public APIs only, RAG as a stretch goal. Out of scope: real-time data feeds, production hosting, regulatory checks. Practical limits: one academic term, standard hardware, student API budget.
 
-Assumptions: templates are well-formed Office Open XML archives, financial data comes from public sources only (limiting coverage to listed companies), content is English only, and users have desktop PowerPoint (the add-in relies on Office.js APIs that PowerPoint for the web does not fully support).
+Four assumptions underpin the scope:
+
+\begin{itemize}
+    \item Templates are well-formed Office Open XML archives.
+    \item Financial data comes from public sources only, limiting coverage to listed companies.
+    \item Content is English only.
+    \item Users have desktop PowerPoint; the add-in relies on Office.js APIs that PowerPoint for the web does not fully support.
+\end{itemize}
 
 Success criteria:
 

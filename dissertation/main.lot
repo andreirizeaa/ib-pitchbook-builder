@@ -14,21 +14,21 @@
 \contentsline {table}{\numberline {14}{\ignorespaces Data Governance: Storage, Retention, and Deletion Policies}}{23}{table.caption.20}%
 \contentsline {table}{\numberline {15}{\ignorespaces Presentation Generation Approaches Compared}}{26}{table.caption.22}%
 \contentsline {table}{\numberline {16}{\ignorespaces Primary Data Model Specifications}}{30}{table.caption.24}%
-\contentsline {table}{\numberline {17}{\ignorespaces Design Trade-offs}}{34}{table.caption.27}%
-\contentsline {table}{\numberline {18}{\ignorespaces Monorepo Package Structure}}{36}{table.caption.29}%
-\contentsline {table}{\numberline {19}{\ignorespaces Unit and Integration Test Coverage}}{49}{table.caption.39}%
-\contentsline {table}{\numberline {20}{\ignorespaces Cypress E2E Test Specs}}{50}{table.caption.41}%
-\contentsline {table}{\numberline {21}{\ignorespaces CI/CD Pipeline Stages}}{52}{table.caption.45}%
-\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{54}{table.caption.49}%
-\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{55}{table.caption.50}%
-\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{56}{table.caption.51}%
-\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{57}{table.caption.53}%
-\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{57}{table.caption.54}%
-\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{58}{table.caption.55}%
-\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{59}{table.caption.56}%
-\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{63}{table.caption.58}%
-\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{76}{table.30}%
-\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation).}}{76}{table.31}%
-\contentsline {table}{\numberline {33}{\ignorespaces Risk register for Binary Risk Analysis.}}{92}{table.33}%
-\contentsline {table}{\numberline {34}{\ignorespaces BRA worksheet. L = Likelihood, I = Impact, O = Overall. Med = Medium.}}{92}{table.caption.120}%
-\contentsline {table}{\numberline {35}{\ignorespaces 3$\times $3 combination matrix used at each stage.}}{93}{table.caption.124}%
+\contentsline {table}{\numberline {17}{\ignorespaces Design Trade-offs}}{36}{table.caption.30}%
+\contentsline {table}{\numberline {18}{\ignorespaces Monorepo Package Structure}}{38}{table.caption.32}%
+\contentsline {table}{\numberline {19}{\ignorespaces Unit and Integration Test Coverage}}{51}{table.caption.42}%
+\contentsline {table}{\numberline {20}{\ignorespaces Cypress E2E Test Specs}}{52}{table.caption.44}%
+\contentsline {table}{\numberline {21}{\ignorespaces CI/CD Pipeline Stages}}{54}{table.caption.48}%
+\contentsline {table}{\numberline {22}{\ignorespaces Implementation Challenges and Resolutions}}{56}{table.caption.52}%
+\contentsline {table}{\numberline {23}{\ignorespaces Functional Requirements Status}}{57}{table.caption.53}%
+\contentsline {table}{\numberline {24}{\ignorespaces Success Criteria Results}}{58}{table.caption.54}%
+\contentsline {table}{\numberline {25}{\ignorespaces Automated Test Results}}{59}{table.caption.56}%
+\contentsline {table}{\numberline {26}{\ignorespaces Comparison Against Existing Approaches}}{59}{table.caption.57}%
+\contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{60}{table.caption.58}%
+\contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{61}{table.caption.59}%
+\contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{65}{table.caption.61}%
+\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{78}{table.30}%
+\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation).}}{78}{table.31}%
+\contentsline {table}{\numberline {33}{\ignorespaces Risk register for Binary Risk Analysis.}}{94}{table.33}%
+\contentsline {table}{\numberline {34}{\ignorespaces BRA worksheet. L = Likelihood, I = Impact, O = Overall. Med = Medium.}}{94}{table.caption.123}%
+\contentsline {table}{\numberline {35}{\ignorespaces 3$\times $3 combination matrix used at each stage.}}{95}{table.caption.127}%
