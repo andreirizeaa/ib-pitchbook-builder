@@ -249,7 +249,7 @@ This approach uses regex on the raw XML rather than xml2js round-tripping, which
 
 \subsubsection{Data Retrieval}
 
-The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-finance2}) and SEC EDGAR (K5). Yahoo Finance provides market cap, trailing revenue, share price, historical income statements, balance sheet data, and cash flow summaries. SEC EDGAR provides recent 10-K (annual), 10-Q (quarterly), and 8-K (material event) filing summaries for US-listed companies. All of this data is injected directly into the GPT-4o prompt so the model places real numbers rather than generating its own. This is the architectural decision behind the 100\% data accuracy result in Section~\ref{sec:evaluation}. The LLM never estimates financial figures because it never needs to. Responses are cached for 24 hours to avoid hitting rate limits and to speed up repeated generations for the same company. The cache uses an in-memory store rather than a database because the data changes daily and stale cache entries are acceptable for a first draft.
+The data retrieval service pulls financials from Yahoo Finance (\texttt{yahoo-finance2}) and SEC EDGAR (K5). Yahoo Finance provides market cap, trailing revenue, share price, historical income statements, balance sheet data, and cash flow summaries. SEC EDGAR provides recent 10-K (annual), 10-Q (quarterly), and 8-K (material event) filing summaries for US-listed companies. Yahoo Finance data is injected directly into the GPT-4o prompt so the model places real numbers rather than generating its own. The EDGAR client runs and returns filing metadata, but the content planner does not yet reference it; passing filing data to the prompt is the next step. This is the architectural decision behind the 100\% data accuracy result in Section~\ref{sec:evaluation}. The LLM never estimates financial figures because it never needs to. Responses are cached for 24 hours to avoid hitting rate limits and to speed up repeated generations for the same company. The cache uses an in-memory store rather than a database because the data changes daily and stale cache entries are acceptable for a first draft.
 
 If an API call fails, the service returns graceful null values rather than aborting. The content planner receives an empty data object and generates slides without financial figures, producing a structural draft that the analyst fills in manually. This design means a Yahoo Finance outage degrades output quality but never blocks generation entirely. The abstract interface behind both data sources (Section~\ref{sec:methodology}) means switching to a licensed provider like Bloomberg or Refinitiv would require changing one module without touching the rest of the pipeline.
 
@@ -556,7 +556,7 @@ FR3 & Map placeholder positions & Met & Position/size/type extraction \\
 \hline
 FR4 & Fetch Yahoo Finance data & Met & yahoo-finance2 integration, caching \\
 \hline
-FR5 & Retrieve SEC filings & Met & EDGAR REST API client \\
+FR5 & Retrieve SEC filings & Partial & EDGAR client fetches filings; data not yet passed to content planner \\
 \hline
 FR6 & Web search for news & Not met & Stub returns Yahoo Finance link, no search API \\
 \hline
