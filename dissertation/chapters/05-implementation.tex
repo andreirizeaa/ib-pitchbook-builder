@@ -1,8 +1,6 @@
 \section{Project Implementation and Outcomes}
 \label{sec:implementation}
 
-This section covers what was built and how it works. Where things changed from the original plan, the text explains why.
-
 \subsection{Architecture Evolution}
 
 The original design called for a Python backend with FastAPI and a Next.js frontend. Two weeks in, this changed: every data structure crossing the API boundary had to be defined twice, and mismatches caused silent runtime failures. Switching everything to TypeScript (SE3) took four days but removed a whole category of bugs. The \texttt{shared-types} package now defines every interface once, and the compiler catches mismatches at build time.
@@ -123,7 +121,7 @@ The template analyser went through three iterations, each driven by a specific f
 
 \textbf{Iteration 1: PptxGenJS only.} The first attempt used PptxGenJS for both reading and writing slides. PptxGenJS can create slides from scratch but has no API for reading existing .pptx files. The only option was to generate new slides and hope the styling matched. It did not. Colours were wrong, placeholder positions were guessed rather than measured, and the output looked nothing like the input template. This approach was scrapped after two days.
 
-\textbf{Iteration 2: JSZip + xml2js (raw XML parsing).} PowerPoint files are ZIP archives containing Office Open XML documents. XML (Extensible Markup Language) is a text-based format that stores data in nested tags, similar to HTML but with custom tag names defined by the application. A .pptx file contains dozens of XML files that describe every slide, shape, colour, and font in the presentation. JSZip opens the archive, and xml2js parses the XML inside. This gave direct access to every property: colours from \texttt{ppt/theme/theme1.xml}, layouts from \texttt{ppt/slideLayouts/}, and placeholder positions from shape definitions. The approach worked but came with a problem. PowerPoint's OOXML specification stores measurements in English Metric Units (EMU), where one inch equals 914,400 EMU. Colours can be stored as hex values, theme references (\texttt{accent1}), or system colour names. Placeholder types use numeric codes, but custom placeholders have no type attribute at all. Each of these required manual parsing and conversion logic.
+\textbf{Iteration 2: JSZip + xml2js (raw XML parsing).} PowerPoint files are ZIP archives containing Office Open XML documents. A .pptx file contains dozens of XML files that describe every slide, shape, colour, and font in the presentation. JSZip opens the archive, and xml2js parses the XML inside. This gave direct access to every property: colours from \texttt{ppt/theme/theme1.xml}, layouts from \texttt{ppt/slideLayouts/}, and placeholder positions from shape definitions. The approach worked but came with a problem. PowerPoint's OOXML specification stores measurements in English Metric Units (EMU), where one inch equals 914,400 EMU. Colours can be stored as hex values, theme references (\texttt{accent1}), or system colour names. Placeholder types use numeric codes, but custom placeholders have no type attribute at all. Each of these required manual parsing and conversion logic.
 
 \textbf{Iteration 3: heuristics and fallbacks for analysis.} Testing against real corporate templates exposed gaps in the raw XML approach. Custom placeholders with no type attribute made up roughly 30\% of all placeholders in the test set. The analyser added position-based heuristics: a placeholder in the top 15\% of the slide with large font settings is classified as a title, even without a type code. A wide placeholder in the bottom half with small fonts is treated as body text. This brought classification accuracy to 93\% across test templates. When parsing fails entirely (corrupted file, unusual XML structure), the analyser falls back to professional defaults: a navy and gold colour scheme with standard IB layout patterns.
 
@@ -266,9 +264,9 @@ The original plan was a web-only application where the user would fill in a form
 
 Pitch books are never finished after the first draft. Analysts reword bullet points, swap slide ordering, adjust font sizes, reposition charts, and tweak colours to match the managing director's preferences. Every deck goes through multiple rounds of revision. A web-only tool that produces a download link ignores this reality.
 
-Two options existed for supporting editing. The first was building a slide editor into the web app, which would mean recreating a subset of PowerPoint in the browser. Text editing alone needs drag-to-reposition, resize handles, font pickers, and layer ordering. Tools like Google Slides and Canva have entire teams working on their browser editors. Attempting this in a 13-week project would have consumed the remaining timeline and produced a worse experience than PowerPoint itself. A natural language interface for spatial editing (``move the title left'', ``change the chart colours'') would be equally frustrating. Telling a chatbot to nudge elements until they look right takes longer than dragging them with a mouse.
+Two options existed for supporting editing. The first was building a slide editor into the web app, which would mean recreating a subset of PowerPoint in the browser. Text editing alone needs drag-to-reposition, resize handles, font pickers, and layer ordering. This would consume the remaining timeline and produce a worse experience than PowerPoint itself.
 
-The better path was to work inside PowerPoint rather than against it. PowerPoint already handles slide editing well, and it supports add-ins, which are small web applications that run in a taskpane and communicate with the active presentation via Office.js. The system's value is not in replacing that editor but in removing the blank-page problem.
+The better path was to work inside PowerPoint rather than against it. PowerPoint already handles slide editing well, and it supports add-ins, which are small web applications that run in a taskpane and communicate with the active presentation via Office.js. The system removes the blank-page problem, not the editor.
 
 This led to the v2 architecture. The add-in handles generation and insertion directly into the active presentation. The analyst stays in PowerPoint for the full workflow. The web app shifted to a management layer for storing pitch books, displaying previews, tracking history, and hosting the AI chat. Future features like RAG search (FR15, deferred) would also sit in the web app, since browsing a document library does not belong in a PowerPoint taskpane.
 
@@ -322,7 +320,7 @@ The add-in is a taskpane built with Office.js that runs inside PowerPoint, commu
 \label{fig:addin-architecture}
 \end{figure}
 
-Because both the web app and the add-in connect to the same Express backend and Supabase database, a pitch book generated in either interface appears in both. An analyst can start a generation from the web app's creation form, and the resulting deck will be available in the add-in's pitch book list when they open PowerPoint. The reverse also works. This means the two interfaces are not separate tools but two views of the same data, each suited to a different task.
+Because both the web app and the add-in connect to the same Express backend and Supabase database, a pitch book generated in either interface appears in both. An analyst can start a generation from the web app's creation form, and the resulting deck will be available in the add-in's pitch book list when they open PowerPoint. The two interfaces are two views of the same data, each suited to a different task.
 
 \begin{figure}[H]
 \centering
@@ -345,7 +343,7 @@ The \texttt{insertSlidesFromBase64()} API pushes the generated .pptx directly in
 
 The pitch book viewer includes an AI chat panel (visible in Figure~\ref{fig:pitchbook-viewer}) that lets users request slide changes in plain English. An analyst might type ``make the executive summary more focused on the data centre segment'' or ``add a bullet about the recent acquisition''. The chat runs on GPT-4o-mini, which is cheaper and faster than GPT-4o. Structured output is not required here since the model returns natural language advice rather than JSON. The system prompt includes each slide's title and layout type so the model can reference specific slides in its response. Messages are stored in a \texttt{chat\_messages} table, preserving history across sessions.
 
-The chat is advisory. The assistant provides instructions and suggested text, but the user applies the edits. Office.js can modify slides programmatically, so automatic application is technically possible. The advisory boundary was drawn deliberately to keep the analyst in control of every change. In a regulated industry where every word on a client-facing slide carries professional liability, automatic edits without human approval would introduce risk that outweighs the convenience. This is consistent with the HITL design principle from Section~\ref{sec:introduction}.
+The chat is advisory. The assistant provides instructions and suggested text, but the user applies the edits. Office.js can modify slides programmatically, so automatic application is technically possible. The advisory boundary was drawn deliberately to keep the analyst in control of every change. In a regulated industry where every word on a client-facing slide carries professional liability, automatic edits without human approval would introduce risk. This is consistent with the HITL design principle from Section~\ref{sec:introduction}.
 
 \subsection{Authentication and Session Management}
 
@@ -544,7 +542,7 @@ Table~\ref{tab:req-evidence} maps functional requirements to their implementatio
 
 \begin{table}[H]
 \centering
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|l|p{3.8cm}|l|p{5.5cm}|}
 \hline
 \rowcolor{gray!20} \textbf{ID} & \textbf{Requirement} & \textbf{Status} & \textbf{Evidence} \\
 \hline

@@ -8,7 +8,7 @@
 \contentsline {figure}{\numberline {8}{\ignorespaces Wireframe: New Pitch Book form. Company name, ticker, PB type, optional template upload, and a free-text context field. The Generate button triggers the backend pipeline.}}{34}{figure.caption.28}%
 \contentsline {figure}{\numberline {9}{\ignorespaces Wireframe: Pitch Book Viewer (v1, web-only). No in-browser preview or editor, just a download link. This screen made the editing friction visible: every change required a round trip through PowerPoint, which led to the add-in design.}}{35}{figure.caption.29}%
 \contentsline {figure}{\numberline {10}{\ignorespaces Data flow through the generation pipeline. All template data passes through the Template Schema; there is no direct link from extraction to planning.}}{37}{figure.caption.31}%
-\contentsline {figure}{\numberline {11}{\ignorespaces Web app dashboard showing pitch book counts, recent generation history, and sidebar navigation.}}{39}{figure.caption.33}%
+\contentsline {figure}{\numberline {11}{\ignorespaces Web app dashboard showing pitch book counts, recent generation history, and sidebar navigation.}}{38}{figure.caption.33}%
 \contentsline {figure}{\numberline {12}{\ignorespaces Orchestration pipeline. Each stage passes its output to the next. Dashed paths show graceful failure handling: data retrieval passes an empty object on API failure, and the content planner falls back to a generic plan if Zod validation fails.}}{39}{figure.caption.34}%
 \contentsline {figure}{\numberline {13}{\ignorespaces New pitch book creation form. The user selects a deck layout, colour theme, and enters company details before generating.}}{40}{figure.caption.35}%
 \contentsline {figure}{\numberline {14}{\ignorespaces Slide master view showing the available layouts for a template. Each layout defines placeholder positions, fonts, and background styling that the generation pipeline inherits.}}{43}{figure.caption.36}%
@@ -26,18 +26,18 @@
 \contentsline {figure}{\numberline {26}{\ignorespaces Render dashboard showing the Express backend service running with live logs.}}{56}{figure.caption.51}%
 \contentsline {figure}{\numberline {27}{\ignorespaces Generation time per evaluation run. The dashed line marks the mean (47.9s). Run 7 is the outlier at 78s due to repeated validation failures.}}{58}{figure.caption.55}%
 \contentsline {figure}{\numberline {28}{\ignorespaces Usability evaluation median scores (n=4). The add-in intuitiveness scored lowest. Time savings and reduced editing scored highest.}}{61}{figure.caption.60}%
-\contentsline {figure}{\numberline {29}{\ignorespaces Login page with email and password form alongside application branding.}}{82}{figure.caption.98}%
-\contentsline {figure}{\numberline {30}{\ignorespaces Registration page with name, email, and password fields.}}{82}{figure.caption.99}%
-\contentsline {figure}{\numberline {31}{\ignorespaces Forgot password page. Sends a reset link via Supabase Auth.}}{83}{figure.caption.100}%
-\contentsline {figure}{\numberline {32}{\ignorespaces Dashboard with summary cards, recent pitch books, and generation status indicators.}}{84}{figure.caption.102}%
-\contentsline {figure}{\numberline {33}{\ignorespaces Pitch books list with company name, type, date, and generation status. Includes search filtering.}}{85}{figure.caption.104}%
-\contentsline {figure}{\numberline {34}{\ignorespaces Pitch book viewer with full-size slide, thumbnail strip, and AI chat panel for requesting edits.}}{85}{figure.caption.105}%
-\contentsline {figure}{\numberline {35}{\ignorespaces New pitch book form with company details, pitch book type, transaction context, and design options.}}{86}{figure.caption.107}%
-\contentsline {figure}{\numberline {36}{\ignorespaces Templates page (empty state) with upload prompt for .pptx reference templates.}}{87}{figure.caption.109}%
-\contentsline {figure}{\numberline {37}{\ignorespaces Deck layouts overview with seven pre-configured deck types, each showing a description and slide count.}}{88}{figure.caption.111}%
-\contentsline {figure}{\numberline {38}{\ignorespaces Deck layout editor for Company Overview. Each slide has a title, layout type, and content description. Slides can be reordered, added, or deleted.}}{88}{figure.caption.112}%
-\contentsline {figure}{\numberline {39}{\ignorespaces Settings page with profile details, password change, and sign-out.}}{89}{figure.caption.114}%
-\contentsline {figure}{\numberline {40}{\ignorespaces Add-in after generation. 11 slides have been inserted into the presentation. The taskpane shows a completion message and an AI chat input for requesting edits.}}{90}{figure.caption.116}%
-\contentsline {figure}{\numberline {41}{\ignorespaces New pitch book form in the add-in. The user enters company name, ticker, pitch book type, transaction type, colour theme, design style, and optional context before generating.}}{91}{figure.caption.117}%
-\contentsline {figure}{\numberline {42}{\ignorespaces Generation in progress. The taskpane shows a step-by-step progress indicator: analysing template, fetching company data, planning content with AI, building slides, and generating previews.}}{92}{figure.caption.118}%
-\contentsline {figure}{\numberline {43}{\ignorespaces Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests.}}{92}{figure.caption.119}%
+\contentsline {figure}{\numberline {29}{\ignorespaces Login page with email and password form alongside application branding.}}{83}{figure.caption.98}%
+\contentsline {figure}{\numberline {30}{\ignorespaces Registration page with name, email, and password fields.}}{83}{figure.caption.99}%
+\contentsline {figure}{\numberline {31}{\ignorespaces Forgot password page. Sends a reset link via Supabase Auth.}}{84}{figure.caption.100}%
+\contentsline {figure}{\numberline {32}{\ignorespaces Dashboard with summary cards, recent pitch books, and generation status indicators.}}{85}{figure.caption.102}%
+\contentsline {figure}{\numberline {33}{\ignorespaces Pitch books list with company name, type, date, and generation status. Includes search filtering.}}{86}{figure.caption.104}%
+\contentsline {figure}{\numberline {34}{\ignorespaces Pitch book viewer with full-size slide, thumbnail strip, and AI chat panel for requesting edits.}}{86}{figure.caption.105}%
+\contentsline {figure}{\numberline {35}{\ignorespaces New pitch book form with company details, pitch book type, transaction context, and design options.}}{87}{figure.caption.107}%
+\contentsline {figure}{\numberline {36}{\ignorespaces Templates page (empty state) with upload prompt for .pptx reference templates.}}{88}{figure.caption.109}%
+\contentsline {figure}{\numberline {37}{\ignorespaces Deck layouts overview with seven pre-configured deck types, each showing a description and slide count.}}{89}{figure.caption.111}%
+\contentsline {figure}{\numberline {38}{\ignorespaces Deck layout editor for Company Overview. Each slide has a title, layout type, and content description. Slides can be reordered, added, or deleted.}}{89}{figure.caption.112}%
+\contentsline {figure}{\numberline {39}{\ignorespaces Settings page with profile details, password change, and sign-out.}}{90}{figure.caption.114}%
+\contentsline {figure}{\numberline {40}{\ignorespaces Add-in after generation. 11 slides have been inserted into the presentation. The taskpane shows a completion message and an AI chat input for requesting edits.}}{91}{figure.caption.116}%
+\contentsline {figure}{\numberline {41}{\ignorespaces New pitch book form in the add-in. The user enters company name, ticker, pitch book type, transaction type, colour theme, design style, and optional context before generating.}}{92}{figure.caption.117}%
+\contentsline {figure}{\numberline {42}{\ignorespaces Generation in progress. The taskpane shows a step-by-step progress indicator: analysing template, fetching company data, planning content with AI, building slides, and generating previews.}}{93}{figure.caption.118}%
+\contentsline {figure}{\numberline {43}{\ignorespaces Completed generation for Apple Inc. The teal and coral colour theme was applied automatically. Slides appear in the left panel and the AI chat is ready for edit requests.}}{93}{figure.caption.119}%

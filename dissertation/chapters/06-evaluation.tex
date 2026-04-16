@@ -1,7 +1,7 @@
 \section{Evaluation and Conclusions}
 \label{sec:evaluation}
 
-This section evaluates the system against its original objectives and success criteria, compares it to existing tools, and reflects on what worked and what did not.
+This section measures the system against its objectives, compares it to existing tools, and covers what worked and what did not.
 
 \subsection{Results Against Success Criteria}
 
@@ -86,7 +86,7 @@ Cypress E2E & 7 spec files, 28 tests & 100\% & N/A (full user flows) \\
 \label{tab:test-results}
 \end{table}
 
-Service tests have the highest coverage because the core pipeline modules are the most critical and testable. UI-heavy apps rely on Cypress E2E tests instead. The CI pipeline (SE6) flagged 14 breaking changes before they reached the main branch during development. Most were type mismatches after changing a shared interface in \texttt{shared-types}, caught at the type-check stage before tests even ran. Two were logic regressions in the template analyser where a new heuristic broke an existing edge case.
+Service tests have the highest coverage because the core pipeline modules are the most critical and testable. UI-heavy apps rely on Cypress E2E tests instead. The CI pipeline (SE6) flagged 14 breaking changes before they reached the main branch during development. Most were type mismatches after changing a shared interface in \texttt{shared-types}, caught at the type-check stage before tests even ran.
 
 \subsection{Comparison with Existing Tools}
 
@@ -119,7 +119,7 @@ Cost per generation & \textasciitilde\$0.03 (GPT-4o API) & \$8 to 16/month & Ana
 \label{tab:comparison}
 \end{table}
 
-Gamma is faster at producing a first draft, but the output uses generic templates with no option to match a corporate visual identity. An analyst using Gamma would still need to reformat every slide to match the bank's colours, fonts, and layout conventions, which is the exact problem this project targets. Manual creation produces perfect template matching by definition, but at the cost of 90 to 120 minutes of work that is mostly mechanical. This system sits between the two. It is nearly as fast as Gamma, nearly as accurate as manual, and the output is already in the correct template inside PowerPoint. The add-in workflow also removes the export step that Gamma requires, since generated slides appear directly in the active presentation.
+Gamma is faster at producing a first draft, but the output uses generic templates with no option to match a corporate visual identity. An analyst using Gamma would still need to reformat every slide to match the bank's colours and fonts. Manual creation produces perfect template matching by definition, but at the cost of 90 to 120 minutes of mostly mechanical work. This system sits between the two: nearly as fast as Gamma, nearly as accurate as manual, with output already in the correct template inside PowerPoint.
 
 \subsection{Objectives Assessment}
 
@@ -226,7 +226,7 @@ Open-ended responses raised two recurring themes. First, the template matching w
 
 The sample size is too small for statistical significance. These results suggest a pattern but cannot prove one.
 
-Several threats to validity apply. Researcher bias is present throughout: the evaluation was designed and run by the system's developer, so positive results may partly reflect design choices optimised for the test conditions rather than general performance. Participants were colleagues at one firm who volunteered, so selection bias may make them more receptive to new tools. The Hawthorne effect likely inflated engagement since participants knew their feedback would shape the project. Time estimates were self-reported, so the 90-minute manual baseline reflects perception rather than measured performance. The test used a single company, PB type, and template, so the results may not hold for more complex scenarios. A stronger evaluation would use timed task completion with multiple templates and companies. It would also need a larger sample across firms and a control group creating the same deck manually.
+Several threats to validity apply. Researcher bias is present: the evaluation was designed and run by the system's developer. Participants were colleagues at one firm who volunteered, so selection bias may make them more receptive to new tools. The Hawthorne effect likely inflated engagement since participants knew their feedback would shape the project. Time estimates were self-reported. The test used a single company, PB type, and template. A stronger evaluation would use timed task completion with multiple templates, a larger sample across firms, and a control group creating the same deck manually.
 
 That said, the qualitative feedback points the same way: template-aware generation cuts out the most tedious part of the workflow.
 
@@ -234,13 +234,13 @@ That said, the qualitative feedback points the same way: template-aware generati
 
 Four things worked well.
 
-First, the TypeScript consolidation (SE3). One language across all four packages (backend, web app, add-in, shared types) caught type mismatches at compile time rather than at runtime. When the add-in was added in week 7, the shared-types package meant the new application inherited every interface, enum, and validation schema immediately. Building the add-in took three weeks rather than the six or more it would have taken with a separate type system.
+First, the TypeScript consolidation (SE3). One language across all four packages (backend, web app, add-in, shared types) caught type mismatches at compile time rather than at runtime. When the add-in was added in week 7, the shared-types package meant the new application inherited every interface, enum, and validation schema immediately.
 
-Second, the iterative approach to the template analyser (SE4, SE7). Each iteration failed in a specific, testable way, and the failures guided the next version. The first iteration showed that PptxGenJS cannot read templates. The second showed that raw XML parsing misses custom placeholders. The third added heuristics that brought accuracy to 93\%. Each failure narrowed the problem rather than expanding it, which is exactly what \textcite{boehm1988}'s spiral model predicts when prototypes are tested against real inputs early.
+Second, the iterative approach to the template analyser (SE4, SE7). Each iteration failed in a specific, testable way, and the failures guided the next version. The first iteration showed that PptxGenJS cannot read templates. The second showed that raw XML parsing misses custom placeholders. The third added heuristics that brought accuracy to 93\%. Each failure narrowed the problem rather than expanding it, consistent with \textcite{boehm1988}'s spiral model.
 
-Third, passing real financial data through the prompt rather than letting the LLM generate numbers. The 100\% data accuracy result exists because the architecture removes the opportunity for the LLM to get numbers wrong \parencite{huang2024}. This was a deliberate design choice. The LLM is good at structuring narrative and selecting which data points to emphasise. It is not reliable at recalling exact financial figures. Separating those two tasks played to each component's strength.
+Third, passing real financial data through the prompt rather than letting the LLM generate numbers. The 100\% data accuracy result exists because the architecture removes the opportunity for the LLM to get numbers wrong \parencite{huang2024}. The LLM is good at structuring narrative. It is not reliable at recalling exact financial figures. Separating those two tasks played to each component's strength.
 
-Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change was a concrete, measurable problem. Bringing generation into PowerPoint via Office.js was a concrete fix. The usability evaluation confirmed this. The highest-scoring statement (median 5.0) was that the system required less editing than starting from scratch, and the add-in workflow was the feature P4 singled out as the most useful.
+Fourth, the add-in pivot. The eight-minute round trip for a one-sentence change was a concrete, measurable problem. Bringing generation into PowerPoint via Office.js was a concrete fix. The usability evaluation confirmed this: the highest-scoring statement (median 5.0) was that the system required less editing than starting from scratch.
 
 \subsection{What Did Not Work}
 
@@ -258,7 +258,7 @@ FR6 (web search) was not implemented beyond a stub that returns a link to Yahoo 
 
 FR12 (chart generation) is partial rather than missing. The system populates existing chart placeholders with data from the content plan. What it cannot do is create new chart types (bar, line, waterfall) from scratch when the template does not already include them. The mapping between LLM-generated chart specifications and PptxGenJS's chart API proved unreliable during development: field names, data array structures, and axis configurations varied too much between runs. Solving this requires either constraining the LLM output more tightly or building a chart-specific translation layer. Both are feasible in a next iteration with dedicated testing against multiple chart types.
 
-The common thread is scope management, not technical impossibility. Each unmet requirement has a clear implementation path. They were deferred because the 13-week timeline required prioritising features that addressed the biggest user pain point, which turned out to be the editing workflow rather than additional data sources or chart rendering.
+Each unmet requirement has a clear implementation path. They were deferred because of scope, not technical difficulty. They were deferred because the 13-week timeline required prioritising features that addressed the biggest user pain point, which turned out to be the editing workflow rather than additional data sources or chart rendering.
 
 \subsection{Limitations}
 
@@ -321,15 +321,11 @@ Multi-model evaluation (Claude, Gemini, open-source models) would reduce vendor 
 
 \subsection{Personal Learning}
 
-The most useful lesson was that the hard problems were not the expected ones. The GPT-4o integration took three days. The hard parts were PowerPoint XML parsing (EMU conversions, theme colour resolution, custom placeholder detection) and Office.js cookie handling inside iframes. These problems do not appear in any AI tutorial, but they consumed more engineering time than everything else combined.
+The most useful lesson was that the hard problems were not the expected ones. GPT-4o integration took three days. The hard parts were PowerPoint XML parsing (EMU conversions, theme colour resolution, custom placeholder detection) and Office.js cookie handling inside iframes. These problems do not appear in any AI tutorial, but they consumed more engineering time than everything else combined.
 
-Starting with the add-in rather than the web app would have been the right call. The web app came first because it was familiar ground, but the add-in made its generation features largely redundant. Three weeks of web development were partially wasted. A flatter content plan schema would also have helped. The nested structure (slides containing content blocks with varying types) caused most validation failures during development. A flatter schema would have reduced the need for the fallback plan.
+Starting with the add-in rather than the web app would have been the right call. The web app came first because it was familiar ground, but the add-in made its generation features largely redundant. A flatter content plan schema would also have helped. The nested structure (slides containing content blocks with varying types) caused most validation failures during development.
 
-The iterative approach proved its value in an unexpected way. Forcing a working prototype each cycle surfaced problems that no amount of upfront design would have found. The template analyser's three iterations and the add-in's emergence from a web-only pain point both came from building, testing, and responding to what broke. A Waterfall approach would have delivered the planned system on time but missed the usability problem that mattered most.
-
-A few lessons carry beyond this project. When building LLM-integrated systems, the LLM is rarely the hard part. The surrounding infrastructure absorbs most of the engineering effort (SE3). Building where the user already works beats building a new interface. And structured output validation with Zod turns a fuzzy problem (is this output good enough?) into a binary one (does it pass validation?).
-
-The project shifted how technical decisions get made. The early instinct was to plan everything upfront and follow that plan. The Python-to-TypeScript migration and the add-in pivot both broke that instinct in a productive way. The lesson was not that planning is pointless but that plans should be held loosely. The prototype tells you what the plan missed. Boehm made the same argument decades ago: prototypes expose risks that no amount of upfront design can predict \parencite{boehm1988}.
+A few lessons carry beyond this project. When building LLM-integrated systems, the LLM is rarely the hard part. The surrounding infrastructure absorbs most of the engineering effort (SE3). Building where the user already works beats building a new interface. Structured output validation with Zod turns a fuzzy problem (is this output good enough?) into a binary one (does it pass validation?). The prototype tells you what the plan missed \parencite{boehm1988}.
 
 \subsection{Conclusion}
 

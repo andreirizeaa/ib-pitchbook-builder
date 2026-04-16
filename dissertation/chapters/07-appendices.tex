@@ -57,51 +57,107 @@ Section~\ref{sec:introduction} analyses the investment banking pitch book workfl
 
 \subsection*{SE1: Create effective and secure software solutions}
 
-The system is a full-stack TypeScript application with input validation on all user-facing endpoints and credential management through environment variables. No secrets appear in source code. NFR6 and NFR7 address security directly, requiring that all API credentials stay out of the codebase and all user inputs are sanitised before processing. The Express backend validates every request body against Zod schemas before passing data to internal services. Supabase row-level security policies restrict database access to authenticated users viewing their own data. Sections~\ref{sec:research-design} and~\ref{sec:implementation} cover the design and implementation of these measures.
+\noindent\textbf{Sections:} \ref{sec:research-design} Research Design, \ref{sec:implementation} Implementation\\
+\noindent\textbf{Tables:} \ref{tab:tradeoffs}, \ref{tab:req-evidence}\\
+\noindent\textbf{Figures:} \ref{fig:architecture}\\
+\noindent\textbf{Pages:} \pageref{sec:research-design}, \pageref{sec:implementation}
+
+Security requirements NFR6 and NFR7 drove three concrete decisions. All API credentials live in environment variables and never appear in source code. Every request body passes through Zod schema validation before reaching any internal service. Uploaded template files are checked against the Office Open XML archive format to block path traversal and zip bomb attacks. Supabase row-level security policies prevent any user from reading another's records. The PowerPoint add-in runs inside an Office iframe with cross-origin restrictions; SameSite=None and Secure cookie attributes were necessary to make session authentication work across the iframe boundary. Sections~\ref{sec:research-design} and~\ref{sec:implementation} document these decisions in full.
 
 \subsection*{SE2: Undertake analysis and design to create artefacts}
 
-Section~\ref{sec:methodology} contains requirements tables covering 15 functional requirements (FR1 to FR15) and 8 non-functional requirements (NFR1 to NFR8), each with MoSCoW priority levels and acceptance criteria. Section~\ref{sec:research-design} presents architecture diagrams, data flow diagrams, and component designs with defined interfaces between services. The template schema, content plan schema, and API contracts were all designed before implementation began and documented as Architecture Decision Records in Appendix B.
+\noindent\textbf{Sections:} \ref{sec:methodology} Methodology, \ref{sec:research-design} Research Design\\
+\noindent\textbf{Tables:} \ref{tab:func-req}, \ref{tab:nfr}, \ref{tab:data-models}\\
+\noindent\textbf{Figures:} \ref{fig:architecture}, \ref{fig:er-diagram}, \ref{fig:dataflow}\\
+\noindent\textbf{Pages:} \pageref{sec:methodology}, \pageref{sec:research-design}
+
+Section~\ref{sec:methodology} covers requirements in two tables: 15 functional requirements (FR1--FR15) and 8 non-functional requirements (NFR1--NFR8), each with a MoSCoW priority and acceptance criteria. Section~\ref{sec:research-design} covers system design, including an architecture overview, a data flow diagram, an entity-relationship diagram, and component-level interface definitions. All schemas and API contracts were documented before any implementation work started — Swagger captures the REST API specification and Zod validates the content plan schema at runtime. Four architecture decisions are formalised as ADRs in Appendix~B, each with a context statement, the decision taken, the rationale, and its consequences.
 
 \subsection*{SE3: Produce high quality code with sound syntax}
 
-TypeScript runs in strict mode across all three applications. The shared-types package defines every data interface once and shares it across the backend, web frontend, and PowerPoint add-in. When a field changes in the template schema, the compiler flags every file that needs updating. ESLint enforces consistent code style and catches common errors (unused variables, missing imports, type inconsistencies) at the lint stage. Section~\ref{sec:implementation} covers the implementation details.
+\noindent\textbf{Sections:} \ref{sec:implementation} Implementation\\
+\noindent\textbf{Tables:} \ref{tab:monorepo}\\
+\noindent\textbf{Pages:} \pageref{sec:implementation}
+
+TypeScript runs in strict mode across all three applications, with strict null checks and no implicit any. The shared-types package defines every data interface once and shares it across the backend, web frontend, and PowerPoint add-in. A schema change in one place triggers compiler errors everywhere else that references it, so breaking changes cannot be silently introduced. ESLint catches common errors (unused variables, missing imports, type inconsistencies) at the lint stage before any code reaches CI. Prettier handles formatting automatically, removing it as a review concern entirely. All three applications share a single tsconfig base through the monorepo, so compiler rules are identical across the codebase. Table~\ref{tab:monorepo} shows the workspace structure and package dependencies.
 
 \subsection*{SE4: Perform code reviews, debugging and refactoring}
 
-The template analyser went through three iterations, each driven by a specific failure in the previous version. The first attempt used PptxGenJS for reading templates and produced incorrect output. The second used raw XML parsing but missed custom placeholders. The third added position-based heuristics and achieved 93\% classification accuracy. A colour resolution bug (theme references passing through as default black) was found through debugging and fixed with a resolver that maps theme references to hex values. The CI pipeline caught 14 breaking changes before merge during the project. Section~\ref{sec:implementation} documents these iterations and the challenges table.
+\noindent\textbf{Sections:} \ref{sec:implementation} Implementation\\
+\noindent\textbf{Tables:} \ref{tab:challenges}\\
+\noindent\textbf{Pages:} \pageref{sec:implementation}
+
+The template analyser went through three iterations, each driven by a specific failure in the previous version. The first attempt used PptxGenJS for reading templates but produced incorrect placeholder positions. The second used raw XML parsing which resolved positions correctly but missed custom placeholder types. The third added position-based heuristics that classify placeholders by size and location when the XML type attribute is absent; this reached 93\% classification accuracy. A colour resolution bug — theme references passing through as the default black instead of resolving to hex values — was found through debugging a generated output that should have used a gold accent colour. The fix added a theme resolver that walks the XML colour inheritance chain. Table~\ref{tab:challenges} documents this and seven other implementation challenges with their root causes and resolutions. The CI pipeline caught 14 breaking changes before they reached the main branch. Section~\ref{sec:implementation} covers these in detail.
 
 \subsection*{SE5: Test code to ensure requirements met}
 
-The project has 75 unit and integration tests across 14 test suites running on Vitest, plus 28 Cypress E2E tests across 7 spec files. All tests pass at 100\% rate. Code coverage sits at 76\% for the backend service, 64\% for the web app, and 58\% for the add-in. Unit tests mock external dependencies (OpenAI, Supabase, Office.js) so they run without API keys or a database connection. E2E tests run against a real Supabase backend with a test user account. Sections~\ref{sec:implementation} and~\ref{sec:evaluation} cover the test strategy and results.
+\noindent\textbf{Sections:} \ref{sec:implementation} Implementation, \ref{sec:evaluation} Evaluation\\
+\noindent\textbf{Tables:} \ref{tab:test-coverage}, \ref{tab:cypress-specs}\\
+\noindent\textbf{Figures:} \ref{fig:vitest-ui}, \ref{fig:cypress-passed}\\
+\noindent\textbf{Pages:} \pageref{sec:implementation}, \pageref{sec:evaluation}
+
+The project has 75 unit and integration tests across 14 Vitest test suites, plus 28 Cypress E2E tests across 7 spec files. All 103 pass. Code coverage sits at 76\% for the backend service, 64\% for the web app, and 58\% for the PowerPoint add-in. Unit tests mock external dependencies (OpenAI, Supabase, Office.js) using \texttt{vi.mock()} so they run without API keys or a live database connection. Integration tests for the orchestrator verify that the full service chain executes in the correct order and returns a valid pitch book object. E2E tests run against a real Supabase test environment with a dedicated test user account, covering login, pitch book creation, template upload, and settings flows. Table~\ref{tab:test-coverage} shows coverage by application and Figure~\ref{fig:vitest-ui} shows the Vitest UI output. Sections~\ref{sec:implementation} and~\ref{sec:evaluation} cover the full test strategy and results.
 
 \subsection*{SE6: Deliver software using industry standard build processes}
 
-GitHub Actions runs the full CI/CD pipeline on every push with six stages: dependency install, ESLint linting, TypeScript type checking, Vitest unit tests, Turborepo build, and Cypress E2E tests. Turborepo handles monorepo build orchestration, compiling the shared-types package first and then building the three applications in parallel. Mochawesome generates HTML test reports from Cypress results. The web app deploys through Vercel and the backend through Render. Section~\ref{sec:implementation} documents the pipeline stages.
+\noindent\textbf{Sections:} \ref{sec:implementation} Implementation\\
+\noindent\textbf{Tables:} \ref{tab:cicd}\\
+\noindent\textbf{Figures:} \ref{fig:github-actions}, \ref{fig:vercel-deploy}, \ref{fig:render-deploy}\\
+\noindent\textbf{Pages:} \pageref{sec:implementation}
+
+GitHub Actions runs the full CI/CD pipeline on every push to any branch with six sequential stages: dependency install, ESLint linting, TypeScript type checking, Vitest unit tests, Turborepo build, and Cypress E2E tests. A failing stage blocks all subsequent stages, so broken code never reaches the build or deployment steps. Turborepo handles monorepo build orchestration, compiling the shared-types package before the three applications and caching build outputs to speed up repeated runs. Mochawesome generates structured HTML test reports from Cypress results, stored as CI artefacts. The Next.js web app deploys to Vercel with automatic preview deployments on every pull request. The Express backend deploys to Render with zero-downtime rolling deploys. Table~\ref{tab:cicd} lists each pipeline stage with its tool and purpose. Figures~\ref{fig:github-actions}, \ref{fig:vercel-deploy}, and~\ref{fig:render-deploy} show the pipeline and deployment dashboards. Section~\ref{sec:implementation} documents the full pipeline configuration.
 
 \subsection*{SE7: Operate at all stages of the software development lifecycle}
 
-The project covers every SDLC stage: requirements analysis and methodology selection (Section~\ref{sec:methodology}), system design with architecture diagrams and API specifications (Section~\ref{sec:research-design}), implementation across three applications (Section~\ref{sec:implementation}), testing at unit, integration, and E2E levels (Section~\ref{sec:implementation}), and evaluation against defined success criteria (Section~\ref{sec:evaluation}). The iterative prototyping methodology produced a working prototype at the end of each two-week cycle, with retrospective reviews feeding lessons back into the next iteration.
+\noindent\textbf{Sections:} \ref{sec:methodology} Methodology, \ref{sec:research-design} Research Design, \ref{sec:implementation} Implementation, \ref{sec:evaluation} Evaluation\\
+\noindent\textbf{Tables:} \ref{tab:func-req}, \ref{tab:req-evidence}\\
+\noindent\textbf{Figures:} \ref{fig:gantt}\\
+\noindent\textbf{Pages:} \pageref{sec:methodology}, \pageref{sec:research-design}, \pageref{sec:implementation}, \pageref{sec:evaluation}
+
+The project worked through every SDLC stage in sequence. Requirements and methodology are in Section~\ref{sec:methodology}. System design — architecture, data models, and API specifications — is in Section~\ref{sec:research-design}. Section~\ref{sec:implementation} covers the build across all three applications and the full test suite. Section~\ref{sec:evaluation} measures outcomes against five predefined success criteria with quantitative evidence. Each two-week iteration produced working software. Retrospective reviews fed lessons directly into the next cycle; it was one of those reviews that surfaced the web-only friction problem and led to adding the PowerPoint add-in in cycle three. Table~\ref{tab:func-req} shows all 15 requirements set at the start; Table~\ref{tab:req-evidence} shows that 13 of 15 were fully delivered.
 
 \subsection*{SE8: How teams work effectively using agile and other approaches}
 
-Section~\ref{sec:methodology} compares Waterfall, Scrum, and iterative prototyping against five criteria relevant to the project. Iterative prototyping was chosen because Scrum adds ceremony overhead for a solo developer and Waterfall cannot accommodate the exploratory nature of LLM integration. Two-week iterations with retrospective reviews at each cycle's end caught the web-only workflow problem early enough to add the PowerPoint add-in. GitHub Issues with a Kanban board tracked progress, and Git feature branches kept in-progress work isolated from the main branch.
+\noindent\textbf{Sections:} \ref{sec:methodology} Methodology\\
+\noindent\textbf{Tables:} \ref{tab:methodologies}, \ref{tab:plan-vs-reality}\\
+\noindent\textbf{Figures:} \ref{fig:gantt}, \ref{fig:kanban}\\
+\noindent\textbf{Pages:} \pageref{sec:methodology}
+
+Section~\ref{sec:methodology} compares Waterfall, Scrum, and iterative prototyping and justifies the choice of iterative prototyping. Scrum's sprint ceremonies add overhead that makes no sense for a solo developer. Waterfall's fixed planning cannot accommodate LLM integration, where output quality is only known after testing against real data. Two-week iterations with retrospective reviews at each cycle's end caught the web-only workflow problem early enough to pivot to the PowerPoint add-in in cycle three, a decision that would have been impossible under a Waterfall plan. GitHub Issues with a Kanban board (Figure~\ref{fig:kanban}) tracked work items across backlog, in-progress, and done columns. Git feature branches kept in-progress work isolated from the main branch, with CI running on every push to catch regressions before merge. Table~\ref{tab:plan-vs-reality} documents planned versus actual scope across all six iterations.
 
 \subsection*{SE9: How to apply software analysis and design approaches}
 
-MoSCoW prioritisation categorised all 15 functional requirements as Must, Should, or Could. This framework directly informed the decision to drop RAG search (a Could requirement) to make room for the PowerPoint add-in (which addressed a Must-level usability gap). Business, functional, and non-functional requirements are separated following \textcite{robertson2012}. Architecture decisions are documented with trade-off analysis in Tables~\ref{tab:methodologies} to~\ref{tab:tradeoffs} and formalised as ADRs in Appendix~B. Sections~\ref{sec:methodology} and~\ref{sec:research-design} cover requirements and design.
+\noindent\textbf{Sections:} \ref{sec:methodology} Methodology, \ref{sec:research-design} Research Design\\
+\noindent\textbf{Tables:} \ref{tab:func-req}, \ref{tab:nfr}, \ref{tab:tradeoffs}\\
+\noindent\textbf{Figures:} \ref{fig:architecture}\\
+\noindent\textbf{Pages:} \pageref{sec:methodology}, \pageref{sec:research-design}
+
+MoSCoW prioritisation categorised all 15 functional requirements as Must, Should, or Could before implementation began. This framework directly informed the mid-project decision to drop RAG search (FR15, a Could requirement) to make room for the PowerPoint add-in, which addressed a Must-level usability gap identified during iteration two. Business requirements (BR1 to BR4), functional requirements (FR1 to FR15), and non-functional requirements (NFR1 to NFR8) are separated following \textcite{robertson2012}, with each layer traced to the one above. Four major architecture decisions — language choice, LLM provider, monorepo structure, and the dual slide builder approach — are documented with trade-off analysis in Table~\ref{tab:tradeoffs} and formalised with full context, rationale, and consequences as ADRs in Appendix~B. The system architecture diagram (Figure~\ref{fig:architecture}) maps the resulting component boundaries and service interfaces. Sections~\ref{sec:methodology} and~\ref{sec:research-design} cover requirements elicitation and system design respectively.
 
 \subsection*{SE10: Interpret and implement a design compliant with requirements}
 
-The requirements traceability table in Section~\ref{sec:implementation} maps each functional requirement to its implementation status with specific evidence. 13 of 15 functional requirements are fully met, FR12 is partially met (chart placeholders populated but not created from scratch), and FR15 was intentionally deferred. All five success criteria defined in Section~\ref{sec:introduction} are met with measured evidence. Section~\ref{sec:evaluation} assesses each objective against quantitative results from evaluation runs.
+\noindent\textbf{Sections:} \ref{sec:introduction} Introduction, \ref{sec:implementation} Implementation, \ref{sec:evaluation} Evaluation\\
+\noindent\textbf{Tables:} \ref{tab:gap-objectives}, \ref{tab:req-evidence}, \ref{tab:objectives}\\
+\noindent\textbf{Pages:} \pageref{sec:introduction}, \pageref{sec:implementation}, \pageref{sec:evaluation}
+
+The requirements traceability table (Table~\ref{tab:req-evidence}) maps all 15 functional requirements to their implementation status with specific evidence for each. 13 of 15 are fully met. FR12 (chart generation) is partial: placeholder positions appear in the content plan, but charts are not yet rendered from scratch. FR5 (SEC EDGAR) is also partial: the EDGAR client fetches filing metadata, but that data is not yet passed into the GPT-4o prompt. FR15 (RAG search) was dropped to make room for the PowerPoint add-in. The gap-to-objective traceability table (Table~\ref{tab:gap-objectives}) established in Section~\ref{sec:introduction} is closed in Section~\ref{sec:evaluation}: every identified gap maps to an objective, and every objective maps to a measured result. Table~\ref{tab:objectives} in Section~\ref{sec:evaluation} shows each objective's success criterion alongside the measured evidence from the 12 evaluation runs.
 
 \subsection*{SE11: How to perform functional and unit testing}
 
-Vitest handles unit and integration tests with mocked dependencies using \texttt{vi.mock()} and \texttt{vi.stubGlobal()}. Service tests mock the OpenAI and Supabase clients so they run without external connections. Add-in tests mock the Office.js runtime. Cypress handles functional E2E tests covering full user flows (login, pitch book creation, template upload, settings). A comparison table in Section~\ref{sec:implementation} justifies choosing Cypress over Playwright based on setup time, debugging tools, and reporting integration.
+\noindent\textbf{Sections:} \ref{sec:implementation} Implementation\\
+\noindent\textbf{Tables:} \ref{tab:test-coverage}, \ref{tab:cypress-specs}\\
+\noindent\textbf{Figures:} \ref{fig:vitest-ui}, \ref{fig:cypress-specs}, \ref{fig:cypress-passed}\\
+\noindent\textbf{Pages:} \pageref{sec:implementation}
+
+Vitest handles unit and integration tests with mocked dependencies using \texttt{vi.mock()} and \texttt{vi.stubGlobal()}. Service tests mock the OpenAI and Supabase clients so tests run without external connections or API spend. Add-in tests mock the full Office.js runtime, including \texttt{PowerPoint.run()} and the slide insertion API, so the add-in logic can be tested independently of PowerPoint. Cypress handles functional E2E tests covering full user flows: login, registration, pitch book creation with and without templates, the slide viewer, template management, and settings. Each Cypress spec file maps to a discrete feature area; Table~\ref{tab:cypress-specs} lists all seven spec files with their scope and pass status. A comparison table in Section~\ref{sec:implementation} justifies choosing Cypress over Playwright on setup time, debugging tools (time-travel screenshots), and Mochawesome reporting integration. Figures~\ref{fig:vitest-ui}, \ref{fig:cypress-specs}, and~\ref{fig:cypress-passed} show the test runner outputs.
 
 \subsection*{SE12: How to use and apply software tools used in software engineering}
 
-The project uses Git and GitHub for version control, GitHub Actions for CI/CD, Turborepo for monorepo management, Vitest and Cypress for testing, Mochawesome for test reporting, ESLint and Prettier for code style, the TypeScript compiler for static type checking, PptxGenJS and JSZip for PowerPoint manipulation, LibreOffice headless for slide preview rendering, and Vercel and Render for deployment. Technology selection is justified in Section~\ref{sec:methodology} with comparison tables covering programming languages, LLM providers, data sources, and deployment platforms.
+\noindent\textbf{Sections:} \ref{sec:methodology} Methodology, \ref{sec:implementation} Implementation\\
+\noindent\textbf{Tables:} \ref{tab:lang-comparison}, \ref{tab:llm-comparison}, \ref{tab:data-sources}, \ref{tab:deploy}\\
+\noindent\textbf{Pages:} \pageref{sec:methodology}, \pageref{sec:implementation}
+
+Every phase of development had a dedicated tool. Version control ran through Git and GitHub with feature branching. GitHub Actions and Turborepo handled the CI/CD pipeline and monorepo build orchestration. Testing split across Vitest for unit and integration tests and Cypress for E2E tests, with Mochawesome generating HTML reports. ESLint, Prettier, and the TypeScript compiler enforced code quality without manual review overhead. PowerPoint generation used PptxGenJS in default mode and JSZip with xml2js for XML-level template parsing. LibreOffice headless and pdftoppm handled slide preview rendering. Supabase, Vercel, and Render covered storage, frontend hosting, and backend hosting. Each major technology choice is justified in Section~\ref{sec:methodology} with a scored comparison table covering the alternatives considered (Tables~\ref{tab:lang-comparison}, \ref{tab:llm-comparison}, \ref{tab:data-sources}, \ref{tab:deploy}).
 
 \newpage
 

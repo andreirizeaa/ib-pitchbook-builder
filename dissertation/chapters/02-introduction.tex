@@ -3,8 +3,6 @@
 
 Knowledge workers spend a fifth of their time just searching for information \parencite{mckinsey2012}. Investment banking (IB) is more affected than most. Document preparation consumes half to three-quarters of a junior banker's week, and pitch books (PBs) account for a large portion of that time \parencite{cfi2025,wso2024}. When Goldman Sachs surveyed its first-year analysts in 2021, the average was 98 hours a week, with document preparation a major driver of burnout \parencite{bbc2021}. Yet most PBs look nearly identical. Change the company name and update the numbers, and you could reuse last month's deck. That repetition makes them good targets for automation (K1, K7).
 
-IB firms advise companies on mergers, acquisitions, capital raising, and other financial transactions. PBs are how firms communicate analysis to clients and internal stakeholders. Getting these documents right matters, but getting them done quickly matters too.
-
 Firms have tried internal document libraries, formatting specialists, and automation tools. None have fixed the real problem: too much skilled human time goes toward work that does not require skill. \textcite{chaves2022} found that knowledge sharing in banking suffers from structural barriers and inadequate digital tools, with company knowledge locked in individual documents rather than shared systems.
 
 \subsection{Analyst Time Allocation}
@@ -27,7 +25,7 @@ The second obstacle is that company knowledge tends to disappear. Researchers di
 
 The third obstacle is that onboarding takes longer than it should. Each bank has its own templates, data sources, and quality expectations. A new analyst at Goldman Sachs uses different templates, colour schemes, and narrative conventions than one at Morgan Stanley. Junior analysts absorb these through trial and error, which is slow for them and a drain on the senior bankers who review their work. A system that encodes these standards into a template and applies them automatically would shorten this learning curve.
 
-These problems feed each other. Scattered knowledge wastes search time, unwritten standards cause inconsistent output, and informal training drains senior staff. A system that fixed even one of these would help.
+These problems feed each other. Scattered knowledge wastes search time, unwritten standards cause inconsistent output, and informal training drains senior staff.
 
 \subsection{Gap Analysis}
 
@@ -41,7 +39,7 @@ Agentic AI architectures offer a better fit \parencite{ibm2024}. Instead of one 
 
 This project fills that gap (S1). The pipeline extracts layouts, colour palettes, and placeholder positions from a template using JSZip and xml2js for XML-level parsing. It then uses an LLM to plan content and assembles slides matching the original style. The system breaks tasks into steps handled by separate services rather than running everything in one pass.
 
-Table~\ref{tab:gap-objectives} maps each identified gap to the objective and success criterion that addresses it, so that no objective exists without a corresponding gap in existing work.
+Table~\ref{tab:gap-objectives} maps each gap to its corresponding objective and success criterion.
 
 \begin{table}[H]
 \centering
@@ -64,7 +62,7 @@ No measured evaluation of template-constrained generation & O5 & Full deck in un
 \label{tab:gap-objectives}
 \end{table}
 
-The approach differs from prior work by inverting the generation order: the system starts with visual constraints extracted from the template and works backward to content. It also connects slide generation directly to financial data APIs, closing the gap between data retrieval and document creation.
+The approach differs from prior work by inverting the generation order: the system starts with visual constraints extracted from the template and works backward to content, connecting slide generation directly to financial data APIs.
 
 \subsection{Business Case}
 
@@ -78,7 +76,7 @@ The aim is to design, build, and test a proof-of-concept (POC) showing how AI-po
 
 On the business side, the goal is a workflow where an analyst provides minimal input and receives a solid first draft. Formatting time drops, but humans stay in control of the analysis. Target users are junior analysts.
 
-On the learning side, the project is designed to evidence apprenticeship KSBs across software engineering practice, business case analysis, and the strategic application of emerging technology. These goals satisfy the IOT635 assessment requirement to demonstrate both technical competency and business insight (K1, K2, K3, K8, K9, S1). HITL design is central throughout, since AI tools in regulated industries need to support professional judgement rather than replace it.
+On the learning side, the project is designed to evidence apprenticeship KSBs across software engineering practice, business case analysis, and the strategic application of emerging technology. These goals satisfy the IOT635 assessment requirement to demonstrate both technical competency and business insight (K1, K2, K3, K8, K9, S1). Beyond KSBs, the project offers experience building a complete system end-to-end: from requirements through architecture, implementation, testing, deployment, and evaluation. HITL design is central throughout, since AI tools in regulated industries need to support professional judgement rather than replace it.
 
 Five objectives structure the work:
 
@@ -105,13 +103,4 @@ Four assumptions underpin the scope:
     \item Users have desktop PowerPoint; the add-in relies on Office.js APIs that PowerPoint for the web does not fully support.
 \end{itemize}
 
-Success criteria:
-
-\begin{itemize}
-    \item Generate complete PB draft within five minutes
-    \item Match reference template formatting
-    \item Accurate financial data from source APIs
-    \item Content structure following IB conventions, verified against precedent examples
-\end{itemize}
-
-One principle runs through all of this: HITL design. The system produces drafts for human review, not finished products. AI can handle the mechanical work. The analytical judgement stays with the banker.
+One principle runs through the design: HITL. The system produces drafts for human review, not finished products. AI handles the mechanical work. The analytical judgement stays with the banker.

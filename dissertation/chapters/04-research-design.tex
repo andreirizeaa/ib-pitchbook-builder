@@ -3,7 +3,7 @@
 
 \subsection{Literature Review}
 
-The project scope covers pitch book generation: taking a template, pulling financial data, planning content with an LLM, and assembling slides. RAG search over precedent materials was dropped to make room for the PowerPoint add-in (Section~\ref{sec:methodology}). The literature review focuses on what the system actually does, covering LLM productivity evidence, automated presentation generation, agentic architectures, and structured output reliability. Sources come from Google Scholar, ACM Digital Library, and IEEE Xplore, with snowball searching from \textcite{zheng2025} and \textcite{wang2024}.
+The project scope covers pitch book generation: taking a template, pulling financial data, planning content with an LLM, and assembling slides. The literature review focuses on LLM productivity evidence, automated presentation generation, agentic architectures, and structured output reliability.
 
 \subsubsection{LLM Productivity}
 
@@ -11,7 +11,7 @@ Large-scale studies back up LLM productivity gains with real numbers. \textcite{
 
 \textcite{dellacqua2023} ran a randomised experiment with 758 Boston Consulting Group (BCG) consultants and found that those using GPT-4 completed 12.2\% more tasks, 25.1\% faster, with 40\% higher quality. Their main finding was the `jagged technological frontier': tasks inside the AI's capability boundary saw large gains, while tasks outside it made consultants perform worse. PB formatting and data retrieval sit inside the frontier. Analytical judgement sits outside it, which is why the system produces drafts rather than finished documents. \textcite{peng2023} found that developers with GitHub Copilot completed tasks 55.8\% faster, with less experienced developers benefiting most. The parallel is direct: junior analysts are the less experienced workers who stand to gain the most.
 
-That said, none of these studies addressed template-constrained document generation where outputs must match precise visual specifications. General writing assistance helps with content but does nothing for the mechanical formatting work that consumes analyst time. This project targets that gap.
+That said, none of these studies addressed template-constrained document generation where outputs must match precise visual specifications. General writing assistance helps with content but does nothing for the mechanical formatting work that consumes analyst time.
 
 \subsubsection{Automated Presentation Generation}
 
@@ -68,7 +68,7 @@ Getting reliable structured output from LLMs is a harder problem than it first a
 
 \textcite{alansari2025} group prevention into three categories: grounding outputs in real sources, forcing structured output formats, and human review. No single strategy eliminates hallucination. The system layers all three: financial data comes from APIs rather than LLM generation, structured JSON schemas enforce the format of each slide specification, and human review is mandatory before any output reaches a client.
 
-\textcite{wu2022} classify HITL approaches into data processing, interventional training, and system design. The approach here is system design: the analyst defines inputs, reviews outputs, and decides whether to use them. The EU AI Act requires human oversight for AI in financial services \parencite{bis2024}. HITL is a compliance requirement, not just a design preference. Junior analysts already produce drafts that senior bankers revise. The system replaces the blank page, not the review process.
+\textcite{wu2022} classify HITL approaches into data processing, interventional training, and system design. The approach here is system design: the analyst defines inputs, reviews outputs, and decides whether to use them. The EU AI Act requires human oversight for AI in financial services \parencite{bis2024}. HITL is a compliance requirement. Junior analysts already produce drafts that senior bankers revise. The system replaces the blank page. The review process stays the same.
 
 \subsubsection{Research Gaps}
 
@@ -78,7 +78,7 @@ The system targets these gaps with code-based template extraction for exact visu
 
 \subsection{System Design}
 
-This section documents the system architecture, data models, and component specifications derived from the requirements and literature review. The design puts template matching, clean separation of components, and human oversight first.
+The design puts template matching, clean separation of components, and human oversight first.
 
 \subsubsection{Architecture Overview}
 
@@ -126,9 +126,9 @@ Figure~\ref{fig:architecture} shows the high-level system architecture. The desi
 
 The architecture addresses the four limitations identified in the literature review. The Template Analyser solves the exact-matching problem by extracting colour hex codes, font specifications, and placeholder positions directly from the .pptx XML rather than using visual approximation. The Data Retrieval service solves the data integration gap by pulling real financials from Yahoo Finance and SEC EDGAR and passing them into the LLM prompt. The Content Planner adds IB domain awareness by following pitch book narrative conventions (executive summary, business overview, financials, valuation) through a structured system prompt. The Slide Builder closes the structure-content gap by generating slides that respect both the template constraints and the content plan in a single pass.
 
-These components are separated into independent modules (SE2, SE9). Each can be tested in isolation: the template analyser against real .pptx files without an LLM call, the slide builder against fixed content plans without GPT-4o. Components can also be reused independently. The template analyser could serve as a standalone tool for cataloguing corporate templates, which is the first recommendation in Section~\ref{sec:evaluation}.
+These components are separated into independent modules (SE2, SE9). Each can be tested in isolation: the template analyser against real .pptx files without an LLM call, the slide builder against fixed content plans without GPT-4o.
 
-Data Retrieval from Yahoo Finance and SEC EDGAR was originally a stretch goal. It was implemented because usability testing showed that analysts wanted real financial data in the first draft rather than placeholders they would have to fill manually. The pipeline architecture made this simple to add: the data retrieval module plugs in between validation and content planning without changing any other component. \textcite{wang2024}'s agent framework supports this pattern, where tools are added to an agent's action space without redesigning the planning loop.
+Data Retrieval from Yahoo Finance and SEC EDGAR was originally a stretch goal. It was implemented because usability testing showed that analysts wanted real financial data in the first draft rather than placeholders they would have to fill manually. The pipeline architecture made this simple to add: the data retrieval module plugs in between validation and content planning without changing any other component.
 
 \subsubsection{Data Models}
 
@@ -500,7 +500,7 @@ Sync vs async generation & Async job processing & Generation takes 30 to 80 seco
 
 \subsubsection{Data Flow}
 
-Figure~\ref{fig:dataflow} shows how data moves through the system during a generation request. There is no direct data flow from template extraction to content planning. All data passes through the Template Schema, which is the sole output of the extraction stage and the sole template input to the planning stage. The schema acts as a contract between the two components: the extractor writes it, and the planner reads it. This means the content planner never touches the raw .pptx file. It only sees the structured schema, which makes the planner independent of PowerPoint's XML format. The slide builder also receives the template schema (not shown separately to keep the diagram simple) so it can apply exact colours and fonts during assembly.
+Figure~\ref{fig:dataflow} shows how data moves through the system during a generation request. There is no direct data flow from template extraction to content planning. All data passes through the Template Schema, which is the sole output of the extraction stage and the sole template input to the planning stage. The schema acts as a contract between the two components: the extractor writes it, and the planner reads it. This means the content planner never touches the raw .pptx file.
 
 \begin{figure}[H]
 \centering
