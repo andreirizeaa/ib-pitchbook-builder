@@ -27,8 +27,8 @@
 \contentsline {table}{\numberline {27}{\ignorespaces Objectives Assessment}}{60}{table.caption.58}%
 \contentsline {table}{\numberline {28}{\ignorespaces Usability Evaluation Results (n=4, Likert 1 to 5). Median and interquartile range reported for ordinal data.}}{61}{table.caption.59}%
 \contentsline {table}{\numberline {29}{\ignorespaces Prioritised Recommendations with Effort and Impact Estimates}}{65}{table.caption.61}%
-\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{79}{table.30}%
-\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation).}}{79}{table.31}%
-\contentsline {table}{\numberline {33}{\ignorespaces Risk register for Binary Risk Analysis.}}{95}{table.33}%
-\contentsline {table}{\numberline {34}{\ignorespaces BRA worksheet. L = Likelihood, I = Impact, O = Overall. Med = Medium.}}{95}{table.caption.123}%
-\contentsline {table}{\numberline {35}{\ignorespaces 3$\times $3 combination matrix used at each stage.}}{96}{table.caption.127}%
+\contentsline {table}{\numberline {30}{\ignorespaces Evaluation Run Inputs. Runs 11 and 12 repeat runs 1 and 2 to check consistency. All seven deck layouts and six of eight colour themes were tested.}}{80}{table.30}%
+\contentsline {table}{\numberline {31}{\ignorespaces Evaluation Run Results. Colour = hex match against template theme. Font = family and size match. Zod Valid = whether the LLM output passed schema validation (``unwrapped'' means the response was nested inside a wrapper object that the unwrapping logic handled before validation).}}{80}{table.31}%
+\contentsline {table}{\numberline {33}{\ignorespaces Risk register for Binary Risk Analysis.}}{96}{table.33}%
+\contentsline {table}{\numberline {34}{\ignorespaces BRA worksheet. L = Likelihood, I = Impact, O = Overall. Med = Medium.}}{96}{table.caption.123}%
+\contentsline {table}{\numberline {35}{\ignorespaces 3$\times $3 combination matrix used at each stage.}}{97}{table.caption.127}%

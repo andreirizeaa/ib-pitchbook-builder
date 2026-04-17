@@ -106,44 +106,6 @@
       \verb https://github.com/adamgruber/mochawesome
       \endverb
     \endentry
-    \entry{alansari2025}{article}{}{}
-      \name{author}{2}{}{%
-        {{un=0,uniquepart=base,hash=bb8cd0b29f6f1ebb64b00e5e8e4039a1}{%
-           family={Alansari},
-           familyi={A\bibinitperiod},
-           given={Asmaa},
-           giveni={A\bibinitperiod},
-           givenun=0}}%
-        {{un=0,uniquepart=base,hash=3c1ce4e6bba8f49720af22037dca2384}{%
-           family={Luqman},
-           familyi={L\bibinitperiod},
-           given={Hamzah},
-           giveni={H\bibinitperiod},
-           givenun=0}}%
-      }
-      \strng{namehash}{22287cc29b0aa430e6373cef1a8412eb}
-      \strng{fullhash}{22287cc29b0aa430e6373cef1a8412eb}
-      \strng{fullhashraw}{22287cc29b0aa430e6373cef1a8412eb}
-      \strng{bibnamehash}{22287cc29b0aa430e6373cef1a8412eb}
-      \strng{authorbibnamehash}{22287cc29b0aa430e6373cef1a8412eb}
-      \strng{authornamehash}{22287cc29b0aa430e6373cef1a8412eb}
-      \strng{authorfullhash}{22287cc29b0aa430e6373cef1a8412eb}
-      \strng{authorfullhashraw}{22287cc29b0aa430e6373cef1a8412eb}
-      \field{sortinit}{A}
-      \field{sortinithash}{2f401846e2029bad6b3ecc16d50031e2}
-      \field{extradatescope}{labelyear}
-      \field{labeldatesource}{}
-      \field{labelnamesource}{author}
-      \field{labeltitlesource}{title}
-      \field{journaltitle}{ACM Computing Surveys}
-      \field{number}{8}
-      \field{title}{Hallucination in Large Language Models: A Survey with Taxonomy and Mitigation Strategies}
-      \field{volume}{57}
-      \field{year}{2025}
-      \verb{doi}
-      \verb 10.1145/3703633
-      \endverb
-    \endentry
     \entry{apqc2023}{online}{}{}
       \name{author}{1}{}{%
         {{un=0,uniquepart=base,hash=d3924d4b95ad40567d8fa4d6784503b1}{%
@@ -325,7 +287,7 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{month}{3}
-      \field{title}{Goldman Sachs junior bankers rebel over `inhumane' 100-hour weeks}
+      \field{title}{Young {Goldman Sachs} bankers ask for 80-hour week cap}
       \field{urlday}{8}
       \field{urlmonth}{3}
       \field{urlyear}{2026}
@@ -851,7 +813,7 @@
       \field{labelnamesource}{author}
       \field{labeltitlesource}{title}
       \field{journaltitle}{arXiv preprint}
-      \field{title}{Generating Structured Outputs from Language Models: Benchmark and Studies}
+      \field{title}{{JSONSchemaBench}: A Rigorous Benchmark of Structured Outputs for Language Models}
       \field{year}{2025}
       \verb{eprint}
       \verb 2501.10868
@@ -1960,6 +1922,126 @@
       \endverb
       \verb{url}
       \verb https://arxiv.org/abs/2509.11062
+      \endverb
+    \endentry
+    \entry{zhang2023hallucination}{article}{}{}
+      \name{author}{15}{}{%
+        {{un=1,uniquepart=given,hash=b8238061b3c805be2a30dd55bb11fb21}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Yue},
+           giveni={Y\bibinitperiod},
+           givenun=1}}%
+        {{un=0,uniquepart=base,hash=4c8d8db2c549c9cb34f3383809f6985c}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Yafu},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c2c3b6a1a23499549f41aadc7c9c292c}{%
+           family={Cui},
+           familyi={C\bibinitperiod},
+           given={Leyang},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=d927549489c087f3c02a85fa0c042bf9}{%
+           family={Cai},
+           familyi={C\bibinitperiod},
+           given={Deng},
+           giveni={D\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3ec966d25f9c35d41bacad5eab2e9732}{%
+           family={Liu},
+           familyi={L\bibinitperiod},
+           given={Lemao},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=2e83fb9c77e1804aff9b84bc5497b875}{%
+           family={Fu},
+           familyi={F\bibinitperiod},
+           given={Tingchen},
+           giveni={T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7f01438dfb6e336143cd057129771454}{%
+           family={Huang},
+           familyi={H\bibinitperiod},
+           given={Xinting},
+           giveni={X\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=28e8078e4e8557c200950e04e484c513}{%
+           family={Zhao},
+           familyi={Z\bibinitperiod},
+           given={Enbo},
+           giveni={E\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=9a4f4a1ff661cd600eb26523a5ba8bb4}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Yu},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=3bcf82a33e3ce123e09f7415e407a049}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Yulong},
+           giveni={Y\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=73c98840f4d18bf9244a7175bbad79e3}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Longyue},
+           giveni={L\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=c0917652a29659d0da485f438f2b3c36}{%
+           family={Luu},
+           familyi={L\bibinitperiod},
+           given={Anh\bibnamedelima Tuan},
+           giveni={A\bibinitperiod\bibinitdelim T\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=7981473e6f95f6b26e19d3e6de34315f}{%
+           family={Bi},
+           familyi={B\bibinitperiod},
+           given={Wei},
+           giveni={W\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=beafe8b6b1010e0fff35b884d2e00f54}{%
+           family={Shi},
+           familyi={S\bibinitperiod},
+           given={Freda},
+           giveni={F\bibinitperiod},
+           givenun=0}}%
+        {{un=0,uniquepart=base,hash=ed784b8fee5eef6e23f176b450371f8d}{%
+           family={Shi},
+           familyi={S\bibinitperiod},
+           given={Shuming},
+           giveni={S\bibinitperiod},
+           givenun=0}}%
+      }
+      \strng{namehash}{f255e0a20f7125703df66a2712ec4d02}
+      \strng{fullhash}{7d0beabb236e94023e7b9432ad72db14}
+      \strng{fullhashraw}{7d0beabb236e94023e7b9432ad72db14}
+      \strng{bibnamehash}{7d0beabb236e94023e7b9432ad72db14}
+      \strng{authorbibnamehash}{7d0beabb236e94023e7b9432ad72db14}
+      \strng{authornamehash}{f255e0a20f7125703df66a2712ec4d02}
+      \strng{authorfullhash}{7d0beabb236e94023e7b9432ad72db14}
+      \strng{authorfullhashraw}{7d0beabb236e94023e7b9432ad72db14}
+      \field{sortinit}{Z}
+      \field{sortinithash}{96892c0b0a36bb8557c40c49813d48b3}
+      \field{extradatescope}{labelyear}
+      \field{labeldatesource}{}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint}
+      \field{title}{Siren's Song in the {AI} Ocean: A Survey on Hallucination in Large Language Models}
+      \field{year}{2023}
+      \verb{eprint}
+      \verb 2309.01219
+      \endverb
+      \verb{urlraw}
+      \verb https://arxiv.org/abs/2309.01219
+      \endverb
+      \verb{url}
+      \verb https://arxiv.org/abs/2309.01219
       \endverb
     \endentry
     \entry{zheng2025}{article}{}{}
