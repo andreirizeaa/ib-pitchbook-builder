@@ -255,7 +255,7 @@ If an API call fails, the service returns graceful null values rather than abort
 
 The system uses LibreOffice in headless mode to convert .pptx to PDF, then \texttt{pdftoppm} to render each page as a PNG at 150 DPI. Previews are uploaded to Supabase Storage with signed URLs and displayed in the web frontend's slide viewer. The pipeline runs asynchronously after slide assembly completes, so the .pptx file is available immediately while previews generate in the background.
 
-Neither this pipeline nor the add-in below were in the original design. Both emerged from usability problems found during implementation. The web app originally showed only a download link for the generated file. Without visual previews, users had to open the file in PowerPoint to see what was generated, which added friction and made the web interface feel disconnected from the output. Adding preview images turned the web app into a useful management interface even after the add-in became the primary generation tool.
+Neither pipeline was in the original design. Both emerged from usability problems: without visual previews, users had to open the file in PowerPoint to see what was generated, which added friction. Adding preview images turned the web app into a useful management interface even after the add-in became the primary generation tool.
 
 \subsection{From Web-Only to Add-in: The Product Pivot}
 \label{sec:pivot}
@@ -318,8 +318,6 @@ The add-in is a taskpane built with Office.js that runs inside PowerPoint, commu
 \label{fig:addin-architecture}
 \end{figure}
 
-Because both the web app and the add-in connect to the same Express backend and Supabase database, a pitch book generated in either interface appears in both. An analyst can start a generation from the web app's creation form, and the resulting deck will be available in the add-in's pitch book list when they open PowerPoint. The two interfaces are two views of the same data, each suited to a different task.
-
 \begin{figure}[H]
 \centering
 \screenshot{screenshots/add-in/1-addin-full.png}
@@ -327,7 +325,7 @@ Because both the web app and the add-in connect to the same Express backend and 
 \label{fig:addin-taskpane}
 \end{figure}
 
-The \texttt{insertSlidesFromBase64()} API pushes the generated .pptx directly into the active presentation. The web app became a management interface for browsing pitch books. Both applications share the same backend (K5).
+The \texttt{insertSlidesFromBase64()} API pushes the generated .pptx directly into the active presentation. Both the add-in and the web app connect to the same backend and database, so a deck generated in either interface appears in both. The web app handles browsing, preview, and history. The add-in handles generation and editing inside PowerPoint (K5).
 
 \begin{figure}[H]
 \centering
