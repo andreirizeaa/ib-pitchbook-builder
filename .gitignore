@@ -12,3 +12,4 @@ build
 test-report
 cypress/reports
 cypress/screenshots
+cypress.env.json

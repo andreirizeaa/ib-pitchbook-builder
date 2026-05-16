@@ -26,12 +26,11 @@ function stringToBase64URL(str: string): string {
 }
 
 Cypress.Commands.add('login', () => {
-  const supabaseUrl = 'https://YOUR_PROJECT.supabase.co';
-  const supabaseAnonKey =
-    'REDACTED_SUPABASE_ANON_KEY';
-  const email = 'test@example.com';
-  const password = 'REDACTED_PASSWORD';
-  const ref = 'YOUR_PROJECT_REF';
+  const supabaseUrl = Cypress.env('SUPABASE_URL') || '';
+  const supabaseAnonKey = Cypress.env('SUPABASE_ANON_KEY') || '';
+  const email = Cypress.env('TEST_USER_EMAIL') || '';
+  const password = Cypress.env('TEST_USER_PASSWORD') || '';
+  const ref = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || '';
   const cookieName = `sb-${ref}-auth-token`;
   const MAX_CHUNK_SIZE = 3180;
 
